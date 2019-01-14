@@ -146,7 +146,7 @@ void draw_sector(sector* sect) {
             high_col = (high_col << 4 | high_col);
         }
         
-        /*
+        
         Vect2D_s16 top[4] = {
             {x2, 0}, {x2, y2a},
             {x1, y1a}, {x1, 0}
@@ -158,24 +158,24 @@ void draw_sector(sector* sect) {
             {x1, H-1}, {x1, y1b}
         };
         BMP_drawPolygon(bot, 4, sect_floor_col);
-        */
+        
         
 
         if(w->back_sector == NULL) { //w->middle_color != TRANSPARENT_IDX) { 
-            /*
+            
             Vect2D_s16 poly[4] = {
                 {x2, y2a}, {x2, y2b},
                 {x1, y1b}, {x1, y1a}
             };
-            BMP_drawPolygon(poly, 4, col);
-            */
-           insert_span(x1, x2, y1a, y2a, y1b, y2b, sect_ceil_col, wall_col, sect_floor_col);
+            BMP_drawPolygon(poly, 4, wall_col);
+            
+           //insert_span(x1, x2, y1a, y2a, y1b, y2b, sect_ceil_col, wall_col, sect_floor_col);
         } else {
-            for(int x = max(0, x1); x < min(W-1, x2); x++) {
-                ytop[x] = min(y1a, y2a);
-                ybottom[x] = max(y1b, y2b);
-            }
-            /*
+            //for(int x = max(0, x1); x < min(W-1, x2); x++) {
+            //    ytop[x] = min(y1a, y2a);
+            //    ybottom[x] = max(y1b, y2b);
+            //}
+            
             fix32 nsceil = w->back_sector->ceil_height;
             if(nsceil < sect_ceil) {
                 fix32 nyceil = nsceil - ply.where.z;
@@ -200,7 +200,7 @@ void draw_sector(sector* sect) {
                 };
                 BMP_drawPolygon(up_floor, 4, low_col);
             }
-            */
+            
         }
 
 
@@ -256,7 +256,7 @@ void draw_bsp_node(bsp_node* node) {
                     in_front = (ply.where.y < node->inner.split_pos);
                     break;
             }
-            if(in_front) {
+            if(!in_front) {
                 draw_bsp_node(node->inner.front);
                 draw_bsp_node(node->inner.behind);
             } else {

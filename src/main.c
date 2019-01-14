@@ -41,7 +41,7 @@ void print_pos() {
   fix32ToStr(ply.where.z, buf+3, 3);
   BMP_drawText(buf, 0, 4);
   sprintf(buf, "ang: ");
-  fix16ToStr(ply.angle, buf+5, 3);
+  fix16ToStr(ply.angle, buf+5, 1);
   BMP_drawText(buf, 0, 5);
   sprintf(buf, "sect: %lu", ply.cur_sector->sectnum);
   BMP_drawText(buf, 0, 6);
@@ -60,8 +60,7 @@ void clear_pos() {
 
 
 
-int main()
-{
+int main() {
 
   
 
