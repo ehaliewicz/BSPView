@@ -179,10 +179,9 @@ int insert_span(int x1, int x2, int y1a, int y2a, int y1b, int y2b, u8 ceil_col,
   //return;
   if(span_buf_head == NULL) { return 1; }
 
-  for (old=NULL,current=span_buf_head;
-       current!=NULL;
-       old=current,current=current->next)
-  {
+  for (old = NULL, current = span_buf_head;
+       current != NULL;
+       old = current, current = current->next) {
       
     if (current->x2 <= x1) { // case 1
       continue;
@@ -200,7 +199,7 @@ int insert_span(int x1, int x2, int y1a, int y2a, int y1b, int y2b, u8 ceil_col,
         current->next = n;
         n->x2 = current->x2;
         current->x2 = x1;
-	n->x1 = x2;
+	    n->x1 = x2;
         return 0;
       }
     } else {
@@ -211,19 +210,20 @@ int insert_span(int x1, int x2, int y1a, int y2a, int y1b, int y2b, u8 ceil_col,
       if (current->x2<=x2) { // case 4
 	
         draw_span(orig_x1, orig_x2, y1a, y1b, y2a, y2b, current->x1,current->x2, ceil_col, wall_col, floor_col);
-        n=current->next; free_span(current);
+        n=current->next;
+        free_span(current);
+        
         if (old) { 
-	  old->next=n;
+	        old->next=n;
         } else {
-	  span_buf_head = n;
+	        span_buf_head = n;
         }
         current=n;
         if (current==NULL) {
-	  return 0;
-	}
-      }
-      else { // case 5
-	draw_span(orig_x1, orig_x2, y1a, y1b, y2a, y2b, current->x1, x2, ceil_col, wall_col, floor_col);
+	        return 0;
+	    }
+      } else { // case 5
+	    draw_span(orig_x1, orig_x2, y1a, y1b, y2a, y2b, current->x1, x2, ceil_col, wall_col, floor_col);
         current->x1 = x2;
       }
     }
@@ -233,9 +233,10 @@ int insert_span(int x1, int x2, int y1a, int y2a, int y1b, int y2b, u8 ceil_col,
 
 
 void reset_span_buffer() {
-    for(int i = 0; i < MAX_SPANS; i++) {
-        all_spans[i].next = (i+1 == MAX_SPANS ? NULL : &(all_spans[i+1]));
+    for(int i = 0; i < MAX_SPANS-1; i++) {
+        all_spans[i].next = &(all_spans[i+1]);
     }
+    all_spans[MAX_SPANS-1].next = NULL;
 
     free_span_pointer = &(all_spans[0]);
 
