@@ -10,4 +10,7 @@ typedef struct {
     fix32 anglesin, anglecos;
 } player;
 
+extern player ply;
+
+
 #endif
