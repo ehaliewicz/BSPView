@@ -398,7 +398,7 @@ wall wall31 = {
 wall wall32 = {
     .v1 = {FIX32(15),   FIX32(18)},
     .v2 = {FIX32(16.5), FIX32(21)},
-    .middle_color = DARK_STEEL_IDX,
+    .middle_color = YELLOW_IDX,
     .back_sector = NULL
 };
 
@@ -433,7 +433,7 @@ bsp_node leaf6 = {
 wall wall34 = {
     .v1 = {FIX32(16.5), FIX32(21)},
     .v2 = {FIX32(18),   FIX32(18)},
-    .middle_color = DARK_STEEL_IDX,
+    .middle_color = YELLOW_IDX,
     .back_sector = NULL
 };
 
@@ -537,7 +537,7 @@ sector sector5 = {
     .ceil_height = FIX32(10),
     .ceil_color = SCARLET_IDX,
     .floor_color = DARK_BLUE_IDX,
-    .num_walls = 4,
+    .num_walls = 5,
     .walls = {
         &wall25, &wall26, &wall27, &wall28, &wall29
     },

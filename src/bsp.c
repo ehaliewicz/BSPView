@@ -5,8 +5,11 @@
 #include "common.h"
 #include "sector.h"
 #include "palette.h"
+#include "span_buf.h"
+#include "draw.h"
 
 void draw_sector(sector* sect) {
+
     fix32 sect_ceil = sect->ceil_height;
     fix32 sect_floor = sect->floor_height;
     u8 sect_ceil_col = sect->ceil_color;
@@ -19,10 +22,10 @@ void draw_sector(sector* sect) {
         fix32 vy1 = w->v1.y;
         fix32 vx2 = w->v2.x;
         fix32 vy2 = w->v2.y;
-        u32 v1_dist = distance_approx(
+        u32 v1_dist = getApproximatedDistance(
             abs(fix32ToInt(ply.where.x - w->v1.x)),
             abs(fix32ToInt(ply.where.y - w->v1.y)));
-        u32 v2_dist = distance_approx(
+        u32 v2_dist = getApproximatedDistance(
             abs(fix32ToInt(ply.where.x - w->v2.x)),
             abs(fix32ToInt(ply.where.x - w->v2.y)));
 
@@ -47,57 +50,62 @@ void draw_sector(sector* sect) {
 
         // if it's partially behind the player, clip it against player's view frustum
         if(rz1 <= 0 || rz2 <= 0) {//rz1 <= FIX32(0.5) || rz2 <= FIX32(0.5)) { // rz1 <= 0 || rz2 <= 0
-        //continue;
-        fix32 nearz = FIX32(0.1); //0.01); // 0.05);
-        fix32 farz = FIX32(5);
-        fix32 nearside = FIX32(0.01); //0.004);//0.01);
-        fix32 farside = FIX32(20);
+            continue;
+            fix32 nearz = FIX32(0.1); //0.01); // 0.05);
+            fix32 farz = FIX32(5);
+            fix32 nearside = FIX32(0.01); //0.004);//0.01);
+            fix32 farside = FIX32(20);
 
-        // find an intersection between the wall and the approximate edges of the player's view
-        fix32 rx1_32 = rx1;
-        fix32 rz1_32 = rz1;
-        fix32 rx2_32 = rx2;
-        fix32 rz2_32 = rz2;
+            // find an intersection between the wall and the approximate edges of the player's view
+            fix32 rx1_32 = rx1;
+            fix32 rz1_32 = rz1;
+            fix32 rx2_32 = rx2;
+            fix32 rz2_32 = rz2;
 
 
-        Vect2D_f32 i1 = Intersect32(rx1_32, rz1_32, rx2_32, rz2_32, 
-                    -nearside, nearz, -farside, farz);
-        Vect2D_f32 i2 = Intersect32(rx1_32, rz1_32, rx2_32, rz2_32,  
-                    nearside, nearz, farside, farz);
+            Vect2D_f32 i1 = Intersect32(rx1_32, rz1_32, rx2_32, rz2_32, 
+                        -nearside, nearz, -farside, farz);
+            Vect2D_f32 i2 = Intersect32(rx1_32, rz1_32, rx2_32, rz2_32,  
+                        nearside, nearz, farside, farz);
 
-        if(rz1_32 < nearz) { 
-            if(i1.y > 0) {
-            //rx1 = fix32ToFix16(i1.x);
-            //rz1 = fix32ToFix16(i1.y);
-            rx1 = i1.x;
-            rz1 = i1.y;
-            } else {
-            //rx1 = fix32ToFix16(i2.x);
-            //rz1 = fix32ToFix16(i2.y);
-            rx1 = i2.x;
-            rz1 = i2.y;
+            if(rz1_32 < nearz) { 
+                if(i1.y > 0) {
+                //rx1 = fix32ToFix16(i1.x);
+                //rz1 = fix32ToFix16(i1.y);
+                rx1 = i1.x;
+                rz1 = i1.y;
+                } else {
+                //rx1 = fix32ToFix16(i2.x);
+                //rz1 = fix32ToFix16(i2.y);
+                rx1 = i2.x;
+                rz1 = i2.y;
+                }
             }
-        }
-        if(rz2_32 < nearz) {
-            if(i1.y > 0) {
-            //rx2 = fix32ToFix16(i1.x);
-            //rz2 = fix32ToFix16(i1.y);
-            rx2 = i1.x;
-            rz2 = i1.y;
-            } else {
-            //rx2 = fix32ToFix16(i2.x);
-            //rz2 = fix32ToFix16(i2.y);
-            rx2 = i2.x;
-            rz2 = i2.y;
+            if(rz2_32 < nearz) {
+                if(i1.y > 0) {
+                //rx2 = fix32ToFix16(i1.x);
+                //rz2 = fix32ToFix16(i1.y);
+                rx2 = i1.x;
+                rz2 = i1.y;
+                } else {
+                //rx2 = fix32ToFix16(i2.x);
+                //rz2 = fix32ToFix16(i2.y);
+                rx2 = i2.x;
+                rz2 = i2.y;
+                }
             }
-        }
         }
 
         // do perspective transformation
-        fix32 xscale1 = fix32Div(HFOV, max(FIX32(0.05), rz1)); // 0.05
-        fix32 yscale1 = fix32Div(VFOV, max(FIX32(0.05), rz1)); // 0.05
-        fix32 xscale2 = fix32Div(HFOV, max(FIX32(0.05), rz2)); // 0.05
-        fix32 yscale2 = fix32Div(VFOV, max(FIX32(0.05), rz2)); // 0.05
+        //fix32 xscale1 = fix32Div(HFOV, max(FIX32(0.05), rz1)); // 0.05
+        //fix32 yscale1 = fix32Div(VFOV, max(FIX32(0.05), rz1)); // 0.05
+        //fix32 xscale2 = fix32Div(HFOV, max(FIX32(0.05), rz2)); // 0.05
+        //fix32 yscale2 = fix32Div(VFOV, max(FIX32(0.05), rz2)); // 0.05
+
+        fix32 xscale1 = fix32Div(fix32Mul(FIX32(W), HFOV), max(FIX32(0.01), rz1)); // 0.05
+        fix32 yscale1 = fix32Div(fix32Mul(FIX32(H), VFOV), max(FIX32(0.01), rz1)); // 0.05
+        fix32 xscale2 = fix32Div(fix32Mul(FIX32(W), HFOV), max(FIX32(0.01), rz2)); // 0.05
+        fix32 yscale2 = fix32Div(fix32Mul(FIX32(H), VFOV), max(FIX32(0.01), rz2)); // 0.05
         
         int x1 = W/2 - (fix32ToInt(fix32Mul(rx1, xscale1)));
         int x2 = W/2 - (fix32ToInt(fix32Mul(rx2, xscale2)));
@@ -126,18 +134,19 @@ void draw_sector(sector* sect) {
         if(y2a > y2b) { continue; }
 
 
-        u8 col = w->middle_color;
+        u8 wall_col = w->middle_color;
         u8 low_col = w->lower_color;
         u8 high_col = w->upper_color;
 
         if(avg_dist < 20) {
-            col = (col << 4 | col);
+            wall_col = (wall_col << 4 | wall_col);
             sect_ceil_col = (sect_ceil_col << 4 | sect_ceil_col);
             sect_floor_col = (sect_floor_col << 4 | sect_floor_col);
             low_col = (low_col << 4 | low_col);
             high_col = (high_col << 4 | high_col);
         }
         
+        /*
         Vect2D_s16 top[4] = {
             {x2, 0}, {x2, y2a},
             {x1, y1a}, {x1, 0}
@@ -149,15 +158,24 @@ void draw_sector(sector* sect) {
             {x1, H-1}, {x1, y1b}
         };
         BMP_drawPolygon(bot, 4, sect_floor_col);
+        */
         
 
-        if(w->middle_color != TRANSPARENT_IDX) { 
+        if(w->back_sector == NULL) { //w->middle_color != TRANSPARENT_IDX) { 
+            /*
             Vect2D_s16 poly[4] = {
                 {x2, y2a}, {x2, y2b},
                 {x1, y1b}, {x1, y1a}
             };
             BMP_drawPolygon(poly, 4, col);
+            */
+           insert_span(x1, x2, y1a, y2a, y1b, y2b, sect_ceil_col, wall_col, sect_floor_col);
         } else {
+            for(int x = max(0, x1); x < min(W-1, x2); x++) {
+                ytop[x] = min(y1a, y2a);
+                ybottom[x] = max(y1b, y2b);
+            }
+            /*
             fix32 nsceil = w->back_sector->ceil_height;
             if(nsceil < sect_ceil) {
                 fix32 nyceil = nsceil - ply.where.z;
@@ -182,6 +200,7 @@ void draw_sector(sector* sect) {
                 };
                 BMP_drawPolygon(up_floor, 4, low_col);
             }
+            */
         }
 
 
@@ -237,7 +256,7 @@ void draw_bsp_node(bsp_node* node) {
                     in_front = (ply.where.y < node->inner.split_pos);
                     break;
             }
-            if(!in_front) { //in_front) {
+            if(in_front) {
                 draw_bsp_node(node->inner.front);
                 draw_bsp_node(node->inner.behind);
             } else {

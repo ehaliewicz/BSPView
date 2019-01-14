@@ -4,6 +4,8 @@
 #include "common.h"
 #include "sector.h"
 #include "palette.h"
+#include "span_buf.h"
+#include "draw.h"
 
 #include "map.h"
 
@@ -23,18 +25,6 @@ void vline(int x, int y1, int y2, int top_col, int mid_col, int bot_col) {
     BMP_setPixelFast(x, y2, bot_col);
   }
 }
-
-
-
-
-u8 ytop[W] = {0};
-u8 ybottom[W] = {H-1};
-
-void clear_clipping_buffers() {
-  memset(ytop, 0, sizeof(ytop));
-  memset(ybottom, H-1, sizeof(ybottom));
-}
-
 
 
 
@@ -87,8 +77,8 @@ int main()
   int to_clear_pos = 0;
   int to_clear_fps = 0;
 
-  fix32 angle_speed = FIX32(2);
-  fix32 move_speed = FIX32(2);
+  fix32 angle_speed = FIX32(1);
+  fix32 move_speed = FIX32(1);
 
   ply.anglecos = fix16ToFix32(cosFix16(fix16ToInt(ply.angle)));
   ply.anglesin = fix16ToFix32(sinFix16(fix16ToInt(ply.angle)));
@@ -120,6 +110,7 @@ int main()
         if(joy & BUTTON_B) {
           sect->floor_height += inc;
         }
+        ply.where.z = ply.cur_sector->floor_height + EYE_HEIGHT;
       } else {
 
         if(joy & BUTTON_UP || joy & BUTTON_DOWN) {
@@ -204,6 +195,7 @@ int main()
 
       BMP_clear();
 
+      reset_span_buffer();
       clear_clipping_buffers();
 
       if(to_clear_fps) {

@@ -20,12 +20,13 @@ typedef struct {
 #define HEAD_MARGIN FIX32(1)
 #define KNEE_HEIGHT FIX32(2.5)
 
-#define HFOV FIX32(0.4 * H) //FIX32(0.73 * H)
-#define VFOV FIX32(.2f*H)
+#define HFOV FIX32(0.73 * H/W) //FIX32(0.73 * H)
+#define VFOV FIX32(.2f) //*H)
 
 
 
 #define clamp(a, mi,ma)      min(max(a,mi),ma)         // clamp: Clamp value into set range.
+
 
 // vxs: Vector cross product
 #define vxs16(x0,y0, x1,y1)    (fix16Mul((x0), (y1)) - fix16Mul((x1), (y0)))
