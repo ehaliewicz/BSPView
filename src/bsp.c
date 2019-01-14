@@ -216,6 +216,7 @@ sector* find_player_sector(bsp_node* node) {
     }
 }
 
+
 void draw_bsp_node(bsp_node* node) {
     int in_front = 0;
 

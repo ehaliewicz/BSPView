@@ -214,7 +214,8 @@ sector sector2 = {
     .num_walls = 3,
     .walls = {
         &wall10, &wall11, &wall12
-    }
+    },
+    .sectnum = 2
 };
 
 bsp_node leaf2 = {
@@ -264,7 +265,8 @@ sector sector3 = {
     .num_walls = 4,
     .walls = {
         &wall13, &wall14, &wall15, &wall16
-    }
+    },
+    .sectnum = 3
 };
 
 bsp_node leaf3 = {
@@ -368,7 +370,8 @@ sector sector4 = {
     .walls = {
         &wall17, &wall18, &wall19, &wall20,
         &wall21, &wall22, &wall23, &wall24
-    }
+    },
+    .sectnum = 4
 };
 
 bsp_node leaf4 = {
@@ -418,7 +421,8 @@ sector sector6 = {
     .num_walls = 4,
     .walls = {
         &wall30, &wall31, &wall32, &wall33
-    }
+    },
+    .sectnum = 6
 };
 
 bsp_node leaf6 = {
@@ -468,7 +472,8 @@ sector sector7 = {
     .num_walls = 4,
     .walls = {
         &wall34, &wall35, &wall36, &wall37
-    }
+    },
+    .sectnum = 7
 };
 
 bsp_node leaf7 = {
@@ -535,7 +540,8 @@ sector sector5 = {
     .num_walls = 4,
     .walls = {
         &wall25, &wall26, &wall27, &wall28, &wall29
-    }
+    },
+    .sectnum = 5
 };
 
 bsp_node leaf5 = {
