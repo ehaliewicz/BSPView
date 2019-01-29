@@ -8,6 +8,8 @@
 #include "span_buf.h"
 #include "draw.h"
 
+#include "map.h"
+
 void draw_sector(sector* sect) {
 
     fix32 sect_ceil = sect->ceil_height;
@@ -17,7 +19,7 @@ void draw_sector(sector* sect) {
 
     for(u16 i = 0; i < sect->num_walls; i++) {
         wall* w = sect->walls[i];
-
+        
         fix32 vx1 = w->v1.x;
         fix32 vy1 = w->v1.y;
         fix32 vx2 = w->v2.x;
@@ -31,67 +33,86 @@ void draw_sector(sector* sect) {
 
         u32 avg_dist = (v1_dist + v2_dist)/2;
 
-
         fix32 tx1 = vx1 - ply.where.x;
         fix32 ty1 = vy1 - ply.where.y;
         fix32 tx2 = vx2 - ply.where.x;
         fix32 ty2 = vy2 - ply.where.y;
 
-
         fix32 pcos = ply.anglecos;
         fix32 psin = ply.anglesin;
 
-        fix32 rx1 = fix32Mul(tx1, psin) - fix32Mul(ty1, pcos);
-        fix32 rz1 = fix32Mul(tx1, pcos) + fix32Mul(ty1, psin);
-        fix32 rx2 = fix32Mul(tx2, psin) - fix32Mul(ty2, pcos);
-        fix32 rz2 = fix32Mul(tx2, pcos) + fix32Mul(ty2, psin);
-			
+        fix32 rx1 = SAFEMUL32(tx1, psin) - SAFEMUL32(ty1, pcos);
+        fix32 rz1 = SAFEMUL32(tx1, pcos) + SAFEMUL32(ty1, psin);
+        fix32 rx2 = SAFEMUL32(tx2, psin) - SAFEMUL32(ty2, pcos);
+        fix32 rz2 = SAFEMUL32(tx2, pcos) + SAFEMUL32(ty2, psin);
+
+        //char buf[32];
+
+
+        
+        
         if(rz1 <= 0 && rz2 <= 0) { continue; }
+        
+        int clipped = 0;
 
         // if it's partially behind the player, clip it against player's view frustum
-        if(rz1 <= 0 || rz2 <= 0) {//rz1 <= FIX32(0.5) || rz2 <= FIX32(0.5)) { // rz1 <= 0 || rz2 <= 0
-            continue;
+        if(rz1 <= 0 || rz2 <= 0) {   
+            clipped = 1;
+            //BMP_drawText("clipping against screen", 0, 0);
             fix32 nearz = FIX32(0.1); //0.01); // 0.05);
             fix32 farz = FIX32(5);
             fix32 nearside = FIX32(0.01); //0.004);//0.01);
             fix32 farside = FIX32(20);
 
+            fix16 nearz_16 = FIX16(0.5);
+            fix16 farz_16 = FIX32(5);
+            fix16 nearside_16 = FIX16(0.2);
+            fix16 farside_16 = FIX16(20);
+
             // find an intersection between the wall and the approximate edges of the player's view
-            fix32 rx1_32 = rx1;
-            fix32 rz1_32 = rz1;
-            fix32 rx2_32 = rx2;
-            fix32 rz2_32 = rz2;
+            //fix32 rx1_32 = rx1;
+            //fix32 rz1_32 = rz1;
+            //fix32 rx2_32 = rx2;
+            //fix32 rz2_32 = rz2;
 
+            fix16 rx1_16 = fix32ToFix16(rx1);
+            fix16 rz1_16 = fix32ToFix16(rz1);
+            fix16 rx2_16 = fix32ToFix16(rx2);
+            fix16 rz2_16 = fix32ToFix16(rz2);
 
-            Vect2D_f32 i1 = Intersect32(rx1_32, rz1_32, rx2_32, rz2_32, 
-                        -nearside, nearz, -farside, farz);
-            Vect2D_f32 i2 = Intersect32(rx1_32, rz1_32, rx2_32, rz2_32,  
-                        nearside, nearz, farside, farz);
+            //Vect2D_f32 i1 = Intersect32(rx1_32, rz1_32, rx2_32, rz2_32, 
+            //            -nearside, nearz, -farside, farz);
+            //Vect2D_f32 i2 = Intersect32(rx1_32, rz1_32, rx2_32, rz2_32,  
+            //            nearside, nearz, farside, farz);
+            Vect2D_f16 i1 = Intersect16(rx1_16, rz1_16, rx2_16, rz2_16,
+                                        -nearside_16, nearz_16, -farside_16, farz_16);
+            Vect2D_f16 i2 = Intersect16(rx1_16, rz1_16, rx2_16, rz2_16,
+                                        nearside_16, nearz_16, farside_16, farz_16);
 
-            if(rz1_32 < nearz) { 
+            if(rz1 < nearz) { 
                 if(i1.y > 0) {
-                //rx1 = fix32ToFix16(i1.x);
-                //rz1 = fix32ToFix16(i1.y);
-                rx1 = i1.x;
-                rz1 = i1.y;
+                    //rx1 = i1.x;
+                    //rz1 = i1.y;
+                    rx1 = fix16ToFix32(i1.x);
+                    rz1 = fix16ToFix32(i1.y);
                 } else {
-                //rx1 = fix32ToFix16(i2.x);
-                //rz1 = fix32ToFix16(i2.y);
-                rx1 = i2.x;
-                rz1 = i2.y;
+                    //rx1 = i2.x;
+                    //rz1 = i2.y;
+                    rx1 = fix16ToFix32(i2.x);
+                    rz1 = fix16ToFix32(i2.y);
                 }
             }
-            if(rz2_32 < nearz) {
+            if(rz2 < nearz) {
                 if(i1.y > 0) {
-                //rx2 = fix32ToFix16(i1.x);
-                //rz2 = fix32ToFix16(i1.y);
-                rx2 = i1.x;
-                rz2 = i1.y;
+                    //rx2 = i1.x;
+                    //rz2 = i1.y;
+                    rx2 = fix16ToFix32(i1.x);
+                    rz2 = fix16ToFix32(i1.y);
                 } else {
-                //rx2 = fix32ToFix16(i2.x);
-                //rz2 = fix32ToFix16(i2.y);
-                rx2 = i2.x;
-                rz2 = i2.y;
+                    //rx2 = i2.x;
+                    //rz2 = i2.y;
+                    rx2 = fix16ToFix32(i2.x);
+                    rz2 = fix16ToFix32(i2.y);
                 }
             }
         }
@@ -102,30 +123,70 @@ void draw_sector(sector* sect) {
         //fix32 xscale2 = fix32Div(HFOV, max(FIX32(0.05), rz2)); // 0.05
         //fix32 yscale2 = fix32Div(VFOV, max(FIX32(0.05), rz2)); // 0.05
 
-        fix32 xscale1 = fix32Div(fix32Mul(FIX32(W), HFOV), max(FIX32(0.01), rz1)); // 0.05
-        fix32 yscale1 = fix32Div(fix32Mul(FIX32(H), VFOV), max(FIX32(0.01), rz1)); // 0.05
-        fix32 xscale2 = fix32Div(fix32Mul(FIX32(W), HFOV), max(FIX32(0.01), rz2)); // 0.05
-        fix32 yscale2 = fix32Div(fix32Mul(FIX32(H), VFOV), max(FIX32(0.01), rz2)); // 0.05
+        fix32 xscale1 = fix32Div(fix32Mul(FIX32(W), HFOV), max(FIX32(0.1), rz1)); // 0.05
+        fix32 yscale1 = fix32Div(fix32Mul(FIX32(H), VFOV), max(FIX32(0.1), rz1)); // 0.05
+        fix32 xscale2 = fix32Div(fix32Mul(FIX32(W), HFOV), max(FIX32(0.1), rz2)); // 0.05
+        fix32 yscale2 = fix32Div(fix32Mul(FIX32(H), VFOV), max(FIX32(0.1), rz2)); // 0.05
         
-        int x1 = W/2 - (fix32ToInt(fix32Mul(rx1, xscale1)));
-        int x2 = W/2 - (fix32ToInt(fix32Mul(rx2, xscale2)));
+        int x1 = W/2 - (fix32ToRoundedInt(fix32Mul(rx1, xscale1)));
+        int x2 = W/2 - (fix32ToRoundedInt(fix32Mul(rx2, xscale2)));
+        
 
+        //sprintf(buf, "rz1 ");
+        //fix32ToStr(rz1, buf+4, 3);
+        //BMP_drawText(buf, 0, 2);
+        //sprintf(buf, "rz2 ");
+        //fix32ToStr(rz2, buf+4, 3);
+        //BMP_drawText(buf, 0, 3);
+        
         // only render if it's visible
-        if(x1 >= x2 || x2 < 0 || x1 > W-1) { continue; }
+        if(x1 >= x2 || x2 < 0 || x1 > W-1) { // || (x1 <= 0 && x2 >= W-1 && clipped)) { 
+            //BMP_drawText("off-screen        ", 0, 1); 
+            continue; 
+        } else {
+            //BMP_drawText("on-screen     ", 0, 1);
+        }
 
         // acquire the floor and ceiling heights, relative to where the player's view is
         fix32 yceil = sect_ceil - ply.where.z;
         fix32 yfloor = sect_floor - ply.where.z;
 
+
         // project ceiling and floor heights into screen coordinates
         #define Yaw(y,z) (y+fix16Mul(z,ply.yaw))
-        int y1a = H/2 - (fix32ToInt(fix32Mul(yceil, yscale1)));
-        int y1b = H/2 - (fix32ToInt(fix32Mul(yfloor,  yscale1)));
-
-
-        int y2a = H/2 - (fix32ToInt(fix32Mul(yceil, yscale2)));  // yceil + rz2
-        int y2b = H/2 - (fix32ToInt(fix32Mul(yfloor, yscale2))); // yfloor + rz2
         
+        fix32 yfys2 = yfloor*(yscale2>>FIX32_FRAC_BITS);
+        int y1a = H/2 - (fix32ToRoundedInt(SAFEMUL32(yceil, yscale1)));
+        int y1b = H/2 - (fix32ToRoundedInt(SAFEMUL32(yfloor, yscale1)));
+
+        //sprintf(buf, "yf*ys2 ");
+        //fix32ToStr(yfys2, buf+7, 3);
+        //BMP_drawText(buf, 0, 4);
+
+        int y2a = H/2 - (fix32ToRoundedInt(SAFEMUL32(yceil, yscale2)));  // yceil + rz2
+        int y2b = H/2 - (fix32ToRoundedInt(SAFEMUL32(yfloor, yscale2))); // yfloor + rz2
+        
+        //sprintf(buf, "x1 %i -> x2 %i", x1, x2);
+        //BMP_drawText(buf, 0, 5);
+        //sprintf(buf, "y1a %i -> y2a %i", y1a, y1b);
+        //BMP_drawText(buf, 0, 6);
+        //sprintf(buf, "y1b %i -> y2b %i", y1b, y2b);
+        //BMP_drawText(buf, 0, 7);
+
+        //sprintf(buf, "yfloor ");
+        //fix32ToStr(yfloor, buf+7, 3);
+        //BMP_drawText(buf, 0, 8);
+        //sprintf(buf, "yscale2 ");
+        //fix32ToStr(yscale2, buf+8, 3);
+        //BMP_drawText(buf, 0, 9);
+
+        //sprintf(buf, "playerz ");
+        //fix32ToStr(ply.where.z, buf+8, 3);
+        //BMP_drawText(buf, 0, 10);
+        //sprintf(buf, "floor ");
+        //fix32ToStr(sect_floor, buf+6, 3);
+        //BMP_drawText(buf, 0, 11);
+
 
         int dx = x2-x1;
 

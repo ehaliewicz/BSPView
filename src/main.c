@@ -33,18 +33,18 @@ void print_pos() {
   char buf[32];
   sprintf(buf, "x: ");
   fix32ToStr(ply.where.x, buf+3, 3);
-  BMP_drawText(buf, 0, 2);
+  BMP_drawText(buf, 0, 12);
   sprintf(buf, "y: ");
   fix32ToStr(ply.where.y, buf+3, 3);
-  BMP_drawText(buf, 0, 3);
+  BMP_drawText(buf, 0, 13);
   sprintf(buf, "z: ");
   fix32ToStr(ply.where.z, buf+3, 3);
-  BMP_drawText(buf, 0, 4);
+  BMP_drawText(buf, 0, 14);
   sprintf(buf, "ang: ");
   fix16ToStr(ply.angle, buf+5, 1);
-  BMP_drawText(buf, 0, 5);
+  BMP_drawText(buf, 0, 15);
   sprintf(buf, "sect: %lu", ply.cur_sector->sectnum);
-  BMP_drawText(buf, 0, 6);
+  BMP_drawText(buf, 0, 16);
 }
 
 void clear_fps() {
@@ -84,7 +84,7 @@ int main() {
   u16 last_joy = 0;
   
   ply.cur_sector = find_player_sector(&root_node);
-
+  ply.where.z = ply.cur_sector->floor_height + EYE_HEIGHT;
   while(1)
     {     
       u16 joy = JOY_readJoypad(0);

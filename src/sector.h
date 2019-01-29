@@ -64,7 +64,7 @@ struct sector  {
     fix32 ceil_height;
     u8 floor_color;
     u8 ceil_color;
-    u32 sectnum;
+    u16 sectnum;
     u16 num_walls;
     wall* walls[];
 };
