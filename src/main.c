@@ -33,38 +33,41 @@ void print_pos() {
   char buf[32];
   sprintf(buf, "x: ");
   fix32ToStr(ply.where.x, buf+3, 3);
-  BMP_drawText(buf, 0, 12);
+  VDP_drawTextBG(PLAN_A, buf, 0, 12);
   sprintf(buf, "y: ");
   fix32ToStr(ply.where.y, buf+3, 3);
-  BMP_drawText(buf, 0, 13);
+  VDP_drawTextBG(PLAN_A, buf, 0, 13);
   sprintf(buf, "z: ");
   fix32ToStr(ply.where.z, buf+3, 3);
-  BMP_drawText(buf, 0, 14);
+  VDP_drawTextBG(PLAN_A, buf, 0, 14);
   sprintf(buf, "ang: ");
   fix16ToStr(ply.angle, buf+5, 1);
-  BMP_drawText(buf, 0, 15);
-  sprintf(buf, "sect: %lu", ply.cur_sector->sectnum);
-  BMP_drawText(buf, 0, 16);
+  VDP_drawTextBG(PLAN_A, buf, 0, 15);
+  sprintf(buf, "sect: %u", ply.cur_sector->sectnum);
+  VDP_drawTextBG(PLAN_A, buf, 0, 16);
+}
+
+void clear_pos() {
+  for(int i = 12; i <= 16; i++){
+    VDP_clearTextLineBG(PLAN_A, i);
+  }
+}
+
+void print_fps() {
+  char buf[32];
+  fix32ToStr(getFPS_f(), buf, 1);
+  VDP_drawTextBG(PLAN_A, buf, 0, 4);
 }
 
 void clear_fps() {
-  BMP_clearText(0, 1, 10);
+  VDP_clearTextLineBG(PLAN_A, 4);
 }
-void clear_pos() {
-  BMP_clearText(0, 2, 10);
-  BMP_clearText(0, 3, 10);
-  BMP_clearText(0, 4, 10);
-  BMP_clearText(0, 5, 10);
-  BMP_clearText(0, 6, 10);
-}
-
-
 
 int main() {
 
   
 
-  BMP_init(0, PLAN_A, 3, 0);
+  BMP_init(0, PLAN_B, 3, 0);
   
   BMP_setBufferCopy(0);
 
@@ -73,10 +76,8 @@ int main() {
   int show_fps = 0;
   int show_pos = 0;
   
-  int to_clear_pos = 0;
-  int to_clear_fps = 0;
 
-  fix32 angle_speed = FIX32(1);
+  fix16 angle_speed = FIX16(16);
   fix32 move_speed = FIX32(1);
 
   ply.anglecos = fix16ToFix32(cosFix16(fix16ToInt(ply.angle)));
@@ -84,22 +85,40 @@ int main() {
   u16 last_joy = 0;
   
   ply.cur_sector = find_player_sector(&root_node);
-  ply.where.z = ply.cur_sector->floor_height + EYE_HEIGHT;
+  ply.where.z = ply.cur_sector->floor_height + eye_height;
+
+  int menu = 1;
+  while(menu) {
+    VDP_drawTextBG(PLAN_A, "BSP Renderer v0.005", 10, 8);
+    VDP_drawTextBG(PLAN_A, "use d-pad to move ", 0, 12);
+    VDP_drawTextBG(PLAN_A, "x/a to adjust camera y-position", 0, 13);
+    VDP_drawTextBG(PLAN_A, "y + up/dn adjusts sector ceiling height", 0, 14);
+    VDP_drawTextBG(PLAN_A, "b + up/dn adjusts sector floor height", 0, 15);
+    VDP_drawTextBG(PLAN_A, "z/c to toggle fps display / debug info", 0, 16);
+    VDP_drawTextBG(PLAN_A, "--- press start ---", 10, 18);
+    u16 joy = JOY_readJoypad(0);
+    if(joy & BUTTON_START) {
+      menu = 0;
+    }
+  }
+  for(int i = 8; i <= 26; i++) {
+    VDP_clearTextLineBG(PLAN_A, i);
+  }
+
   while(1)
     {     
       u16 joy = JOY_readJoypad(0);
       if(joy & BUTTON_Z && !(last_joy & BUTTON_Z)) {
 	      show_fps = show_fps ? 0 : 1;
-        if(!show_fps) { to_clear_fps = 2; }
+        if(!show_fps) { clear_fps(); }
       }
       if(joy & BUTTON_C && !(last_joy & BUTTON_C)) {
         show_pos = show_pos ? 0 : 1;
-        if(!show_pos) { to_clear_pos = 2; }
+        if(!show_pos) { clear_pos(); }
       }
       last_joy = joy;
 		
-      if((joy & BUTTON_Y || joy & BUTTON_B) && 
-         (joy & BUTTON_UP || joy & BUTTON_DOWN)) {
+      if((joy & BUTTON_Y || joy & BUTTON_B) && (joy & BUTTON_UP || joy & BUTTON_DOWN)) {
         //sector* sect = find_player_sector(&root_node);
         sector* sect = ply.cur_sector;
         fix32 inc = (joy & BUTTON_DOWN) ? fix32Neg(FIX32(0.5)) : FIX32(0.5);
@@ -109,7 +128,7 @@ int main() {
         if(joy & BUTTON_B) {
           sect->floor_height += inc;
         }
-        ply.where.z = ply.cur_sector->floor_height + EYE_HEIGHT;
+        ply.where.z = ply.cur_sector->floor_height + eye_height;
       } else {
 
         if(joy & BUTTON_UP || joy & BUTTON_DOWN) {
@@ -167,7 +186,7 @@ int main() {
           if(moved) {
             // if we've moved, check for new sector
             ply.cur_sector = find_player_sector(&root_node);
-            ply.where.z = ply.cur_sector->floor_height + EYE_HEIGHT;
+            ply.where.z = ply.cur_sector->floor_height + eye_height;
           }
         }
         
@@ -192,33 +211,26 @@ int main() {
       }
 
 
-      BMP_clear();
 
       reset_span_buffer();
       clear_clipping_buffers();
 
-      if(to_clear_fps) {
-        clear_fps();
-        to_clear_fps--;
-      }
-      if(to_clear_pos) {
-        clear_pos();  
-        to_clear_pos--;      
-      }
+      BMP_waitWhileFlipRequestPending();
+      BMP_clear();
 
       draw_bsp_node(&root_node);
 
-      //BMP_waitWhileFlipRequestPending();
 		
+      BMP_flip(1);
+
+      VDP_waitVSync();
       if(show_fps) {
-	      BMP_showFPS(1);
+        print_fps();
       }
       if(show_pos) {
         print_pos();
       }
       
-      BMP_flip(0);
-      //VDP_waitVSync();
 		
     }
   return (0);

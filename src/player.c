@@ -4,9 +4,9 @@
 #include "common.h"
 
 player ply = {
-    .where = {FIX32(1.840), FIX32(6.589), EYE_HEIGHT},
+    .where = {FIX32(1.558), FIX32(1.620), BASE_EYE_HEIGHT},
     .velocity = {0,0,0},
-    .angle = FIX16(-48.0),
+    .angle = FIX16(45.0),
     .anglesin = 0,
     .anglecos = 0
 };

@@ -10,29 +10,29 @@
 sector sector1;
 
 wall wall0 = {
-    .v1 = {FIX16(0), FIX16(7)},
-    .v2 = {FIX16(0), FIX16(0)},
+    .v1 = {FIX32(0), FIX32(7)},
+    .v2 = {FIX32(0), FIX32(0)},
     .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
 
 wall wall1 = {
-    .v1 = {FIX16(0), FIX16(0)},
-    .v2 = {FIX16(6), FIX16(0)},
+    .v1 = {FIX32(0), FIX32(0)},
+    .v2 = {FIX32(6), FIX32(0)},
     .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
 
 wall wall2 = {
-    .v1 = {FIX16(6), FIX16(0)},
-    .v2 = {FIX16(8), FIX16(2)},
+    .v1 = {FIX32(6), FIX32(0)},
+    .v2 = {FIX32(8), FIX32(2)},
     .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
 
 wall wall3 = {
-    .v1 = {FIX16(8), FIX16(2)},
-    .v2 = {FIX16(8), FIX16(5)},
+    .v1 = {FIX32(8), FIX32(2)},
+    .v2 = {FIX32(8), FIX32(5)},
     .lower_color = SCARLET_IDX,
     .middle_color = TRANSPARENT_IDX,
     .upper_color = SCARLET_IDX,

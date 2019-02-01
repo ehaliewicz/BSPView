@@ -23,9 +23,9 @@ const struct
     char region[16];                /* Country Support (16) */
 } rom_header = {
     "SEGA MEGA DRIVE ",
-    "(C)FLEMTEAM 2013",
-    "SAMPLE PROGRAM                                  ",
-    "SAMPLE PROGRAM                                  ",
+    "                ",
+    "BSP RENDERER                                    ",
+    "BSP RENDERER                                    ",
     "GM 00000000-00",
     0x0000,
     "JD              ",
@@ -38,6 +38,6 @@ const struct
     0x00200000,
     0x002001FF,
     "            ",
-    "DEMONSTRATION PROGRAM                   ",
+    "BSP RENDERER                            ",
     "JUE             "
 };
