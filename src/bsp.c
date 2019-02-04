@@ -13,7 +13,6 @@
 
 fix32 div32(fix32 x, fix32 y) {
     return fix32Div(x, y);
-    //return ((x<<FIX32_FRAC_BITS/2) / (y<<FIX32_FRAC_BITS/2));
 }
 
 #define safeFix32ToFix16(value)         (((value) >> (FIX32_FRAC_BITS-FIX16_FRAC_BITS)))
@@ -30,8 +29,10 @@ void draw_sector(sector* sect) {
 
     for(u16 i = 0; i < sect->num_walls; i++) {
         wall* w = sect->walls[i];
-        
-        //if(w != &wall5) { continue; }
+        //if(!(w == &wall3 || w == &wall8)) { //} || w == &wall8 || w == &wall9 || w == &wall3)) {
+        //    continue;
+        //}
+
         fix32 vx1 = w->v1.x;
         fix32 vy1 = w->v1.y;
         fix32 vx2 = w->v2.x;
@@ -68,9 +69,9 @@ void draw_sector(sector* sect) {
         if(rz1 <= 0 || rz2 <= 0) {   
 
             fix32 nearz = FIX32(0.1); //0.01); // 0.05);
-            fix32 farz = FIX32(5);
-            fix32 nearside = FIX32(0.01); //0.004);//0.01);
-            fix32 farside = FIX32(20);
+            //fix32 farz = FIX32(5);
+            //fix32 nearside = FIX32(0.01); //0.004);//0.01);
+            //fix32 farside = FIX32(20);
 
             fix16 nearz_16 = FIX16(0.5);
             fix16 farz_16 = FIX16(5);
@@ -125,16 +126,8 @@ void draw_sector(sector* sect) {
         fix32 xscale2 = div32(SAFEMUL32(FIX32(W), HFOV), max(FIX32(0.1), rz2)); // 0.05
         fix32 yscale2 = div32(SAFEMUL32(FIX32(H), VFOV), max(FIX32(0.1), rz2)); // 0.05
         
-        int x1 = W/2 - (fix32ToRoundedInt(SAFEMUL32(rx1, xscale1)));
-        int x2 = W/2 - (fix32ToRoundedInt(SAFEMUL32(rx2, xscale2)));
-        
-
-        //sprintf(buf, "rz1 ");
-        //fix32ToStr(rz1, buf+4, 3);
-        //BMP_drawText(buf, 0, 2);
-        //sprintf(buf, "rz2 ");
-        //fix32ToStr(rz2, buf+4, 3);
-        //BMP_drawText(buf, 0, 3);
+        s16 x1 = W/2 - (fix32ToInt(SAFEMUL32(rx1, xscale1)));
+        s16 x2 = W/2 - (fix32ToInt(SAFEMUL32(rx2, xscale2)));
         
         // only render if it's visible
         if(x1 >= x2 || x2 < 0 || x1 > W-1) {
@@ -152,15 +145,12 @@ void draw_sector(sector* sect) {
         // project ceiling and floor heights into screen coordinates
         #define Yaw(y,z) (y+fix16Mul(z,ply.yaw))
         
-        fix32 yfys2 = yfloor*(yscale2>>FIX32_FRAC_BITS);
-        int y1a = H/2 - (fix32ToRoundedInt(SAFEMUL32(yceil, yscale1)));
-        int y1b = H/2 - (fix32ToRoundedInt(SAFEMUL32(yfloor, yscale1)));
+        s16 y1a = H/2 - (fix32ToInt(SAFEMUL32(yceil, yscale1)));
+        s16 y1b = H/2 - (fix32ToInt(SAFEMUL32(yfloor, yscale1)));
 
-        int y2a = H/2 - (fix32ToRoundedInt(SAFEMUL32(yceil, yscale2)));  // yceil + rz2
-        int y2b = H/2 - (fix32ToRoundedInt(SAFEMUL32(yfloor, yscale2))); // yfloor + rz2
+        s16 y2a = H/2 - (fix32ToInt(SAFEMUL32(yceil, yscale2)));  // yceil + rz2
+        s16 y2b = H/2 - (fix32ToInt(SAFEMUL32(yfloor, yscale2))); // yfloor + rz2
         
-
-        int dx = x2-x1;
 
 
         if(y1a > y1b) { continue; }
@@ -179,60 +169,27 @@ void draw_sector(sector* sect) {
             high_col = (high_col << 4 | high_col);
         }
         
-        
-        Vect2D_s16 top[4] = {
-            {x2, 0}, {x2, y2a},
-            {x1, y1a}, {x1, 0}
-        };
-        BMP_drawPolygon(top, 4, sect_ceil_col);
 
-        Vect2D_s16 bot[4] = {
-            {x2, y2b}, {x2, H-1},
-            {x1, H-1}, {x1, y1b}
-        };
-        BMP_drawPolygon(bot, 4, sect_floor_col);
-        
-        
 
         if(w->back_sector == NULL) { //w->middle_color != TRANSPARENT_IDX) { 
             
-            Vect2D_s16 poly[4] = {
-                {x2, y2a}, {x2, y2b},
-                {x1, y1b}, {x1, y1a}
-            };
-            BMP_drawPolygon(poly, 4, wall_col);
-            
-           //insert_span(x1, x2, y1a, y2a, y1b, y2b, sect_ceil_col, wall_col, sect_floor_col);
+
+            insert_span(x1, x2, y1a, y1a, y2a, y2a, y1b, y1b, y2b, y2b, sect_ceil_col, high_col, wall_col, low_col, sect_floor_col, 1);
         } else {
-            //for(int x = max(0, x1); x < min(W-1, x2); x++) {
-            //    ytop[x] = min(y1a, y2a);
-            //    ybottom[x] = max(y1b, y2b);
-            //}
+
             
             fix32 nsceil = w->back_sector->ceil_height;
-            if(nsceil < sect_ceil) {
-                fix32 nyceil = nsceil - ply.where.z;
-                int ny1a = H/2 - (fix32ToRoundedInt(SAFEMUL32(nyceil, yscale1)));
-                int ny2a = H/2 - (fix32ToRoundedInt(SAFEMUL32(nyceil, yscale2)));
-                
-                Vect2D_s16 down_ceil[4] = {
-                    {x2, y2a}, {x2, ny2a},
-                    {x1+1, ny1a}, {x1+1, y1a}
-                };
-                BMP_drawPolygon(down_ceil, 4, high_col);
-            }
             fix32 nsfloor = w->back_sector->floor_height;
-            if(nsfloor > sect_floor) {
-	      
-                fix32 nyfloor = nsfloor - ply.where.z;
-                int ny1b = H/2 - (fix32ToRoundedInt(SAFEMUL32(nyfloor, yscale1)));
-                int ny2b = H/2 - (fix32ToRoundedInt(SAFEMUL32(nyfloor, yscale2)));
-                Vect2D_s16 up_floor[4] = {
-                    {x2, ny2b}, {x2, y2b},
-                    {x1+1, y1b}, {x1+1, ny1b}
-                };
-                BMP_drawPolygon(up_floor, 4, low_col);
-            }
+            //if(nsceil < sect_ceil || nsfloor > sect_floor) {
+            fix32 nyceil = nsceil - ply.where.z;
+            int ny1a = H/2 - (fix32ToInt(SAFEMUL32(nyceil, yscale1)));
+            int ny2a = H/2 - (fix32ToInt(SAFEMUL32(nyceil, yscale2)));
+            fix32 nyfloor = nsfloor - ply.where.z;
+            int ny1b = H/2 - (fix32ToInt(SAFEMUL32(nyfloor, yscale1)));
+            int ny2b = H/2 - (fix32ToInt(SAFEMUL32(nyfloor, yscale2)));
+            insert_span(x1, x2, y1a, ny1a, y2a, ny2a, y1b, ny1b, y2b, ny2b, sect_ceil_col, high_col, wall_col, low_col, sect_floor_col, 0);
+            //}
+              
             
         }
 
@@ -289,7 +246,7 @@ void draw_bsp_node(bsp_node* node) {
                     in_front = (ply.where.y < node->inner.split_pos);
                     break;
             }
-            if(!in_front) {
+            if(in_front) {
                 draw_bsp_node(node->inner.front);
                 draw_bsp_node(node->inner.behind);
             } else {

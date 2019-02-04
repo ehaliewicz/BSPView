@@ -9,22 +9,6 @@
 
 #include "map.h"
 
-void vline(int x, int y1, int y2, int top_col, int mid_col, int bot_col) {
-
-  if(y2 == y1) {
-    BMP_setPixelFast(x, y1, mid_col);
-  } else if (y2 > y1) {
-    BMP_setPixelFast(x, y1, top_col);	
-    Line l; 
-    l.col = mid_col;
-    l.pt1.x = x;
-    l.pt1.y = y1+1;
-    l.pt1.x = x;
-    l.pt2.y = y2-1;
-    BMP_drawLine(&l);
-    BMP_setPixelFast(x, y2, bot_col);
-  }
-}
 
 
 
@@ -66,7 +50,6 @@ void clear_fps() {
 int main() {
 
   
-
   BMP_init(0, PLAN_B, 3, 0);
   
   BMP_setBufferCopy(0);
@@ -89,13 +72,14 @@ int main() {
 
   int menu = 1;
   while(menu) {
-    VDP_drawTextBG(PLAN_A, "BSP Renderer v0.005", 10, 8);
+    VDP_drawTextBG(PLAN_A, "BSP Renderer v0.11", 10, 8);
     VDP_drawTextBG(PLAN_A, "use d-pad to move ", 0, 12);
-    VDP_drawTextBG(PLAN_A, "x/a to adjust camera y-position", 0, 13);
-    VDP_drawTextBG(PLAN_A, "y + up/dn adjusts sector ceiling height", 0, 14);
-    VDP_drawTextBG(PLAN_A, "b + up/dn adjusts sector floor height", 0, 15);
-    VDP_drawTextBG(PLAN_A, "z/c to toggle fps display / debug info", 0, 16);
-    VDP_drawTextBG(PLAN_A, "--- press start ---", 10, 18);
+    VDP_drawTextBG(PLAN_A, "x/a - adjusts camera y-position", 0, 13);
+    VDP_drawTextBG(PLAN_A, "y + up/dn - adjusts sector ceiling height", 0, 14);
+    VDP_drawTextBG(PLAN_A, "b + up/dn - adjusts sector floor height", 0, 15);
+    VDP_drawTextBG(PLAN_A, "z/c - toggles fps display / debug info", 0, 16);
+    VDP_drawTextBG(PLAN_A, "mode - toggles wireframe mode", 0, 17);
+    VDP_drawTextBG(PLAN_A, "--- press start ---", 10, 19);
     u16 joy = JOY_readJoypad(0);
     if(joy & BUTTON_START) {
       menu = 0;
@@ -116,8 +100,12 @@ int main() {
         show_pos = show_pos ? 0 : 1;
         if(!show_pos) { clear_pos(); }
       }
-      last_joy = joy;
 		
+      if(joy & BUTTON_MODE && !(last_joy & BUTTON_MODE)) {
+        fill = !fill;
+      }
+
+      last_joy = joy;
       if((joy & BUTTON_Y || joy & BUTTON_B) && (joy & BUTTON_UP || joy & BUTTON_DOWN)) {
         //sector* sect = find_player_sector(&root_node);
         sector* sect = ply.cur_sector;

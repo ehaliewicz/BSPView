@@ -3,7 +3,7 @@
 
 #include <genesis.h>
 
-#define W 256
+#define W 128
 #define H 160
 
 typedef struct {
@@ -14,6 +14,7 @@ typedef struct {
     fix32 x,y,z;
 } Vect3D_f32;
 
+extern u8 fill;
 
 #define BASE_EYE_HEIGHT FIX32(10)
 extern fix32 eye_height;
@@ -21,7 +22,7 @@ extern fix32 eye_height;
 #define HEAD_MARGIN FIX32(1)
 #define KNEE_HEIGHT FIX32(2.5)
 
-#define HFOV FIX32(0.73 * H/W) //FIX32(0.73 * H)
+#define HFOV FIX32(0.35 * H/W) //FIX32(0.73 * H/W) //FIX32(0.73 * H)
 #define VFOV FIX32(.2f) //*H)
 
 
