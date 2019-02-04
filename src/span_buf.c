@@ -163,6 +163,8 @@ void draw_two_sided_span(s16 orig_x1, s16 orig_x2, s16 y1a, s16 ny1a, s16 y1b, s
         s16 cytop = ytop[x];
         s16 cybottom = ybottom[x];
 
+        
+
         s16 ya = fix_y1a >> 16;
         s16 cya = clamp(ya, cytop, cybottom);
         s16 nya = fix_ny1a >> 16;
@@ -173,6 +175,12 @@ void draw_two_sided_span(s16 orig_x1, s16 orig_x2, s16 y1a, s16 ny1a, s16 y1b, s
         s16 nyb = fix_ny1b >> 16;
         s16 cnyb = clamp(nyb, cytop, cybottom);
 
+        if(cnyb < cya) {
+            cnyb = cya;
+        }
+        if(cnya > cyb) {
+            cnya = cyb;
+        }
         
         // draw ceiling
         vline(x, cytop, cya, ceil_col, fill ? 1 : 0);
@@ -185,14 +193,13 @@ void draw_two_sided_span(s16 orig_x1, s16 orig_x2, s16 y1a, s16 ny1a, s16 y1b, s
         // draw lower step
         vline(x, cnyb+1, cyb, lower_col, fill ? 1 : border);
 
-        ytop[x] = clamp(max(cya, cnya), cytop, H-1);
-        ybottom[x] = clamp(min(cyb, cnyb), 0, cybottom);
-        
 
         fix_y1a += top_slope;
         fix_y1b += bot_slope;
         fix_ny1a += top_nslope;
         fix_ny1b += bot_nslope;
+        ytop[x] = clamp(max(cya, cnya), cytop, H-1);
+        ybottom[x] = clamp(min(cyb, cnyb), 0, cybottom);
     }
 }
 
