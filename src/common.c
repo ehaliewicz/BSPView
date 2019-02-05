@@ -2,7 +2,6 @@
 #include "common.h"
 
 fix32 eye_height = FIX32(10);
-u8 fill = 1;
 
 fix16 vxs16(fix16 x0, fix16 y0, fix16 x1, fix16 y1) {
     return fix16Mul(x0, y1) - fix16Mul(x1, y0);

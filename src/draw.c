@@ -5,6 +5,8 @@
 u16 ytop[W] = {0};
 u16 ybottom[W] = {H-1};
 
+u8 fill = 1;
+
 void clear_clipping_buffers() {
   for(int i = 0; i < W; i++) {
     ytop[i] = 0;

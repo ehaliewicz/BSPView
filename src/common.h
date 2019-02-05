@@ -14,7 +14,6 @@ typedef struct {
     fix32 x,y,z;
 } Vect3D_f32;
 
-extern u8 fill;
 
 #define BASE_EYE_HEIGHT FIX32(10)
 extern fix32 eye_height;
