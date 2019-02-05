@@ -29,10 +29,7 @@ void draw_sector(sector* sect) {
 
     for(u16 i = 0; i < sect->num_walls; i++) {
         wall* w = sect->walls[i];
-        //if(!(w == &wall3 || w == &wall8)) { //} || w == &wall8 || w == &wall9 || w == &wall3)) {
-        //    continue;
-        //}
-
+        
         fix32 vx1 = w->v1.x;
         fix32 vy1 = w->v1.y;
         fix32 vx2 = w->v2.x;

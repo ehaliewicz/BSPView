@@ -1,6 +1,7 @@
 #include <genesis.h>
 
 
+
 u16 colors[16] = {
   RGB24_TO_VDPCOLOR(0x000000),   // 0 transparent
   RGB24_TO_VDPCOLOR(0x216a14),   // 1 green
