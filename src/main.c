@@ -3,6 +3,8 @@
 #include "player.h"
 #include "menu.h"
 #include "game_state.h"
+#include "game.h"
+#include "vdp.h"
 
 
 

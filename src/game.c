@@ -4,6 +4,8 @@
 #include "map.h"
 #include "draw.h"
 #include "common.h"
+#include "debug.h"
+#include "span_buf.h"
 
 static int show_fps = 0;
 static int show_pos = 0;
@@ -11,8 +13,7 @@ static u16 last_joy = 0;
 const fix16 angle_speed = FIX16(16);
 const fix32 move_speed = FIX32(1);
 
-void setup_game() {
-
+void init_game() {
 
   ply.anglecos = fix16ToFix32(cosFix16(fix16ToInt(ply.angle)));
   ply.anglesin = fix16ToFix32(sinFix16(fix16ToInt(ply.angle)));

@@ -1,5 +1,6 @@
 #include <genesis.h>
 #include "game_state.h"
+#include "game.h"
 
 void print_menu() {
     VDP_drawTextBG(PLAN_A, "BSP Renderer v0.11", 10, 8);
