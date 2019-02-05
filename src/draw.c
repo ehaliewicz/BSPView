@@ -24,10 +24,10 @@ void vline(s16 x, s16 y1, s16 y2, u8 col, u8 fill) {
         if(fill) {
           u8* pix = BMP_getWritePointer(x<<1, y1);
           vline_native(pix, y2-y1, col);
-      } else {
-        pix(x, y1, col);
-        pix(x, y2, col);
-      }
+        } else {
+          pix(x, y1, col);
+          pix(x, y2, col);
+        }
     } 
 }
 
@@ -36,7 +36,6 @@ void vline(s16 x, s16 y1, s16 y2, u8 col, u8 fill) {
 void draw_two_sided_span(s16 orig_x1, s16 orig_x2, s16 y1a, s16 ny1a, s16 y1b, s16 ny1b, s16 y2a, s16 ny2a, s16 y2b, s16 ny2b, s16 draw_x1, s16 draw_x2, u8 ceil_col, u8 upper_col, u8 lower_col, u8 floor_col) {
     draw_x2 -= 1;
     s16 dx = orig_x2 - orig_x1;
-
 
     fix32 fix_y1a = y1a<<16;
     fix32 fix_y1b = y1b<<16;
@@ -72,7 +71,6 @@ void draw_two_sided_span(s16 orig_x1, s16 orig_x2, s16 y1a, s16 ny1a, s16 y1b, s
         u8 border = (x == draw_x1 || x == draw_x2 || x == 0 || x == W-1);
         s16 cytop = ytop[x];
         s16 cybottom = ybottom[x];
-
         
 
         s16 ya = fix_y1a >> 16;

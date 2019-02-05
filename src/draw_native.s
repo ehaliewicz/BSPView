@@ -10,7 +10,7 @@ vline_native:
 	
 	move.b 15(%sp), %d1		| d1 is col
 
-	lsl.w #2, %d0			| d0 is (159-(dy/cnt))*4
+	lsl.w #2, %d0			| d0 is (159-(dy))*4
 	
 	jmp draw_table(%pc, %d0.W)
 

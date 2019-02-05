@@ -2,7 +2,7 @@
 #include "draw.h"
 #include "common.h"
 
-#define MAX_SPANS 128
+#define MAX_SPANS W
 
 typedef struct span span;
 
@@ -23,13 +23,10 @@ static span* alloc_span() {
     if(free_span_pointer != NULL) {
         span* sp = free_span_pointer;
         free_span_pointer = sp->next;
-        sp->x1 = -1;
-        sp->x2 = -1;
-        sp->next = NULL;
         return sp;
     }
     while(1) {
-        BMP_drawText("Out of spans!", 10, 20);
+        VDP_drawTextBG(PLAN_A, "Out of spans!", 10, 20);
     }
     return NULL;
 }
@@ -204,4 +201,5 @@ void reset_span_buffer() {
     span_buf_head = alloc_span();
     span_buf_head->x1 = 0;
     span_buf_head->x2 = W-1;
+    span_buf_head->next = NULL;
 }
