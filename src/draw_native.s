@@ -12,35 +12,8 @@ vline_native:
 
 	lsl.w #2, %d0			| d0 is (159-(dy/cnt))*4
 	
-	jmp draw_table(%pc, %d0.W)	| jumps to after_unrolled_loop when finished
+	jmp draw_table(%pc, %d0.W)
 
-
-	|	jmp draw_table_slot_0
-	| each write in the table below is 4 bytes
-	
-	
-	| subq.w #1, %d0
-	| ble end_vline_native
-	| btst #0, %d0
-	| bne lp
-
-	| move.b %d1, (%a0)
-	| sub.w #128, %a0
-
-	| subq #1, %d0
-
-lp:	
-	| move.b %d1, (%a0)
-	| sub.w #128, %a0
-	| move.b %d1, (%a0)
-	| sub.w #128, %a0
-	| subq.w #1, %d0
-	| dbeq %d0, lp
-	
-| end_vline_native:	
-|	movem.l (%sp)+, %d2/%a1 
-|	rts
-	
 	
 draw_table:
 draw_table_slot_159:	
@@ -204,7 +177,6 @@ draw_table_slot_158:
 	move.b %d1, 384(%a0)
 	move.b %d1, 256(%a0)
 	move.b %d1, 128(%a0)
-draw_table_slot_0:	
-	move.b %d1, 0(%a0)
+	move.b %d1, (%a0)
 	rts
 
