@@ -3,18 +3,19 @@
 #include "player.h"
 #include "map.h"
 #include "draw.h"
-#include "common.h"
+#include "common.h" 
 #include "debug.h"
 #include "span_buf.h"
 
 static int show_fps = 0;
 static int show_pos = 0;
 static u16 last_joy = 0;
-const fix16 angle_speed = FIX16(16);
-const fix32 move_speed = FIX32(1);
+const fix16 angle_speed = FIX16(16); //FIX16(1.6); // 16
+const fix32 move_speed = FIX32(1); //FIX32(.05); // 1
+
+int framecnt;
 
 void init_game() {
-
   ply.anglecos = fix16ToFix32(cosFix16(fix16ToInt(ply.angle)));
   ply.anglesin = fix16ToFix32(sinFix16(fix16ToInt(ply.angle)));
   
@@ -51,8 +52,10 @@ void run_game() {
             sect->floor_height += inc;
         }
         ply.where.z = ply.cur_sector->floor_height + eye_height;
-        } else {
+    } else {
 
+
+        // move forward or back, with collision detection
         if(joy & BUTTON_UP || joy & BUTTON_DOWN) {
             fix32 oldx = ply.where.x;
             fix32 oldy = ply.where.y;
@@ -115,6 +118,7 @@ void run_game() {
     
     }
 
+    // turn left and right
     if(joy & BUTTON_LEFT) {
         ply.angle -= angle_speed;
         ply.angle = ply.angle & FIX16(1023);
@@ -127,6 +131,7 @@ void run_game() {
         ply.anglesin = fix16ToFix32(sinFix16(fix16ToInt(ply.angle)));
     }
 
+    // move up and down
     if(joy & BUTTON_X) {
         ply.where.z += FIX32(0.5);
     } else if (joy & BUTTON_A) {
@@ -153,6 +158,6 @@ void run_game() {
     if(show_pos) {
         print_pos();
     }
-    
+    framecnt++; 
     
 }

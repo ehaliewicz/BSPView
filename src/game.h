@@ -4,4 +4,6 @@
 void init_game();
 void run_game();
 
+extern int framecnt;
+
 #endif

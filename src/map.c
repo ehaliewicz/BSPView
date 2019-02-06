@@ -33,9 +33,9 @@ wall wall2 = {
 wall wall3 = {
     .v1 = {FIX32(8), FIX32(2)},
     .v2 = {FIX32(8), FIX32(5)},
-    .lower_color = SCARLET_IDX,
+    .lower_color = RED_IDX,
     .middle_color = TRANSPARENT_IDX,
-    .upper_color = SCARLET_IDX,
+    .upper_color = RED_IDX,
     .back_sector = &sector1
 };
 
@@ -57,7 +57,7 @@ sector sector0 = {
     .floor_height = FIX32(0),
     .ceil_height = FIX32(20),
     .floor_color = BLUE_IDX,
-    .ceil_color = DARK_BLUE_IDX,
+    .ceil_color = BLUE_IDX,
     .num_walls = 6,
     .walls = {
         &wall0, &wall1,
@@ -70,16 +70,16 @@ sector sector0 = {
 wall wall6 = {
     .v1 = {FIX32(8), FIX32(5)},
     .v2 = {FIX32(8), FIX32(2)},
-    .upper_color = SCARLET_IDX,
+    .upper_color = RED_IDX,
     .middle_color = TRANSPARENT_IDX,
-    .lower_color = DARK_BROWN_IDX,
+    .lower_color = BROWN_IDX,
     .back_sector = &sector0
 };
 
 wall wall7 = {
     .v1 = {FIX32(8), FIX32(2)},
     .v2 = {FIX32(15), FIX32(2)},
-    .middle_color = DARK_STEEL_IDX,
+    .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
 
@@ -88,16 +88,16 @@ sector sector2;
 wall wall8 = {
     .v1 = {FIX32(15), FIX32(2)},
     .v2 = {FIX32(15), FIX32(5)},
-    .upper_color = DARK_BROWN_IDX,
+    .upper_color = BROWN_IDX,
     .middle_color = TRANSPARENT_IDX,
-    .lower_color = DARK_BROWN_IDX,
+    .lower_color = BROWN_IDX,
     .back_sector = &sector2
 };
 
 wall wall9 = {
     .v1 = {FIX32(15), FIX32(5)},
     .v2 = {FIX32(8), FIX32(5)},
-    .middle_color = DARK_STEEL_IDX,
+    .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
 
@@ -141,16 +141,16 @@ bsp_node node2 = {
 wall wall10 = {
     .v1 = {FIX32(16), FIX32(5)},
     .v2 = {FIX32(15), FIX32(2)},
-    .upper_color = SCARLET_IDX,
+    .upper_color = RED_IDX,
     .middle_color = TRANSPARENT_IDX,
-    .lower_color = DARK_BROWN_IDX,
+    .lower_color = BROWN_IDX,
     .back_sector = &sector1
 };
 
 wall wall11 = {
     .v1 = {FIX32(15), FIX32(2)},
     .v2 = {FIX32(18), FIX32(5)},
-    .middle_color = DARK_STEEL_IDX,
+    .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
 
@@ -159,9 +159,9 @@ sector sector3;
 wall wall12 = {
     .v1 = {FIX32(18), FIX32(5)},
     .v2 = {FIX32(15), FIX32(5)},
-    .upper_color = SCARLET_IDX,
+    .upper_color = RED_IDX,
     .middle_color = TRANSPARENT_IDX,
-    .lower_color = DARK_BROWN_IDX,
+    .lower_color = BROWN_IDX,
     .back_sector = &sector3
 };
 
@@ -187,23 +187,23 @@ bsp_node leaf2 = {
 wall wall13 = {
     .v1 = {FIX32(15), FIX32(11)},
     .v2 = {FIX32(15), FIX32(5)},
-    .middle_color = DARK_STEEL_IDX,
+    .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
 
 wall wall14 = {
     .v1 = {FIX32(15), FIX32(5)},
     .v2 = {FIX32(18), FIX32(5)},
-    .upper_color = SCARLET_IDX,
+    .upper_color = RED_IDX,
     .middle_color = TRANSPARENT_IDX,
-    .lower_color = DARK_BROWN_IDX,
+    .lower_color = BROWN_IDX,
     .back_sector = &sector2
 };
 
 wall wall15 = {
     .v1 = {FIX32(18), FIX32(5)},
     .v2 = {FIX32(18), FIX32(11)},
-    .middle_color = DARK_STEEL_IDX,
+    .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
 
@@ -212,9 +212,9 @@ sector sector4;
 wall wall16 = {
     .v1 = {FIX32(18), FIX32(11)},
     .v2 = {FIX32(15), FIX32(11)},
-    .upper_color = SCARLET_IDX,
+    .upper_color = RED_IDX,
     .middle_color = TRANSPARENT_IDX,
-    .lower_color = DARK_BROWN_IDX,
+    .lower_color = BROWN_IDX,
     .back_sector = &sector4
 };
 
@@ -260,36 +260,36 @@ bsp_node node1 = {
 wall wall17 = {
     .v1 = {FIX32(13), FIX32(18)},
     .v2 = {FIX32(13), FIX32(13)},
-    .middle_color = DARK_STEEL_IDX,
+    .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
 
 wall wall18 = {
     .v1 = {FIX32(13), FIX32(13)},
     .v2 = {FIX32(15), FIX32(11)},
-    .middle_color = DARK_STEEL_IDX,
+    .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
 
 wall wall19 = {
     .v1 = {FIX32(15), FIX32(11)},
     .v2 = {FIX32(18), FIX32(11)},
-    .upper_color = SCARLET_IDX,
-    .lower_color = SCARLET_IDX,
+    .upper_color = RED_IDX,
+    .lower_color = RED_IDX,
     .back_sector = &sector3
 };
 
 wall wall20 = {
     .v1 = {FIX32(18), FIX32(11)},
     .v2 = {FIX32(20), FIX32(13)},
-    .middle_color = DARK_STEEL_IDX,
+    .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
 
 wall wall21 = {
     .v1 = {FIX32(20), FIX32(13)},
     .v2 = {FIX32(20), FIX32(18)},
-    .middle_color = DARK_STEEL_IDX,
+    .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
 
@@ -298,9 +298,9 @@ sector sector7;
 wall wall22 = {
     .v1 = {FIX32(20), FIX32(18)},
     .v2 = {FIX32(18), FIX32(18)},
-    .upper_color = SCARLET_IDX,
+    .upper_color = RED_IDX,
     .middle_color = TRANSPARENT_IDX,
-    .lower_color = DARK_BROWN_IDX,
+    .lower_color = BROWN_IDX,
     .back_sector = &sector7
 };
 
@@ -316,9 +316,9 @@ sector sector6;
 wall wall24 = {
     .v1 = {FIX32(18), FIX32(18)},
     .v2 = {FIX32(13), FIX32(18)},
-    .upper_color = SCARLET_IDX,
+    .upper_color = RED_IDX,
     .middle_color = TRANSPARENT_IDX,
-    .lower_color = DARK_BROWN_IDX,
+    .lower_color = BROWN_IDX,
     .back_sector = &sector6
 };
 
@@ -343,16 +343,16 @@ bsp_node leaf4 = {
 wall wall30 = {
     .v1 = {FIX32(13), FIX32(21)},
     .v2 = {FIX32(13), FIX32(18)},
-    .middle_color = DARK_STEEL_IDX,
+    .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
 
 wall wall31 = {
     .v1 = {FIX32(13), FIX32(18)},
     .v2 = {FIX32(15), FIX32(18)},
-    .upper_color = SCARLET_IDX,
+    .upper_color = RED_IDX,
     .middle_color = TRANSPARENT_IDX,
-    .lower_color = SCARLET_IDX,
+    .lower_color = RED_IDX,
     .back_sector = &sector4
 };
 
@@ -368,17 +368,17 @@ sector sector5;
 wall wall33 = {
     .v1 = {FIX32(16.5), FIX32(21)},
     .v2 = {FIX32(13),   FIX32(21)},
-    .upper_color = SCARLET_IDX,
+    .upper_color = RED_IDX,
     .middle_color = TRANSPARENT_IDX,
-    .lower_color = SCARLET_IDX,
+    .lower_color = RED_IDX,
     .back_sector = &sector5
 };
 
 sector sector6 = {
     .floor_height = FIX32(-10),
     .ceil_height = FIX32(10),
-    .ceil_color = SCARLET_IDX,
-    .floor_color = SCARLET_IDX,
+    .ceil_color = RED_IDX,
+    .floor_color = RED_IDX,
     .num_walls = 4,
     .walls = {
         &wall30, &wall31, &wall32, &wall33
@@ -401,16 +401,16 @@ wall wall34 = {
 wall wall35 = {
     .v1 = {FIX32(18), FIX32(18)},
     .v2 = {FIX32(20), FIX32(18)},
-    .upper_color = SCARLET_IDX,
+    .upper_color = RED_IDX,
     .middle_color = TRANSPARENT_IDX,
-    .lower_color = SCARLET_IDX,
+    .lower_color = RED_IDX,
     .back_sector = &sector4
 };
 
 wall wall36 = {
     .v1 = {FIX32(20), FIX32(18)},
     .v2 = {FIX32(20), FIX32(21)},
-    .middle_color = DARK_STEEL_IDX,
+    .middle_color = STEEL_IDX,
     .back_sector = NULL
 
 };
@@ -418,9 +418,9 @@ wall wall36 = {
 wall wall37 = {
     .v1 = {FIX32(20),   FIX32(21)},
     .v2 = {FIX32(16.5), FIX32(21)},
-    .upper_color = SCARLET_IDX,
+    .upper_color = RED_IDX,
     .middle_color = TRANSPARENT_IDX,
-    .lower_color = SCARLET_IDX,
+    .lower_color = RED_IDX,
     .back_sector = &sector4
 
 };
@@ -428,8 +428,8 @@ wall wall37 = {
 sector sector7 = {
     .floor_height = FIX32(-10),
     .ceil_height = FIX32(10),
-    .ceil_color = SCARLET_IDX,
-    .floor_color = SCARLET_IDX,
+    .ceil_color = RED_IDX,
+    .floor_color = RED_IDX,
     .num_walls = 4,
     .walls = {
         &wall34, &wall35, &wall36, &wall37
@@ -456,39 +456,39 @@ bsp_node node6 = {
 wall wall25 = {
     .v1 = {FIX32(15), FIX32(23)},
     .v2 = {FIX32(13), FIX32(21)},
-    .middle_color = DARK_STEEL_IDX,
+    .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
 
 wall wall26 = {
     .v1 = {FIX32(13),   FIX32(21)},
     .v2 = {FIX32(16.5), FIX32(21)},
-    .upper_color = SCARLET_IDX,
+    .upper_color = RED_IDX,
     .middle_color = TRANSPARENT_IDX,
-    .lower_color = SCARLET_IDX,
+    .lower_color = RED_IDX,
     .back_sector = &sector6
 };
 
 wall wall27 = {
     .v1 = {FIX32(16.5), FIX32(21)},
     .v2 = {FIX32(20),   FIX32(21)},
-    .upper_color = SCARLET_IDX,
+    .upper_color = RED_IDX,
     .middle_color = TRANSPARENT_IDX,
-    .lower_color = SCARLET_IDX,
+    .lower_color = RED_IDX,
     .back_sector = &sector7
 };
 
 wall wall28 = {
     .v1 = {FIX32(20), FIX32(21)},
     .v2 = {FIX32(18), FIX32(23)},
-    .middle_color = DARK_STEEL_IDX,
+    .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
 
 wall wall29 = {
     .v1 = {FIX32(18), FIX32(23)},
     .v2 = {FIX32(15), FIX32(23)},
-    .middle_color = DARK_STEEL_IDX,
+    .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
 
@@ -496,8 +496,8 @@ wall wall29 = {
 sector sector5 = {
     .floor_height = FIX32(-10),
     .ceil_height = FIX32(10),
-    .ceil_color = SCARLET_IDX,
-    .floor_color = DARK_BLUE_IDX,
+    .ceil_color = RED_IDX,
+    .floor_color = BLUE_IDX,
     .num_walls = 5,
     .walls = {
         &wall25, &wall26, &wall27, &wall28, &wall29
