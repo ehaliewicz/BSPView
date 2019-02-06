@@ -10,8 +10,8 @@
 static int show_fps = 0;
 static int show_pos = 0;
 static u16 last_joy = 0;
-const fix16 angle_speed = FIX16(16); //FIX16(1.6); // 16
-const fix32 move_speed = FIX32(1); //FIX32(.05); // 1
+fix16 angle_speed = FIX16(10); //FIX16(1.6); // 16
+fix32 move_speed = FIX32(0.6); //FIX32(.05); // 1
 
 int framecnt;
 

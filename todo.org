@@ -1,0 +1,13 @@
+* TODO subpixel accurate rasterization
+** TODO convert whole pipeline to use fixed point
+*** TODO span buffer
+*** TODO wall interpolation
+
+* TODO performance 
+** TODO draw two pixels at once where possible
+*** TODO can this be combined with texturing? i don't know. 
+
+* TODO texturing  
+** TODO precompile 1 to 160 pixel unrolled loops that load and reuse each texel as much as possible
+** TODO store the length of each "load_texel, n * use_texel" chunk for each size, use that for clipping and jumping to the right chunk
+** TODO for lighting, use pre-lit textures?
