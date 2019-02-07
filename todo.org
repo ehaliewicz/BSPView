@@ -13,3 +13,7 @@
 ** TODO precompile 1 to 160 pixel unrolled loops that load and reuse each texel as much as possible
 ** TODO store the length of each "load_texel, n * use_texel" chunk for each size, use that for clipping and jumping to the right chunk
 ** TODO for lighting, use pre-lit textures?
+
+
+* TODO projection
+** TODO add yaw/looking up and down (one extra multiply per vertex) 
