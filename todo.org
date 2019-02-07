@@ -6,6 +6,8 @@
 * TODO performance 
 ** TODO draw two pixels at once where possible
 *** TODO can this be combined with texturing? i don't know. 
+** TODO span buffering in assembly?
+** TODO vertex transformation and projection in assembly?
 
 * TODO texturing  
 ** TODO precompile 1 to 160 pixel unrolled loops that load and reuse each texel as much as possible
