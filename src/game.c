@@ -9,6 +9,7 @@
 #include "sector.h"
 #include "sector_effects.h"
 #include "palette.h"
+#include "wipe.h"
 
 static int show_fps = 0;
 static int show_pos = 0;
@@ -16,7 +17,7 @@ static u16 last_joy = 0;
 fix16 angle_speed = FIX16(16); //FIX16(1.6); // 16
 fix32 move_speed = FIX32(0.6); //FIX32(.05); // 1
 
-int framecnt;  
+u32 framecnt;  
 
 void register_active_sector(sector* sect) {
     if(sect->sector_type != NO_EFFECT) {
@@ -24,14 +25,20 @@ void register_active_sector(sector* sect) {
     }
 }
 
-void init_game() {
+void reset_player() {
+    memcpy(&ply, &init_ply, sizeof(player));
   ply.anglecos = fix16ToFix32(cosFix16(fix16ToInt(ply.angle)));
   ply.anglesin = fix16ToFix32(sinFix16(fix16ToInt(ply.angle)));
   
   ply.cur_sector = find_player_sector(&root_node);
   ply.where.z = ply.cur_sector->floor_height + eye_height;
+  ply.health = 100;
 
-  traverse_all_sectors(&root_node, &register_active_sector);
+}
+
+void init_game() {
+    reset_player();
+    traverse_all_sectors(&root_node, &register_active_sector);
 }
 
 int player_collides_vertically(sector* next_sector) {
@@ -39,10 +46,11 @@ int player_collides_vertically(sector* next_sector) {
             (next_sector->ceil_height < ply.where.z+HEAD_MARGIN));
 }
 
-void handle_player_input(u16 joy) {
-    
-    if(ply.health <= 0) { return; }
+int hurt_palette = 0;
+int dead = 0;
+int wiping = 0;
 
+void handle_player_input(u16 joy) {
     if((joy & BUTTON_Y || joy & BUTTON_B) && (joy & BUTTON_UP || joy & BUTTON_DOWN)) {
         //sector* sect = find_player_sector(&root_node);
         sector* sect = ply.cur_sector;
@@ -53,7 +61,6 @@ void handle_player_input(u16 joy) {
         if(joy & BUTTON_B) {
             sect->floor_height += inc;
         }
-        ply.where.z = ply.cur_sector->floor_height + eye_height;
 
     } else {
 
@@ -152,8 +159,23 @@ void handle_player_input(u16 joy) {
 
 }
 
-int hurt_palette = 0;
+
 void run_game() {
+
+
+    framecnt++; 
+    if(wiping) {
+        
+        int done = wipe(framecnt);
+        wiping = !done;
+
+        if(wiping == 0) {
+            BMP_setBufferCopy(0);
+            hurt_palette = 0;
+        }
+        return;
+    }
+
     u16 joy = JOY_readJoypad(0);
     if(joy & BUTTON_Z && !(last_joy & BUTTON_Z)) {
         show_fps = show_fps ? 0 : 1;
@@ -168,31 +190,50 @@ void run_game() {
         fill = !fill;
     }
 
+
     last_joy = joy;
 
-    handle_player_input(joy);
+    dead = ply.health <= 0;
 
-    if(hurt_palette == 0) {
-        if(ply.health > 0) {
-            load_palette(3, NORMAL_PAL);
-        }
-        hurt_palette -= 1;
-    } else if (hurt_palette > 0) {
-        hurt_palette -= 1;
+    if(joy & BUTTON_START) {
+        dead = 0;
+        reset_player();
+        BMP_setBufferCopy(1);
+        start_wipe(framecnt);
+        wiping = 1;
+        return;
     }
 
     process_sector_effects(framecnt);
-    if(player_collides_vertically(ply.cur_sector)) {
-        ply.health = max(ply.health-10, 0);
-        ply.where.z = max(ply.cur_sector->floor_height+FIX32(1), (ply.cur_sector->ceil_height - HEAD_MARGIN));
-        load_palette(3, HURT_PAL);
-        hurt_palette = 3;
-    } else if (ply.health > 0) {
-        ply.where.z = ply.cur_sector->floor_height + eye_height;
+    
+    if(dead) {
+        if(joy & BUTTON_START) {
+            dead = 0;
+            reset_player();
+            BMP_setBufferCopy(1);
+            start_wipe(framecnt);
+            wiping = 1;
+            return;
+        }
+    } else {
+        handle_player_input(joy);
+        if(player_collides_vertically(ply.cur_sector)) {
+            ply.health = max(ply.health-10, 0);
+            ply.where.z = max(ply.cur_sector->floor_height+FIX32(1), (ply.cur_sector->ceil_height - HEAD_MARGIN));
+            load_palette(3, HURT_PAL);
+            hurt_palette = 3;
+        } else if (ply.health > 0) {
+            ply.where.z = ply.cur_sector->floor_height + eye_height;
+        }
+        if(hurt_palette == 0) {
+            if(ply.health > 0) {
+                load_palette(3, NORMAL_PAL);    
+            }
+            hurt_palette -= 1;
+        } else if (hurt_palette > 0) {
+            hurt_palette -= 1;
+        }
     }
-    //char buf[32];
-    //sprintf(buf, "hp: %3i", ply.health);
-    //VDP_drawTextBG(PLAN_A, buf, 0, 12);
 
     reset_span_buffer();
     clear_clipping_buffers();
@@ -212,6 +253,5 @@ void run_game() {
     if(show_pos) {
         print_pos();
     }
-    framecnt++; 
     
 }

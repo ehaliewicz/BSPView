@@ -5,7 +5,7 @@
 #include "sector.h"
 
 
-void process_sector_effects(s32 cur_frame);
+void process_sector_effects(u32 cur_frame);
 
 void register_sector_to_process(sector* sect);
 

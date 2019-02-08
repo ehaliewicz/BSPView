@@ -9,7 +9,7 @@
 static int num_sectors_to_process;
 sector* sectors_to_process[MAX_SECTORS_TO_PROCESS];
 
-void process_sector_type(sector* sect, s32 cur_frame) {
+void process_sector_type(sector* sect, u32 cur_frame) {
     sector_effect_params parms = sect->sector_params;
     // default delay to next frame
     sect->sector_params.delay_to = cur_frame+1;
@@ -53,11 +53,11 @@ void process_sector_type(sector* sect, s32 cur_frame) {
     }
 }
 
-int sector_needs_to_be_processed(sector* sect, s32 cur_frame) {
+int sector_needs_to_be_processed(sector* sect, u32 cur_frame) {
     return sect->sector_params.delay_to <= cur_frame;
 }
 
-void process_sector_effects(s32 cur_frame) {
+void process_sector_effects(u32 cur_frame) {
     for(int i = 0; i < num_sectors_to_process; i++) {
         sector* sect = sectors_to_process[i];
         if(sector_needs_to_be_processed(sect, cur_frame)) {

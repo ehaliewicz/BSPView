@@ -14,6 +14,7 @@ typedef struct {
 } player;
 
 extern player ply;
+extern const player init_ply;
 
 
 #endif
