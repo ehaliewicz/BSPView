@@ -308,6 +308,19 @@ sector* find_player_sector(bsp_node* node) {
     }
 }
 
+void traverse_all_sectors(bsp_node* node, sector_callback cb) {
+    switch(node->type) {
+        case LEAF:
+            cb(node->sect);
+            break;
+        case NODE:
+            traverse_all_sectors(node->inner.front, cb);
+            traverse_all_sectors(node->inner.behind, cb);
+            break;
+
+    }
+}
+
 
 void draw_bsp_node(bsp_node* node) {
     int in_front = 0;

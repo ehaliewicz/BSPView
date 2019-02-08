@@ -8,5 +8,6 @@ player ply = {
     .velocity = {0,0,0},
     .angle = FIX16(77.0),
     .anglesin = 0,
-    .anglecos = 0
+    .anglecos = 0,
+    .health = 100
 };

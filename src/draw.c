@@ -20,17 +20,11 @@ void pix(s16 x, s16 y, u8 col) {
   *pix = col;
 }
 
-void vline(s16 x, s16 y1, s16 y2, u8 col, u8 fill) {
-    if (y2 > y1) {
-        if(fill) {
-          u8* pix = BMP_getWritePointer(x<<1, y1);
-          vline_native(pix, y2-y1, col);
-        } else {
-          pix(x, y1, col);
-          pix(x, y2, col);
-        }
-    } 
-}
+void vline_dither(s16 x, s16 y1, s16 y2, u8 col1, u8 col2, u8 fill);
+
+void vline_native_dither(u8* buf, s16 dy, u8 col, u8 col2);
+void vline_native_dither_double(u8* buf, s16 dy, u16 col1, u16 col2);
+
 
 void vline_dither(s16 x, s16 y1, s16 y2, u8 col1, u8 col2, u8 fill) {
     //if(framecnt & 1) { SWAP_u8(col1, col2); }
@@ -44,6 +38,61 @@ void vline_dither(s16 x, s16 y1, s16 y2, u8 col1, u8 col2, u8 fill) {
         }
     } 
 }
+
+void vline_dither_double(s16 x, s16 ly1, s16 ly2, s16 ry1, s16 ry2, u8 lcol1, u8 lcol2, u8 rcol1, u8 rcol2, u8 fill) {
+  if(!fill) {
+      vline_dither(x, ly1, ly2, lcol1, lcol2, fill);
+      vline_dither(x+1, ry1, ry2, rcol1, rcol2, fill);
+  } else {
+
+      if(ly1 > ly2 && ry1 > ry2) {
+          // draw double column
+          s16 min_bot = min(ly2, ry2);
+
+          if(ly1 < ry1) {
+            // draw left top first
+            vline_dither(x, ly1, ry1, lcol1, lcol2, fill);
+            u8* pix = BMP_getWritePointer(x<<1, ry1);
+            vline_native_dither_double(pix, min_bot-ry1, lcol1 << 8 | rcol1, lcol2 << 8 | rcol2);
+          } else if (ry1 < ly1) {
+            // draw right top first
+            vline_dither(x+1, ry1, ly1, rcol1, rcol2, fill);
+            u8* pix = BMP_getWritePointer(x<<1, ly1);
+            vline_native_dither_double(pix, min_bot-ly1, lcol1 << 8 | rcol1, lcol2 << 8 | rcol2);
+          }
+
+          if(ly2 > ry2) {
+            // draw left bottom
+            vline_dither(x, min_bot, ly2, lcol1, lcol2, fill);
+
+          } else if (ry2 > ly2) {
+            // draw right bottom
+            vline_dither(x+1, min_bot, ry2, rcol1, rcol2, fill);
+          }
+
+
+      } else if (ly1 > ly2) {
+        // draw just left column
+        vline_dither(x, ly1, ly2, lcol1, lcol2, fill);
+      } else if (ry1 > ry2) {
+        // draw just right column
+        vline_dither(x+1, ry1, ry2, rcol1, rcol2, fill);
+      }
+  }
+}
+
+//void vline_dither_double(s16 x, s16 y1, s16 y2, u16 col1, u16 col2, u8 fill) {
+//    //if(framecnt & 1) { SWAP_u8(col1, col2); }
+//    if (y2 > y1) {
+//        if(fill) {
+//          u8* pix = BMP_getWritePointer(x<<1, y1);
+//          vline_native_dither_double(pix, y2-y1, col1, col2);
+//        } else {
+//            pix(x, y1, col1);
+//            pix(x, y2, col1);
+//        }
+//    } 
+//}
 
 u8 swap_nibbles(u8 x) {
   return (((x & 0xF0) >>4) | ((x & 0x0F) << 4));
@@ -91,15 +140,24 @@ void draw_two_sided_span(s16 orig_x1, s16 orig_x2,
     if(dither_wall) {
         lower_col2 = swap_nibbles(lower_col);
         upper_col2 = swap_nibbles(upper_col);
+    } else {
+        lower_col2 = lower_col;
+        upper_col2 = upper_col;
     }
     if(dither_floor) {
       floor_col2 = swap_nibbles(floor_col);
       ceil_col2 = swap_nibbles(ceil_col);
+    } else {
+      floor_col2 = floor_col;
+      ceil_col2 = ceil_col;
     }
 
 
     // interpolate wall heights if we clipped this wall segment
-  
+    //if((draw_x2 - draw_x1) % 2 != 0) {
+      // odd number of columns
+    //}
+
     
     for(s16 x = draw_x1; x <= draw_x2; x++) {
         u8 border = (x == draw_x1 || x == draw_x2 || x == 0 || x == W-1);
@@ -124,31 +182,16 @@ void draw_two_sided_span(s16 orig_x1, s16 orig_x2,
             cnya = cyb;
         }
 
-        if(dither_floor) {
-          // draw ceiling
-          vline_dither(x, cytop, cya, ceil_col, ceil_col2, fill ? 1 : 0);
-          // draw floor
-          vline_dither(x, cyb, cybottom, floor_col, floor_col2, fill ? 1 : 0);
-        } else {
-          // draw ceiling
-          vline(x, cytop, cya, ceil_col, fill ? 1 : 0);
-          // draw floor
-          vline(x, cyb, cybottom, floor_col, fill ? 1 : 0);
-        }
+        // draw ceiling
+        vline_dither(x, cytop, cya, ceil_col, ceil_col2, fill ? 1 : 0);
+        // draw floor
+        vline_dither(x, cyb, cybottom, floor_col, floor_col2, fill ? 1 : 0);
 
-        if(dither_wall) {
-          // draw step from ceiling
-          vline_dither(x, cya, cnya-1, upper_col, upper_col2, fill ? 1 : border);
+        // draw step from ceiling
+        vline_dither(x, cya, cnya, upper_col, upper_col2, fill ? 1 : border);
+        // draw lower step
+        vline_dither(x, cnyb, cyb, lower_col, lower_col2, fill ? 1 : border);
 
-          // draw lower step
-          vline_dither(x, cnyb+1, cyb, lower_col, lower_col2, fill ? 1 : border);
-        } else {
-          // draw step from ceiling
-          vline(x, cya, cnya-1, upper_col, fill ? 1 : border);
-
-          // draw lower step
-          vline(x, cnyb+1, cyb, lower_col, fill ? 1 : border);
-        }
 
         fix_y1a += top_slope;
         fix_y1b += bot_slope;
@@ -191,10 +234,16 @@ void draw_one_sided_span(s16 orig_x1, s16 orig_x2,
     u8 ceil_col2;
     if(dither_wall) {
         wall_col2 = swap_nibbles(wall_col);
+    } else {
+        wall_col2 = wall_col;
     }
+
     if(dither_floor) {
       floor_col2 = swap_nibbles(floor_col);
       ceil_col2 = swap_nibbles(ceil_col);
+    } else {
+      floor_col2 = floor_col;
+      ceil_col2 = ceil_col;
     }
 
 
@@ -212,24 +261,15 @@ void draw_one_sided_span(s16 orig_x1, s16 orig_x2,
 
 
       
-        if(dither_floor) {
-          // draw ceiling
-          vline_dither(x, cytop, cya-1, ceil_col, ceil_col2, fill ? 1 : 0);
-          // draw floor
-          vline_dither(x, cyb+1, cybottom, floor_col, floor_col2, fill ? 1 : 0);
-        } else {
-          // draw ceiling
-          vline(x, cytop, cya-1, ceil_col, fill ? 1 : 0);
-          // draw floor
-          vline(x, cyb+1, cybottom, floor_col, fill ? 1 : 0);
-        }
+        // draw ceiling
+        vline_dither(x, cytop, cya-1, ceil_col, ceil_col2, fill ? 1 : 0);
+        // draw floor
+        vline_dither(x, cyb+1, cybottom, floor_col, floor_col2, fill ? 1 : 0);
+        
 
         // draw wall
-        if(dither_wall) {
-          vline_dither(x, cya, cyb, wall_col, wall_col2, fill ? 1 : border);
-        } else {
-          vline(x, cya, cyb, wall_col, fill ? 1 : border);
-        }
+        vline_dither(x, cya, cyb, wall_col, wall_col2, fill ? 1 : border);
+
         
         
         ytop[x] = clamp(cya, cytop, H-1);

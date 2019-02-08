@@ -11,12 +11,6 @@ extern u8 fill;
 
 void clear_clipping_buffers();
 
-void vline(s16 x, s16 y1, s16 y2, u8 col, u8 fill);
-
-void vline_dither(s16 x, s16 y1, s16 y2, u8 col1, u8 col2, u8 fill);
-
-void vline_native(u8* buf, s16 cnt, u8 col);
-void vline_native_dither(u8* buf, s16 dy, u8 col, u8 col2);
 
 void draw_span(s16 orig_x1, s16 orig_x2, 
                s16 y1a, s16 ny1a, s16 y1b, s16 ny1b, s16 y2a, s16 ny2a, s16 y2b, s16 ny2b, 

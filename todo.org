@@ -17,3 +17,6 @@
 
 * TODO projection
 ** TODO add yaw/looking up and down (one extra multiply per vertex) 
+
+
+

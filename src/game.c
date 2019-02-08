@@ -1,19 +1,27 @@
 #include <genesis.h>
-
+#include "bsp.h"
 #include "player.h"
 #include "map.h"
 #include "draw.h"
 #include "common.h" 
 #include "debug.h"
 #include "span_buf.h"
+#include "sector.h"
+#include "sector_effects.h"
 
 static int show_fps = 0;
 static int show_pos = 0;
 static u16 last_joy = 0;
-fix16 angle_speed = FIX16(10); //FIX16(1.6); // 16
+fix16 angle_speed = FIX16(16); //FIX16(1.6); // 16
 fix32 move_speed = FIX32(0.6); //FIX32(.05); // 1
 
-int framecnt;
+int framecnt;  
+
+void register_active_sector(sector* sect) {
+    if(sect->sector_type != NO_EFFECT) {
+        register_sector_to_process(sect);
+    }
+}
 
 void init_game() {
   ply.anglecos = fix16ToFix32(cosFix16(fix16ToInt(ply.angle)));
@@ -22,25 +30,18 @@ void init_game() {
   ply.cur_sector = find_player_sector(&root_node);
   ply.where.z = ply.cur_sector->floor_height + eye_height;
 
+  traverse_all_sectors(&root_node, &register_active_sector);
 }
 
+int player_collides_vertically(sector* next_sector) {
+    return ((next_sector->floor_height > ply.where.z+KNEE_HEIGHT) ||
+            (next_sector->ceil_height < ply.where.z+HEAD_MARGIN));
+}
 
-void run_game() {
-    u16 joy = JOY_readJoypad(0);
-    if(joy & BUTTON_Z && !(last_joy & BUTTON_Z)) {
-        show_fps = show_fps ? 0 : 1;
-        if(!show_fps) { clear_fps(); }
-    }
-    if(joy & BUTTON_C && !(last_joy & BUTTON_C)) {
-        show_pos = show_pos ? 0 : 1;
-        if(!show_pos) { clear_pos(); }
-    }
+void handle_player_input(u16 joy) {
     
-    if(joy & BUTTON_MODE && !(last_joy & BUTTON_MODE)) {
-        fill = !fill;
-    }
+    if(ply.health <= 0) { return; }
 
-    last_joy = joy;
     if((joy & BUTTON_Y || joy & BUTTON_B) && (joy & BUTTON_UP || joy & BUTTON_DOWN)) {
         //sector* sect = find_player_sector(&root_node);
         sector* sect = ply.cur_sector;
@@ -52,8 +53,8 @@ void run_game() {
             sect->floor_height += inc;
         }
         ply.where.z = ply.cur_sector->floor_height + eye_height;
-    } else {
 
+    } else {
 
         // move forward or back, with collision detection
         if(joy & BUTTON_UP || joy & BUTTON_DOWN) {
@@ -75,9 +76,14 @@ void run_game() {
                 fix32 newside = PointSide32(newx, cury, w->v1.x, w->v1.y, w->v2.x, w->v2.y);
                 int signold = (oldside < 0 ? -1 : oldside == 0 ? 0 : 1);
                 int signnew = (newside < 0 ? -1 : oldside == 0 ? 0 : 1);
-                if(signold != signnew && w->back_sector == NULL) {
-                    got_x_collision = 1;
-                    break;
+                if(signold != signnew) {
+                    if(w->back_sector == NULL) {
+                        got_x_collision = 1;
+                        break;
+                    } else if (player_collides_vertically(w->back_sector)) {
+                        got_x_collision = 1;
+                        break;
+                    }
                 }
             }
 
@@ -95,9 +101,14 @@ void run_game() {
                 fix32 newside = PointSide32(curx, newy, w->v1.x, w->v1.y, w->v2.x, w->v2.y);
                 int signold = (oldside < 0 ? -1 : oldside == 0 ? 0 : 1);
                 int signnew = (newside < 0 ? -1 : oldside == 0 ? 0 : 1);
-                if(signold != signnew && w->back_sector == NULL) {
-                    got_y_collision = 1;
-                    break;
+                if(signold != signnew) {
+                    if(w->back_sector == NULL) {
+                        got_y_collision = 1;
+                        break;
+                    } else if (player_collides_vertically(w->back_sector)) {
+                        got_y_collision = 1;
+                        break;
+                    }
                 }
             }
 
@@ -138,7 +149,38 @@ void run_game() {
         ply.where.z -= FIX32(0.5);
     }
 
+}
 
+void run_game() {
+    u16 joy = JOY_readJoypad(0);
+    if(joy & BUTTON_Z && !(last_joy & BUTTON_Z)) {
+        show_fps = show_fps ? 0 : 1;
+        if(!show_fps) { clear_fps(); }
+    }
+    if(joy & BUTTON_C && !(last_joy & BUTTON_C)) {
+        show_pos = show_pos ? 0 : 1;
+        if(!show_pos) { clear_pos(); }
+    }
+    
+    if(joy & BUTTON_MODE && !(last_joy & BUTTON_MODE)) {
+        fill = !fill;
+    }
+
+    last_joy = joy;
+
+    handle_player_input(joy);
+
+
+    process_sector_effects(framecnt);
+    if(player_collides_vertically(ply.cur_sector)) {
+        ply.health = max(ply.health-10, 0);
+        ply.where.z = max(ply.cur_sector->floor_height+FIX32(1), (ply.cur_sector->ceil_height - HEAD_MARGIN));
+    } else if (ply.health > 0) {
+        ply.where.z = ply.cur_sector->floor_height + eye_height;
+    }
+    //char buf[32];
+    //sprintf(buf, "hp: %3i", ply.health);
+    //VDP_drawTextBG(PLAN_A, buf, 0, 12);
 
     reset_span_buffer();
     clear_clipping_buffers();

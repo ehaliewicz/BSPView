@@ -36,4 +36,9 @@ void draw_bsp_node(bsp_node* node);
 
 sector* find_player_sector(bsp_node* node);
 
+
+typedef void (*sector_callback)(sector* sect);
+
+void traverse_all_sectors(bsp_node* node, sector_callback cb);
+
 #endif

@@ -24,8 +24,8 @@ const struct
 } rom_header = {
     "SEGA MEGA DRIVE ",
     "                ",
-    "BSP GAME                                        ",
-    "BSP GAME                                        ",
+    "BSP RENDERER                                    ",
+    "BSP RENDERER                                    ",
     "GM 00000000-00",
     0x0000,
     "JD              ",

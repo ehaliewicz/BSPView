@@ -10,6 +10,7 @@ typedef struct {
     fix16 angle;
     fix32 anglesin, anglecos;
     sector* cur_sector;
+    s8 health;
 } player;
 
 extern player ply;

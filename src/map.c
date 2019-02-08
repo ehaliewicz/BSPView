@@ -6,6 +6,7 @@
 #include "sector.h"
 #include "bsp.h"
 #include "palette.h"
+#include "sector_effect_types.h"
 
 sector sector1;
 
@@ -54,8 +55,8 @@ wall wall5 = {
 };
 
 sector sector0 = {
-    .floor_height = FIX32(0),
-    .ceil_height = FIX32(20),
+    .floor_height = FIX32(20),
+    .ceil_height = FIX32(40),
     .floor_color = BLUE_IDX,
     .ceil_color = BLUE_IDX,
     .num_walls = 6,
@@ -64,7 +65,17 @@ sector sector0 = {
         &wall2, &wall3,
         &wall4, &wall5
     },
-    .sectnum = 0
+    .sectnum = 0,
+    .sector_type = SECTOR_UP_DOWN,
+    .sector_params = {
+        .sector_up_down = {
+            .max_floor_height = FIX32(16),
+            .min_floor_height = FIX32(-4),
+            .frame_delay_at_transition = 20,
+            .state = GOING_DOWN
+        },
+        .delay_to = 0
+    }
 };
 
 wall wall6 = {
@@ -111,6 +122,7 @@ sector sector1 = {
         &wall6, &wall7,
         &wall8, &wall9
     },
+    .sector_type = NO_EFFECT,
     .sectnum = 1
 };
 
@@ -176,6 +188,7 @@ sector sector2 = {
     .walls = {
         &wall10, &wall11, &wall12
     },
+    .sector_type = NO_EFFECT,
     .sectnum = 2
 };
 
@@ -227,6 +240,7 @@ sector sector3 = {
     .walls = {
         &wall13, &wall14, &wall15, &wall16
     },
+    .sector_type = NO_EFFECT,
     .sectnum = 3
 };
 
@@ -332,7 +346,16 @@ sector sector4 = {
         &wall17, &wall18, &wall19, &wall20,
         &wall21, &wall22, &wall23, &wall24
     },
-    .sectnum = 4
+    .sectnum = 4,
+    .sector_type = CEILING_UP_DOWN,
+    .sector_params = {
+        .ceiling_up_down = {
+            .max_ceil_height = FIX32(10),
+            .min_ceil_height = FIX32(-10),
+            .frame_delay_at_transition = 20,
+            .state = GOING_DOWN
+        }
+    },
 };
 
 bsp_node leaf4 = {
@@ -383,6 +406,7 @@ sector sector6 = {
     .walls = {
         &wall30, &wall31, &wall32, &wall33
     },
+    .sector_type = NO_EFFECT,
     .sectnum = 6
 };
 
@@ -433,6 +457,15 @@ sector sector7 = {
     .num_walls = 4,
     .walls = {
         &wall34, &wall35, &wall36, &wall37
+    },
+    .sector_type = CEILING_UP_DOWN,
+    .sector_params = {
+        .ceiling_up_down = {
+            .max_ceil_height = FIX32(10),
+            .min_ceil_height = FIX32(-10),
+            .frame_delay_at_transition = 20,
+            .state = GOING_DOWN
+        }
     },
     .sectnum = 7
 };
@@ -501,6 +534,15 @@ sector sector5 = {
     .num_walls = 5,
     .walls = {
         &wall25, &wall26, &wall27, &wall28, &wall29
+    },
+    .sector_type = CEILING_UP_DOWN,
+    .sector_params = {
+        .ceiling_up_down = {
+            .max_ceil_height = FIX32(10),
+            .min_ceil_height = FIX32(-10),
+            .frame_delay_at_transition = 20,
+            .state = GOING_DOWN
+        }
     },
     .sectnum = 5
 };
