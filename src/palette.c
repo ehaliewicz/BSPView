@@ -21,6 +21,19 @@ const u16 colors[16] = {
   RGB24_TO_VDPCOLOR(0xFFFFFF)
 };
 
+u16 red_colors[16];
+
+u16 redify(u16 color) {
+  u8 red = (color >> 1);
+  red = min(7, (red + (red >> 2)));
+  u8 grn = (color >> 5);
+  grn >>= 1;
+  u8 blue = (color >> 9);
+  blue >>= 1;
+
+  return (blue << 9) | (grn << 5) | (red << 1);
+}
+
 const u8 dark_col_lut[16] = {
   0, DARK_GREEN_IDX, DARK_YELLOW_IDX, DARK_RED_IDX,
   DARK_RED_IDX, DARK_STEEL_IDX, DARK_BLUE_IDX, ORANGE_IDX,
@@ -28,7 +41,23 @@ const u8 dark_col_lut[16] = {
   DARK_BLUE_IDX, DARK_YELLOW_IDX, DARK_GREEN_IDX, 14, 15
 };
 
+void init_palettes() {
+  for(int i = 0; i < 16; i++) {
+    red_colors[i] = redify(colors[i]);
+  }
+}
 
-void loadPalette(int palnum) {
-  VDP_setPalette(palnum, colors);
+void load_palette(int palnum, palette_type typ) {
+  switch(typ) {
+    case HURT_PAL:
+    //while(1) { }
+
+      //VDP_setPaletteColors(palnum << 4, red_colors, 16);
+      VDP_setPalette(palnum, red_colors);
+      break;
+    case NORMAL_PAL:
+      //VDP_setPaletteColors(palnum << 4, colors, 16);
+      VDP_setPalette(palnum, colors);
+      break;
+  }
 }

@@ -3,7 +3,7 @@
 
 #include <genesis.h>
 
-void loadPalette(int palnum);
+void init_palettes();
 const u8 dark_col_lut[16];
 
 #define TRANSPARENT_IDX 0x0
@@ -20,5 +20,12 @@ const u8 dark_col_lut[16];
 #define DARK_BLUE_IDX   0xB
 #define DARK_YELLOW_IDX 0xC
 #define DARK_GREEN_IDX  0xD
+
+typedef enum {
+    NORMAL_PAL,
+    HURT_PAL
+} palette_type;
+
+void load_palette(int palnum, palette_type typ);
 
 #endif

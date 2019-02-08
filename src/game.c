@@ -8,6 +8,7 @@
 #include "span_buf.h"
 #include "sector.h"
 #include "sector_effects.h"
+#include "palette.h"
 
 static int show_fps = 0;
 static int show_pos = 0;
@@ -151,6 +152,7 @@ void handle_player_input(u16 joy) {
 
 }
 
+int hurt_palette = 0;
 void run_game() {
     u16 joy = JOY_readJoypad(0);
     if(joy & BUTTON_Z && !(last_joy & BUTTON_Z)) {
@@ -170,11 +172,21 @@ void run_game() {
 
     handle_player_input(joy);
 
+    if(hurt_palette == 0) {
+        if(ply.health > 0) {
+            load_palette(3, NORMAL_PAL);
+        }
+        hurt_palette -= 1;
+    } else if (hurt_palette > 0) {
+        hurt_palette -= 1;
+    }
 
     process_sector_effects(framecnt);
     if(player_collides_vertically(ply.cur_sector)) {
         ply.health = max(ply.health-10, 0);
         ply.where.z = max(ply.cur_sector->floor_height+FIX32(1), (ply.cur_sector->ceil_height - HEAD_MARGIN));
+        load_palette(3, HURT_PAL);
+        hurt_palette = 3;
     } else if (ply.health > 0) {
         ply.where.z = ply.cur_sector->floor_height + eye_height;
     }
