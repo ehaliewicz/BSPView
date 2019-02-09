@@ -7,6 +7,7 @@
 u32 frame_for_column[WIDTH];
 s16 wiped[WIDTH];
 
+
 void init_column_delays(u32 cur_frame) {
     for(int i = 0; i < WIDTH; i++) {
         frame_for_column[i] = cur_frame + (random() % 32);
@@ -31,15 +32,17 @@ int process_columns(u32 cur_frame) {
             done = 0;
         }
         if(frame_for_column[i] <= cur_frame && wiped[i] < H) {
-            u8* bmp_read = BMP_getReadPointer(i<<1, 0);
-            u8* bmp_write = BMP_getWritePointer(i<<1, 0);
-            bmp_write[wiped[i]*128] = TRANSPARENT_IDX;
-            bmp_write[(wiped[i]+1)*128] = TRANSPARENT_IDX;
-            bmp_write[(wiped[i]+2)*128] = TRANSPARENT_IDX;
-            bmp_write[(wiped[i]+3)*128] = TRANSPARENT_IDX;
-            for(int y = wiped[i]; y < H; y++) {
-                int dy = min(H-1, y+4);
-                bmp_write[dy*128] = bmp_read[y*128];
+	        u8* bmp_read = BMP_getReadPointer(i<<1, wiped[i]);
+	        u8* bmp_write = BMP_getWritePointer(i<<1, wiped[i]);
+            bmp_write[0] = TRANSPARENT_IDX; 
+            bmp_write[128] = TRANSPARENT_IDX;
+            bmp_write[256] = TRANSPARENT_IDX;
+	        bmp_write[384] = TRANSPARENT_IDX;
+            int cnt = 160-4-wiped[i];
+            for(int y = 0; y < cnt; y++) {
+                bmp_write[512] = bmp_read[0];
+                bmp_write += 128;
+                bmp_read += 128;
             }
             wiped[i] += 4;
         }

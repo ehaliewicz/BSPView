@@ -165,7 +165,7 @@ void run_game() {
 
     framecnt++; 
     if(wiping) {
-        
+
         int done = wipe(framecnt);
         wiping = !done;
 
@@ -195,14 +195,14 @@ void run_game() {
 
     dead = ply.health <= 0;
 
-    if(joy & BUTTON_START) {
-        dead = 0;
-        reset_player();
-        BMP_setBufferCopy(1);
-        start_wipe(framecnt);
-        wiping = 1;
-        return;
-    }
+    //if(joy & BUTTON_START) {
+    //    dead = 0;
+    //    reset_player();
+    //    BMP_setBufferCopy(1);
+    //    start_wipe(framecnt);
+    //    wiping = 1;
+    //    return;
+    //}
 
     process_sector_effects(framecnt);
     
