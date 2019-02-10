@@ -10,8 +10,8 @@ u8 fill = 1;
 
 void clear_clipping_buffers() {
   for(int i = 0; i < W; i++) {
-    ytop[i] = 0;
-    ybottom[i] = H-1;
+    ytop[i] = 0; //-1 ?;
+    ybottom[i] = H-1; //H ?;
   }
 }
 
@@ -103,6 +103,9 @@ void draw_two_sided_span(s16 orig_x1, s16 orig_x2,
                          s16 y1a, s16 ny1a, s16 y1b, s16 ny1b, s16 y2a, s16 ny2a, s16 y2b, s16 ny2b, 
                          s16 draw_x1, s16 draw_x2, u8 ceil_col, u8 upper_col, u8 lower_col, u8 floor_col,
                          u8 dither_wall, u8 dither_floor) {
+
+    
+
     draw_x2 -= 1;
     s16 dx = orig_x2 - orig_x1;
 

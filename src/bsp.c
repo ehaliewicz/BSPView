@@ -17,6 +17,59 @@ fix32 div32(fix32 x, fix32 y) {
     return fix32Div(x, y);
 }
 
+
+typedef enum {
+    LEFT_OF_PLANE,
+    RIGHT_OF_PLANE,
+    ON_PLANE
+} plane_side;
+
+plane_side point_side(Vect3D_f32* pos, bsp_node* nd) {
+    if(nd->inner.dvec.x == 0) {
+        // vertical splitting plane
+        if(nd->inner.dvec.y < 0) {
+            // plane goes up
+            return (pos->x < nd->inner.pos.x) ? LEFT_OF_PLANE : RIGHT_OF_PLANE;
+            
+        } else {
+            // plane goes down
+            return (pos->x < nd->inner.pos.x) ? RIGHT_OF_PLANE : LEFT_OF_PLANE;
+        }
+    }
+
+
+    if(nd->inner.dvec.y == 0) {
+        // horizontal splitting plane
+        if(nd->inner.dvec. x < 0) {
+            // plane goes left
+            return (pos->y < nd->inner.pos.y) ? RIGHT_OF_PLANE : LEFT_OF_PLANE;
+        } else {
+            return (pos->y < nd->inner.pos.y) ? LEFT_OF_PLANE : RIGHT_OF_PLANE;
+        }
+    }
+    fix32 dx = pos->x - nd->inner.pos.x;
+    fix32 dy = pos->y - nd->inner.pos.y;
+
+
+    fix32 left = (nd->inner.dvec.x >> FIX32_FRAC_BITS) * dx; // 22 * 22.10 = 22.10 bits
+    fix32 right = (nd->inner.dvec.y >> FIX32_FRAC_BITS) * dy;
+    
+  
+    if(right > left) {
+        return RIGHT_OF_PLANE;
+    } else if (right < left) {
+        return LEFT_OF_PLANE;
+    } else {
+        // 
+        return LEFT_OF_PLANE; 
+
+        while(1) {
+            VDP_drawTextBG(PLAN_A, "exactly on plane wtf", 10, 8);
+        }
+    }
+
+}
+
 #define safeFix32ToFix16(value)         (((value) >> (FIX32_FRAC_BITS-FIX16_FRAC_BITS)))
 
 #define safeFix16ToFix32(value)         (((value) << (FIX32_FRAC_BITS - FIX16_FRAC_BITS)))
@@ -256,7 +309,11 @@ void draw_sector(sector* sect) {
 
         if(w->back_sector == NULL) { //w->middle_color != TRANSPARENT_IDX) { 
             
-
+            //Vect2D_s16 wall_poly[4] = {
+            //    {x2, y2a}, {x2, y2b},
+            //    {x1, y1b}, {x1, y1a}
+            //};
+            //BMP_drawPolygon(wall_poly, 4, wall_col);
             insert_span(x1, x2, y1a, y1a, y2a, y2a, y1b, y1b, y2b, y2b, sect_ceil_col, high_col, wall_col, low_col, sect_floor_col, 1, dither_wall, dither_floor);
         } else {
 
@@ -271,8 +328,8 @@ void draw_sector(sector* sect) {
             int ny1b = H/2 - (fix32ToInt(SAFEMUL32(nyfloor, yscale1)));
             int ny2b = H/2 - (fix32ToInt(SAFEMUL32(nyfloor, yscale2)));
             insert_span(x1, x2, y1a, ny1a, y2a, ny2a, y1b, ny1b, y2b, ny2b, sect_ceil_col, high_col, wall_col, low_col, sect_floor_col, 0, dither_wall, dither_floor);
-
-              
+            
+    
             
         }
 
@@ -281,24 +338,22 @@ void draw_sector(sector* sect) {
     
 }
 
+
 sector* find_player_sector(bsp_node* node) {
-    int in_front = 0;
+
     switch(node->type) {
         case LEAF:
             return node->sect;
-        case NODE:
-            switch(node->inner.axis) {
-                case HORIZONTAL:
-                    in_front = (ply.where.x < node->inner.split_pos);
-                    break;
-                case VERTICAL:
-                    in_front = (ply.where.y < node->inner.split_pos);
-            }
-            if(in_front) {
-                return find_player_sector(node->inner.front);
-            } else {
-                return find_player_sector(node->inner.behind);
-            }
+        case NODE: do {
+                plane_side side = point_side(&(ply.where), node);
+                if(side == RIGHT_OF_PLANE) {
+                    return find_player_sector(node->inner.right);
+                } else {
+                    return find_player_sector(node->inner.left);
+                }
+        } while(0);
+            break;
+        
         default:
             // corrupted
             while(1) {
@@ -314,8 +369,8 @@ void traverse_all_sectors(bsp_node* node, sector_callback cb) {
             cb(node->sect);
             break;
         case NODE:
-            traverse_all_sectors(node->inner.front, cb);
-            traverse_all_sectors(node->inner.behind, cb);
+            traverse_all_sectors(node->inner.left, cb);
+            traverse_all_sectors(node->inner.right, cb);
             break;
 
     }
@@ -323,33 +378,22 @@ void traverse_all_sectors(bsp_node* node, sector_callback cb) {
 
 
 void draw_bsp_node(bsp_node* node) {
-    int in_front = 0;
 
     switch(node->type) {
         case LEAF:
             draw_sector(node->sect);
             break;
-        case NODE:
-
-            switch(node->inner.axis) {
-                case HORIZONTAL:
-
-                // lower x is in front
-                    in_front = (ply.where.x < node->inner.split_pos);
-                    break;
-                case VERTICAL:
-                // lower y is in front
-                    in_front = (ply.where.y < node->inner.split_pos);
-                    break;
-            }
-            if(in_front) {
-                draw_bsp_node(node->inner.front);
-                draw_bsp_node(node->inner.behind);
-            } else {
-                draw_bsp_node(node->inner.behind);
-                draw_bsp_node(node->inner.front);
-            }
-            break;
+        case NODE: do {
+                plane_side side = point_side(&(ply.where), node);
+                if(side == RIGHT_OF_PLANE) {
+                    draw_bsp_node(node->inner.right);
+                    draw_bsp_node(node->inner.left);
+                } else {
+                    draw_bsp_node(node->inner.left);
+                    draw_bsp_node(node->inner.right);
+                }
+        } while(0);
+        break;
 
     }
 }

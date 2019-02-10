@@ -41,9 +41,13 @@ void init_game() {
     traverse_all_sectors(&root_node, &register_active_sector);
 }
 
-int player_collides_vertically(sector* next_sector) {
-    return ((next_sector->floor_height > ply.where.z+KNEE_HEIGHT) ||
-            (next_sector->ceil_height < ply.where.z+HEAD_MARGIN));
+int player_collides_vertically(sector* sector) {
+    return ((sector->floor_height > ply.where.z+KNEE_HEIGHT) ||
+            (sector->ceil_height < ply.where.z+HEAD_MARGIN));
+}
+
+int player_squished(sector* sector) {
+    return (sector->ceil_height < ply.where.z+HEAD_MARGIN);
 }
 
 int hurt_palette = 0;
@@ -185,7 +189,6 @@ void run_game() {
         show_pos = show_pos ? 0 : 1;
         if(!show_pos) { clear_pos(); }
     }
-    
     if(joy & BUTTON_MODE && !(last_joy & BUTTON_MODE)) {
         fill = !fill;
     }
@@ -217,7 +220,7 @@ void run_game() {
         }
     } else {
         handle_player_input(joy);
-        if(player_collides_vertically(ply.cur_sector)) {
+        if(player_squished(ply.cur_sector)) {
             ply.health = max(ply.health-10, 0);
             ply.where.z = max(ply.cur_sector->floor_height+FIX32(1), (ply.cur_sector->ceil_height - HEAD_MARGIN));
             load_palette(3, HURT_PAL);

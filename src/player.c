@@ -4,7 +4,7 @@
 #include "common.h"
 
 const player init_ply = {
-    .where = {FIX32(1.821), FIX32(1.570), BASE_EYE_HEIGHT},
+    .where = {FIX32(2), FIX32(5), FIX32(10)},
     .velocity = {0,0,0},
     .angle = FIX16(77.0),
     .anglesin = 0,

@@ -10,16 +10,18 @@ typedef enum {
 
 typedef enum {
     HORIZONTAL,
-    VERTICAL
+    VERTICAL,
+    ARBITRARY
 } split_axis;
 
 typedef struct bsp_node bsp_node;
 
 typedef struct {
-    bsp_node* behind;
-    bsp_node* front;
-    split_axis axis;
-    fix32 split_pos;
+    bsp_node* left;
+    bsp_node* right;
+    // define splitting plane
+    Vect2D_f32 pos;
+    Vect2D_f32 dvec;
     int nodenum;
 } bsp_inner;
 

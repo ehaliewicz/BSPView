@@ -13,9 +13,9 @@ void init_column_delays(u32 cur_frame) {
         frame_for_column[i] = cur_frame + (random() % 32);
         if(i > 0) {
             if(frame_for_column[i] > frame_for_column[i-1]) {
-                frame_for_column[i] = frame_for_column[i-1]+2;
+                frame_for_column[i] = frame_for_column[i-1]+1;
             } else if (frame_for_column[i] < frame_for_column[i-1]) {
-                frame_for_column[i] = frame_for_column[i-1]-2;
+                frame_for_column[i] = frame_for_column[i-1]-1;
             }
         }
         wiped[i] = 0;

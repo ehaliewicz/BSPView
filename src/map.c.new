@@ -1,0 +1,459 @@
+#include <genesis.h>
+#include "palette.h"
+#include "sector.h"
+#include "bsp.h"
+
+
+#define VERT2(x,y) {FIX32(x), FIX32(y)}
+
+//wall wall0 = {
+//  .v1 = VERT2(0, 0),
+//  .v2 = VERT2(20, 0), 
+//  .middle_color = STEEL_IDX,
+//  .back_sector = NULL
+//};
+
+sector sector0, sector1, sector2, sector3, sector4, sector5, sector6, sector7;
+
+wall wall_sect0_top = {
+  .v1 = VERT2(0,0),
+  .v2 = VERT2(0,24),
+  .middle_color = STEEL_IDX,
+  .back_sector = NULL
+};
+wall wall_sect0_right = {
+  .v1 = VERT2(16, 16),
+  .v2 = VERT2(8, 16),
+  .middle_color = TRANSPARENT_IDX,
+  .back_sector = &sector2
+};
+
+wall wall_sect0_bottom = {
+  .v1 = VERT2(8,8),
+  .v2 = VERT2(16,8),
+  .lower_color = GREEN_IDX,
+  .middle_color = TRANSPARENT_IDX,
+  .upper_color = GREEN_IDX,
+  .back_sector = &sector1
+};
+
+wall wall_sect0_left = {
+  .v1 = VERT2(8, 8),
+  .v2 = VERT2(0, 0),
+  .middle_color = TRANSPARENT_IDX,
+  .back_sector = &sector4
+};
+
+
+wall wall_sect1_top = {
+  .v1 = VERT2(16,8),
+  .v2 = VERT2(8,8),
+  .lower_color = GREEN_IDX,
+  .middle_color = TRANSPARENT_IDX,
+  .upper_color = GREEN_IDX, 
+  .back_sector = &sector0
+};
+
+wall wall_sect1_right = {
+  .v1 = VERT2(16, 8),
+  .v2 = VERT2(12, 12),
+  .middle_color = TRANSPARENT_IDX,
+  .back_sector = &sector3
+};
+
+wall wall_sect1_left = {
+  .v1 = VERT2(12, 12),
+  .v2 = VERT2(8, 8),
+  .middle_color = TRANSPARENT_IDX,
+  .back_sector = &sector5
+};
+
+
+wall wall_sect2_right = {
+  .v1 = VERT2(24,0),
+  .v2 = VERT2(24,24),
+  .middle_color = STEEL_IDX,
+  .back_sector = NULL
+};
+
+wall wall_sect2_bottom = {
+  .v1 = VERT2(24, 24),
+  .v2 = VERT2(16, 16),
+  .middle_color = TRANSPARENT_IDX,
+  .back_sector = &sector7
+};
+
+wall wall_sect2_left = {
+  .v1 = VERT2(16,16),
+  .v2 = VERT2(16,8),
+  .lower_color = GREEN_IDX,
+  .middle_color = TRANSPARENT_IDX,
+  .upper_color = GREEN_IDX,
+  .back_sector = &sector3
+};
+
+wall wall_sect2_top = {
+  .v1 = VERT2(16, 8),
+  .v2 = VERT2(24, 0),
+  .middle_color = TRANSPARENT_IDX,
+  .back_sector = &sector0
+};
+
+wall wall_sect3_right = {
+  .v1 = VERT2(16,8),
+  .v2 = VERT2(16,16),
+  .lower_color = GREEN_IDX,
+  .middle_color = TRANSPARENT_IDX,
+  .upper_color = GREEN_IDX, 
+  .back_sector = &sector2
+};
+
+
+wall wall_sect4_left = {
+  .v1 = VERT2(0,24),
+  .v2 = VERT2(0,0),
+  .middle_color = STEEL_IDX,
+  .back_sector = NULL
+};
+
+wall wall_sect4_top = {
+  .v1 = VERT2(0, 0),
+  .v2 = VERT2(8, 8),
+  .middle_color = TRANSPARENT_IDX,
+  .back_sector = &sector0
+};
+
+wall wall_sect4_right = {
+  .v1 = VERT2(8,8),
+  .v2 = VERT2(8,16),
+  .lower_color = GREEN_IDX,
+  .middle_color = TRANSPARENT_IDX,
+  .upper_color = GREEN_IDX,
+  .back_sector = &sector5
+};
+
+wall wall_sect4_bottom = {
+  .v1 = VERT2(8, 16),
+  .v2 = VERT2(0, 24),
+  .middle_color = TRANSPARENT_IDX,
+  .back_sector = &sector7
+};
+
+
+wall wall_sect5_left = {
+  .v1 = VERT2(8,16),
+  .v2 = VERT2(8,8),
+  .lower_color = GREEN_IDX,
+  .middle_color = TRANSPARENT_IDX,
+  .upper_color = GREEN_IDX, 
+  .back_sector = &sector4
+};
+
+wall wall_sect5_top = {
+  .v1 = VERT2(8, 8),
+  .v2 = VERT2(12, 12),
+  .middle_color = TRANSPARENT_IDX,
+  .back_sector = &sector1
+};
+
+wall wall_sect5_bottom = {
+  .v1 = VERT2(12, 12),
+  .v2 = VERT2(8, 16),
+  .middle_color = TRANSPARENT_IDX,
+  .back_sector = &sector6
+};
+
+wall wall_sect7_bottom = {
+  .v1 = VERT2(24,24),
+  .v2 = VERT2(0,24),
+  .middle_color = STEEL_IDX,
+  .back_sector = NULL
+};
+
+wall wall_sect7_top = {
+  .v1 = VERT2(8,16),
+  .v2 = VERT2(16,16),
+  .lower_color = GREEN_IDX,
+  .middle_color = TRANSPARENT_IDX,
+  .upper_color = GREEN_IDX,
+  .back_sector = &sector6
+};
+
+wall wall_sect6_bottom = {
+  .v1 = VERT2(16,16),
+  .v2 = VERT2(8,16),
+  .lower_color = GREEN_IDX,
+  .middle_color = TRANSPARENT_IDX,
+  .upper_color = GREEN_IDX, 
+  .back_sector = &sector7
+};
+
+
+sector sector0 = {
+  .floor_height = FIX32(10),
+  .ceil_height = FIX32(30),
+  .floor_color = BROWN_IDX,
+  .ceil_color = BLUE_IDX,
+  .num_walls = 4,
+  .walls = {
+    &wall_sect0_top, &wall_sect0_right, &wall_sect0_bottom, &wall_sect0_left
+  },
+  .sectnum = 0,
+  .sector_type = NO_EFFECT
+};
+
+sector sector1 = {
+  .floor_height = FIX32(20),
+  .ceil_height = FIX32(20),
+  .floor_color = YELLOW_IDX,
+  .ceil_color = YELLOW_IDX,
+  .num_walls = 3,
+  .walls = {
+    &wall_sect1_top, &wall_sect1_right, &wall_sect1_left
+  },
+  .sectnum = 1,
+  .sector_type = NO_EFFECT
+};
+
+sector sector2 = {
+  .floor_height = FIX32(10),
+  .ceil_height = FIX32(30),
+  .floor_color = BROWN_IDX,
+  .ceil_color = BLUE_IDX,
+  .num_walls = 4,
+  .walls = {
+    &wall_sect2_right, &wall_sect2_bottom, &wall_sect2_left, &wall_sect2_top
+  },
+  .sectnum = 2,
+  .sector_type = NO_EFFECT
+};
+
+wall wall_sect3_bottom = {
+  .v1 = VERT2(16, 16),
+  .v2 = VERT2(12, 12),
+  .middle_color = TRANSPARENT_IDX,
+  .back_sector = &sector6
+};
+
+wall wall_sect3_top = {
+  .v1 = VERT2(12, 12),
+  .v2 = VERT2(16, 8),
+  .middle_color = TRANSPARENT_IDX,
+  .back_sector = &sector1
+};
+
+sector sector3 = {
+  .floor_height = FIX32(20),
+  .ceil_height = FIX32(20),
+  .floor_color = YELLOW_IDX,
+  .ceil_color = YELLOW_IDX,
+  .num_walls = 3,
+  .walls = {
+    &wall_sect3_right, &wall_sect3_bottom, &wall_sect3_top
+  },
+  .sectnum = 3,
+  .sector_type = NO_EFFECT
+};
+
+sector sector4 = {
+  .floor_height = FIX32(10),
+  .ceil_height = FIX32(30),
+  .floor_color = BROWN_IDX,
+  .ceil_color = BLUE_IDX,
+  .num_walls = 4,
+  .walls = {
+    &wall_sect4_left, &wall_sect4_top, &wall_sect4_right, &wall_sect4_bottom
+  },
+  .sectnum = 4,
+  .sector_type = NO_EFFECT
+};
+
+
+sector sector5 = {
+  .floor_height = FIX32(20),
+  .ceil_height = FIX32(20),
+  .floor_color = YELLOW_IDX,
+  .ceil_color = YELLOW_IDX,
+  .num_walls = 3,
+  .walls = {
+    &wall_sect5_left, &wall_sect5_top, &wall_sect5_bottom,
+  },
+  .sectnum = 5,
+  .sector_type = NO_EFFECT
+};
+
+wall wall_sect6_left = {
+  .v1 = VERT2(8, 16),
+  .v2 = VERT2(12, 12),
+  .middle_color = TRANSPARENT_IDX,
+  .back_sector = &sector5
+};
+
+wall wall_sect6_right = {
+  .v1 = VERT2(12, 12),
+  .v2 = VERT2(16, 16),
+  .middle_color = TRANSPARENT_IDX,
+  .back_sector = &sector3
+};
+
+sector sector6 = {
+  .floor_height = FIX32(20),
+  .ceil_height = FIX32(20),
+  .floor_color = YELLOW_IDX,
+  .ceil_color = YELLOW_IDX,
+  .num_walls = 3,
+  .walls = {
+    &wall_sect6_bottom, &wall_sect6_left, &wall_sect6_right
+  },
+  .sectnum = 6,
+  .sector_type = NO_EFFECT
+};
+
+wall wall_sect7_left = {
+  .v1 = VERT2(0, 24),
+  .v2 = VERT2(8, 16),
+  .middle_color = TRANSPARENT_IDX,
+  .back_sector = &sector4
+};
+
+wall wall_sect7_right = {
+  .v1 = VERT2(16, 16),
+  .v2 = VERT2(24, 24),
+  .middle_color = TRANSPARENT_IDX,
+  .back_sector = &sector2
+};
+
+
+sector sector7 = {
+  .floor_height = FIX32(10),
+  .ceil_height = FIX32(30),
+  .floor_color = BROWN_IDX,
+  .ceil_color = BLUE_IDX,
+  .num_walls = 4,
+  .walls = {
+    &wall_sect7_bottom, &wall_sect7_left, &wall_sect7_top, &wall_sect7_right
+  },
+  .sectnum = 7,
+  .sector_type = NO_EFFECT
+};
+
+bsp_node node_sector4 = {
+  .type = LEAF,
+  .sect = &sector4
+};
+
+bsp_node node_sector5 = {
+  .type = LEAF,
+  .sect = &sector5
+};
+
+bsp_node node_left = {
+  .type = NODE,
+  .inner = {
+    .pos = VERT2(8, 16),
+    .dvec = VERT2(0, -8),
+    .left = &node_sector4,
+    .right = &node_sector5,
+    .nodenum = 2
+  }
+};
+
+bsp_node node_sector6 = {
+  .type = LEAF,
+  .sect = &sector6
+};
+
+bsp_node node_sector7 = {
+  .type = LEAF,
+  .sect = &sector7
+};
+
+bsp_node node_bottom = {
+  .type = NODE,
+  .inner = {
+    .pos = VERT2(8, 16),
+    .dvec = VERT2(8, 0),
+    .left = &node_sector6,
+    .right = &node_sector7,
+    .nodenum = 3
+  }
+};
+
+
+bsp_node node_bot_left = {
+  .type = NODE,
+  .inner = {
+    .pos = VERT2(0, 24),
+    .dvec = VERT2(12, -12),
+    .left = &node_left,
+    .right = &node_bottom,
+    .nodenum = 1
+  }
+};
+
+bsp_node node_sector0 = {
+  .type = LEAF,
+  .sect = &sector0
+};
+
+bsp_node node_sector1 = {
+  .type = LEAF,
+  .sect = &sector1
+};
+
+bsp_node node_top = {
+  .type = NODE,
+  .inner = {
+    .pos = VERT2(8, 8),
+    .dvec = VERT2(8, 0),
+    .left = &node_sector0,
+    .right = &node_sector1,
+    .nodenum = 6
+  }
+};
+
+bsp_node node_sector2 = {
+  .type = LEAF,
+  .sect = &sector2
+};
+
+bsp_node node_sector3 = {
+  .type = LEAF,
+  .sect = &sector3
+};
+
+bsp_node node_right = {
+  .inner = {
+    .pos = VERT2(16, 8),
+    .dvec = VERT2(0, 8),
+    .left = &node_sector2,
+    .right = &node_sector3,
+    .nodenum = 7
+  }
+};
+
+
+bsp_node node_top_right = {
+  .type = NODE,
+  .inner = {
+    .pos = VERT2(12, 12),
+    .dvec = VERT2(12, -12),
+    .left = &node_top,
+    .right = &node_right,
+    .nodenum = 5
+  }
+};
+
+
+
+bsp_node root_node = {
+  .type = NODE,
+  .inner = {
+    .pos = VERT2(0, 0),
+    .dvec = VERT2(24, 24),
+    .left = &node_top_right,
+    .right = &node_bot_left,
+    .nodenum = 0
+  }
+};
+

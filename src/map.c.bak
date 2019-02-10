@@ -8,8 +8,6 @@
 #include "palette.h"
 #include "sector_effect_types.h"
 
-#define VERT2(x,y) {FIX32(x), FIX32(y)}
-
 sector sector1;
 
 wall wall0 = {
@@ -142,10 +140,10 @@ bsp_node leaf1 = {
 bsp_node node2 = {
     .type = NODE,
     .inner = {
-        .left = &leaf0,
-        .right = &leaf1,
-        .pos = VERT2(8, 5),
-        .dvec = VERT2(0, -3),
+        .front = &leaf0,
+        .behind = &leaf1,
+        .axis = HORIZONTAL,
+        .split_pos = FIX32(8),
         .nodenum = 2
     }
 };
@@ -254,10 +252,10 @@ bsp_node leaf3 = {
 bsp_node node3 = {
     .type = NODE,
     .inner = {
-        .left = &leaf2,
-        .right = &leaf3,
-        .pos = VERT2(15, 5),
-        .dvec = VERT2(3, 0),
+        .front = &leaf2,
+        .behind = &leaf3,
+        .axis = VERTICAL,
+        .split_pos = FIX32(5),
         .nodenum = 3
     }
 };
@@ -265,10 +263,10 @@ bsp_node node3 = {
 bsp_node node1 = {
     .type = NODE,
     .inner = {
-        .left = &node2,
-        .right = &node3,
-        .pos = VERT2(15, 5),
-        .dvec = VERT2(0, -3),
+        .front = &node2,
+        .behind = &node3,
+        .axis = HORIZONTAL,
+        .split_pos = FIX32(15),
         .nodenum = 1
     }
 };
@@ -480,10 +478,10 @@ bsp_node leaf7 = {
 bsp_node node6 = {
     .type = NODE,
     .inner = {
-        .left = &leaf6,
-        .right = &leaf7,
-        .pos = VERT2(16.5, 21),
-        .dvec = VERT2(0, -3),
+        .front = &leaf6,
+        .behind = &leaf7,
+        .axis = HORIZONTAL,
+        .split_pos = FIX32(16.5),
         .nodenum = 6
     }
 };
@@ -557,10 +555,10 @@ bsp_node leaf5 = {
 bsp_node node5 = {
     .type = NODE,
     .inner = {
-        .left = &node6,
-        .right = &leaf5,
-        .pos = VERT2(13, 21),
-        .dvec = VERT2(7, 0),
+        .front = &node6,
+        .behind = &leaf5,
+        .axis = VERTICAL,
+        .split_pos = FIX32(21),
         .nodenum = 5
     }
 };
@@ -568,10 +566,10 @@ bsp_node node5 = {
 bsp_node node4 = {
     .type = NODE,
     .inner = {
-        .left = &leaf4,
-        .right = &node5,
-        .pos = VERT2(13, 18),
-        .dvec = VERT2(7, 0),
+        .front = &leaf4,
+        .behind = &node5,
+        .axis = VERTICAL,
+        .split_pos = FIX32(18),
         .nodenum = 4
     }
 };
@@ -579,10 +577,10 @@ bsp_node node4 = {
 bsp_node root_node = {
     .type = NODE,
     .inner = {
-        .left = &node1,
-        .right = &node4,
-        .pos = VERT2(15, 11),
-        .dvec = VERT2(3, 0),
+        .front = &node1,
+        .behind = &node4,
+        .axis = VERTICAL,
+        .split_pos = FIX32(11),
         .nodenum = 0
     }
 };
