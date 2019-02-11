@@ -10,32 +10,50 @@
 
 #define VERT2(x,y) {FIX32(x), FIX32(y)}
 
+
+Vect2D_f32 vertices[23] = {
+    [0] = VERT2(0, 7),    [1] = VERT2(0, 0),
+    [2] = VERT2(6, 0),    [3] = VERT2(8, 2),
+    [4] = VERT2(8, 5),    [5] = VERT2(6, 7),
+    [6] = VERT2(15, 2),   [7] = VERT2(15, 5),
+    [8] = VERT2(16, 5),   [9] = VERT2(18, 5),
+    [10] = VERT2(15, 11), [11] = VERT2(18, 11),
+    [12] = VERT2(13, 18), [13] = VERT2(13, 13),
+    [14] = VERT2(20, 13), [15] = VERT2(20, 18),
+    [16] = VERT2(18, 18), [17] = VERT2(15, 18),
+    [18] = VERT2(13, 21), [19] = VERT2(16.5, 21),
+    [20] = VERT2(20, 21), [21] = VERT2(15, 23),
+    [22] = VERT2(18, 23)
+};
+
+
 sector sector1;
 
+
 wall wall0 = {
-    .v1 = {FIX32(0), FIX32(7)},
-    .v2 = {FIX32(0), FIX32(0)},
+    .v1 = 0,
+    .v2 = 1,
     .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
 
 wall wall1 = {
-    .v1 = {FIX32(0), FIX32(0)},
-    .v2 = {FIX32(6), FIX32(0)},
+    .v1 = 1,
+    .v2 = 2,
     .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
 
 wall wall2 = {
-    .v1 = {FIX32(6), FIX32(0)},
-    .v2 = {FIX32(8), FIX32(2)},
+    .v1 = 2,
+    .v2 = 3,
     .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
 
 wall wall3 = {
-    .v1 = {FIX32(8), FIX32(2)},
-    .v2 = {FIX32(8), FIX32(5)},
+    .v1 = 3,
+    .v2 = 4,
     .lower_color = RED_IDX,
     .middle_color = TRANSPARENT_IDX,
     .upper_color = RED_IDX,
@@ -43,15 +61,15 @@ wall wall3 = {
 };
 
 wall wall4 = {
-    .v1 = {FIX32(8), FIX32(5)},
-    .v2 = {FIX32(6), FIX32(7)},
+    .v1 = 4,
+    .v2 = 5,
     .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
 
 wall wall5 = {
-    .v1 = {FIX32(6), FIX32(7)},
-    .v2 = {FIX32(0), FIX32(7)},
+    .v1 = 5,
+    .v2 = 0,
     .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
@@ -81,8 +99,8 @@ sector sector0 = {
 };
 
 wall wall6 = {
-    .v1 = {FIX32(8), FIX32(5)},
-    .v2 = {FIX32(8), FIX32(2)},
+    .v1 = 4,
+    .v2 = 3,
     .upper_color = RED_IDX,
     .middle_color = TRANSPARENT_IDX,
     .lower_color = BROWN_IDX,
@@ -90,8 +108,8 @@ wall wall6 = {
 };
 
 wall wall7 = {
-    .v1 = {FIX32(8), FIX32(2)},
-    .v2 = {FIX32(15), FIX32(2)},
+    .v1 = 3,
+    .v2 = 6,
     .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
@@ -99,8 +117,8 @@ wall wall7 = {
 sector sector2;
 
 wall wall8 = {
-    .v1 = {FIX32(15), FIX32(2)},
-    .v2 = {FIX32(15), FIX32(5)},
+    .v1 = 6,
+    .v2 = 7,
     .upper_color = BROWN_IDX,
     .middle_color = TRANSPARENT_IDX,
     .lower_color = BROWN_IDX,
@@ -108,8 +126,8 @@ wall wall8 = {
 };
 
 wall wall9 = {
-    .v1 = {FIX32(15), FIX32(5)},
-    .v2 = {FIX32(8), FIX32(5)},
+    .v1 = 7,
+    .v2 = 4,
     .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
@@ -150,11 +168,9 @@ bsp_node node2 = {
     }
 };
 
-
-
 wall wall10 = {
-    .v1 = {FIX32(16), FIX32(5)},
-    .v2 = {FIX32(15), FIX32(2)},
+    .v1 = 8,
+    .v2 = 6,
     .upper_color = RED_IDX,
     .middle_color = TRANSPARENT_IDX,
     .lower_color = BROWN_IDX,
@@ -162,8 +178,8 @@ wall wall10 = {
 };
 
 wall wall11 = {
-    .v1 = {FIX32(15), FIX32(2)},
-    .v2 = {FIX32(18), FIX32(5)},
+    .v1 = 6,
+    .v2 = 9,
     .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
@@ -171,15 +187,13 @@ wall wall11 = {
 sector sector3;
 
 wall wall12 = {
-    .v1 = {FIX32(18), FIX32(5)},
-    .v2 = {FIX32(15), FIX32(5)},
+    .v1 = 9,
+    .v2 = 7,
     .upper_color = RED_IDX,
     .middle_color = TRANSPARENT_IDX,
     .lower_color = BROWN_IDX,
     .back_sector = &sector3
 };
-
-
 
 sector sector2 = {
     .floor_height = FIX32(-6),
@@ -200,15 +214,15 @@ bsp_node leaf2 = {
 };
 
 wall wall13 = {
-    .v1 = {FIX32(15), FIX32(11)},
-    .v2 = {FIX32(15), FIX32(5)},
+    .v1 = 10,
+    .v2 = 7,
     .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
 
 wall wall14 = {
-    .v1 = {FIX32(15), FIX32(5)},
-    .v2 = {FIX32(18), FIX32(5)},
+    .v1 = 7,
+    .v2 = 9,
     .upper_color = RED_IDX,
     .middle_color = TRANSPARENT_IDX,
     .lower_color = BROWN_IDX,
@@ -216,8 +230,8 @@ wall wall14 = {
 };
 
 wall wall15 = {
-    .v1 = {FIX32(18), FIX32(5)},
-    .v2 = {FIX32(18), FIX32(11)},
+    .v1 = 9,
+    .v2 = 11,
     .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
@@ -225,8 +239,8 @@ wall wall15 = {
 sector sector4;
 
 wall wall16 = {
-    .v1 = {FIX32(18), FIX32(11)},
-    .v2 = {FIX32(15), FIX32(11)},
+    .v1 = 11,
+    .v2 = 10,
     .upper_color = RED_IDX,
     .middle_color = TRANSPARENT_IDX,
     .lower_color = BROWN_IDX,
@@ -274,37 +288,37 @@ bsp_node node1 = {
 };
 
 wall wall17 = {
-    .v1 = {FIX32(13), FIX32(18)},
-    .v2 = {FIX32(13), FIX32(13)},
+    .v1 = 12,
+    .v2 = 13,
     .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
 
 wall wall18 = {
-    .v1 = {FIX32(13), FIX32(13)},
-    .v2 = {FIX32(15), FIX32(11)},
+    .v1 = 13,
+    .v2 = 10,
     .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
 
 wall wall19 = {
-    .v1 = {FIX32(15), FIX32(11)},
-    .v2 = {FIX32(18), FIX32(11)},
+    .v1 = 10,
+    .v2 = 11,
     .upper_color = RED_IDX,
     .lower_color = RED_IDX,
     .back_sector = &sector3
 };
 
 wall wall20 = {
-    .v1 = {FIX32(18), FIX32(11)},
-    .v2 = {FIX32(20), FIX32(13)},
+    .v1 = 11,
+    .v2 = 14,
     .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
 
 wall wall21 = {
-    .v1 = {FIX32(20), FIX32(13)},
-    .v2 = {FIX32(20), FIX32(18)},
+    .v1 = 14,
+    .v2 = 15,
     .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
@@ -312,8 +326,8 @@ wall wall21 = {
 sector sector7;
 
 wall wall22 = {
-    .v1 = {FIX32(20), FIX32(18)},
-    .v2 = {FIX32(18), FIX32(18)},
+    .v1 = 15,
+    .v2 = 16,
     .upper_color = RED_IDX,
     .middle_color = TRANSPARENT_IDX,
     .lower_color = BROWN_IDX,
@@ -321,8 +335,8 @@ wall wall22 = {
 };
 
 wall wall23 = {
-    .v1 = {FIX32(18), FIX32(18)},
-    .v2 = {FIX32(15), FIX32(18)},
+    .v1 = 16,
+    .v2 = 17,
     .middle_color = YELLOW_IDX,
     .back_sector = NULL
 };
@@ -330,8 +344,8 @@ wall wall23 = {
 sector sector6;
 
 wall wall24 = {
-    .v1 = {FIX32(18), FIX32(18)},
-    .v2 = {FIX32(13), FIX32(18)},
+    .v1 = 16,
+    .v2 = 12,
     .upper_color = RED_IDX,
     .middle_color = TRANSPARENT_IDX,
     .lower_color = BROWN_IDX,
@@ -366,15 +380,15 @@ bsp_node leaf4 = {
 };
 
 wall wall30 = {
-    .v1 = {FIX32(13), FIX32(21)},
-    .v2 = {FIX32(13), FIX32(18)},
+    .v1 = 18,
+    .v2 = 12,
     .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
 
 wall wall31 = {
-    .v1 = {FIX32(13), FIX32(18)},
-    .v2 = {FIX32(15), FIX32(18)},
+    .v1 = 12,
+    .v2 = 17,
     .upper_color = RED_IDX,
     .middle_color = TRANSPARENT_IDX,
     .lower_color = RED_IDX,
@@ -382,8 +396,8 @@ wall wall31 = {
 };
 
 wall wall32 = {
-    .v1 = {FIX32(15),   FIX32(18)},
-    .v2 = {FIX32(16.5), FIX32(21)},
+    .v1 = 17,
+    .v2 = 19,
     .middle_color = YELLOW_IDX,
     .back_sector = NULL
 };
@@ -391,8 +405,8 @@ wall wall32 = {
 sector sector5;
 
 wall wall33 = {
-    .v1 = {FIX32(16.5), FIX32(21)},
-    .v2 = {FIX32(13),   FIX32(21)},
+    .v1 = 19,
+    .v2 = 18,
     .upper_color = RED_IDX,
     .middle_color = TRANSPARENT_IDX,
     .lower_color = RED_IDX,
@@ -418,15 +432,15 @@ bsp_node leaf6 = {
 };
 
 wall wall34 = {
-    .v1 = {FIX32(16.5), FIX32(21)},
-    .v2 = {FIX32(18),   FIX32(18)},
+    .v1 = 19,
+    .v2 = 16,
     .middle_color = YELLOW_IDX,
     .back_sector = NULL
 };
 
 wall wall35 = {
-    .v1 = {FIX32(18), FIX32(18)},
-    .v2 = {FIX32(20), FIX32(18)},
+    .v1 = 16,
+    .v2 = 15,
     .upper_color = RED_IDX,
     .middle_color = TRANSPARENT_IDX,
     .lower_color = RED_IDX,
@@ -434,21 +448,19 @@ wall wall35 = {
 };
 
 wall wall36 = {
-    .v1 = {FIX32(20), FIX32(18)},
-    .v2 = {FIX32(20), FIX32(21)},
+    .v1 = 15,
+    .v2 = 20,
     .middle_color = STEEL_IDX,
     .back_sector = NULL
-
 };
 
 wall wall37 = {
-    .v1 = {FIX32(20),   FIX32(21)},
-    .v2 = {FIX32(16.5), FIX32(21)},
+    .v1 = 20,
+    .v2 = 19,
     .upper_color = RED_IDX,
     .middle_color = TRANSPARENT_IDX,
     .lower_color = RED_IDX,
     .back_sector = &sector4
-
 };
 
 sector sector7 = {
@@ -489,15 +501,15 @@ bsp_node node6 = {
 };
 
 wall wall25 = {
-    .v1 = {FIX32(15), FIX32(23)},
-    .v2 = {FIX32(13), FIX32(21)},
+    .v1 = 21,
+    .v2 = 18,
     .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
 
 wall wall26 = {
-    .v1 = {FIX32(13),   FIX32(21)},
-    .v2 = {FIX32(16.5), FIX32(21)},
+    .v1 = 18,
+    .v2 = 19,
     .upper_color = RED_IDX,
     .middle_color = TRANSPARENT_IDX,
     .lower_color = RED_IDX,
@@ -505,8 +517,8 @@ wall wall26 = {
 };
 
 wall wall27 = {
-    .v1 = {FIX32(16.5), FIX32(21)},
-    .v2 = {FIX32(20),   FIX32(21)},
+    .v1 = 19,
+    .v2 = 20,
     .upper_color = RED_IDX,
     .middle_color = TRANSPARENT_IDX,
     .lower_color = RED_IDX,
@@ -514,15 +526,15 @@ wall wall27 = {
 };
 
 wall wall28 = {
-    .v1 = {FIX32(20), FIX32(21)},
-    .v2 = {FIX32(18), FIX32(23)},
+    .v1 = 20,
+    .v2 = 22,
     .middle_color = STEEL_IDX,
     .back_sector = NULL
 };
 
 wall wall29 = {
-    .v1 = {FIX32(18), FIX32(23)},
-    .v2 = {FIX32(15), FIX32(23)},
+    .v1 = 22,
+    .v2 = 21,
     .middle_color = STEEL_IDX,
     .back_sector = NULL
 };

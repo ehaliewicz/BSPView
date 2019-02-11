@@ -130,6 +130,7 @@ int draw_sector(sector* sect) {
         }
     }
     */
+
     fix32 sect_ceil = sect->ceil_height;
     fix32 sect_floor = sect->floor_height;
     u8 sect_ceil_col = sect->ceil_color;
@@ -148,14 +149,15 @@ int draw_sector(sector* sect) {
     }
 
 
-
     for(u16 i = 0; i < sect->num_walls; i++) {
         wall* w = sect->walls[i];
         
-        fix32 vx1 = w->v1.x;
-        fix32 vy1 = w->v1.y;
-        fix32 vx2 = w->v2.x;
-        fix32 vy2 = w->v2.y;
+        Vect2D_f32 v1 = vertices[w->v1];
+        Vect2D_f32 v2 = vertices[w->v2];
+        fix32 vx1 = v1.x;
+        fix32 vy1 = v1.y;
+        fix32 vx2 = v2.x;
+        fix32 vy2 = v2.y;
         u32 v1_dist = getApproximatedDistance(
             abs(fix32ToInt(ply.where.x - vx1)),
             abs(fix32ToInt(ply.where.y - vy1)));

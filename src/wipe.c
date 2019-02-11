@@ -22,7 +22,6 @@ void init_column_delays(u32 cur_frame) {
     }
 }
 
-void wipe_native(u8* read, u8* write, u16 cnt);
 
 const int move = 4;
 
@@ -48,10 +47,9 @@ int process_columns(u32 cur_frame) {
 
             int cnt = 160-4-wiped[i];
             bmp_write += (128*move);
-            //wipe_native(bmp_read, bmp_write, cnt-1);
             
             for(int y = 0; y < cnt; y++) {
-                bmp_write[0] = bmp_read[0]; // = *bmp_read;
+                bmp_write[0] = bmp_read[0];
                 bmp_write += 128;
                 bmp_read += 128;
             }

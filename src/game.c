@@ -84,8 +84,10 @@ void handle_player_input(u16 joy) {
 
             for(int i = 0; i < ply.cur_sector->num_walls; i++) {
                 wall* w = ply.cur_sector->walls[i];
-                fix32 oldside = PointSide32(curx, cury, w->v1.x, w->v1.y, w->v2.x, w->v2.y);
-                fix32 newside = PointSide32(newx, cury, w->v1.x, w->v1.y, w->v2.x, w->v2.y);
+                Vect2D_f32 v1 = vertices[w->v1];
+                Vect2D_f32 v2 = vertices[w->v2];
+                fix32 oldside = PointSide32(curx, cury, v1.x, v1.y, v2.x, v2.y);
+                fix32 newside = PointSide32(newx, cury, v1.x, v1.y, v2.x, v2.y);
                 int signold = (oldside < 0 ? -1 : oldside == 0 ? 0 : 1);
                 int signnew = (newside < 0 ? -1 : oldside == 0 ? 0 : 1);
                 if(signold != signnew) {
@@ -109,8 +111,10 @@ void handle_player_input(u16 joy) {
 
             for(int i = 0; i < ply.cur_sector->num_walls; i++) {
                 wall* w = ply.cur_sector->walls[i];
-                fix32 oldside = PointSide32(curx, cury, w->v1.x, w->v1.y, w->v2.x, w->v2.y);
-                fix32 newside = PointSide32(curx, newy, w->v1.x, w->v1.y, w->v2.x, w->v2.y);
+                Vect2D_f32 v1 = vertices[w->v1];
+                Vect2D_f32 v2 = vertices[w->v2];
+                fix32 oldside = PointSide32(curx, cury, v1.x, v1.y, v2.x, v2.y);
+                fix32 newside = PointSide32(curx, newy, v1.x, v1.y, v2.x, v2.y);
                 int signold = (oldside < 0 ? -1 : oldside == 0 ? 0 : 1);
                 int signnew = (newside < 0 ? -1 : oldside == 0 ? 0 : 1);
                 if(signold != signnew) {

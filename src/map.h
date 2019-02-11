@@ -5,5 +5,6 @@
 
 
 extern bsp_node root_node;
+Vect2D_f32 vertices[23];
 
 #endif
