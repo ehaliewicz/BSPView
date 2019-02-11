@@ -86,7 +86,7 @@ typedef struct {
 
 //static cache_entry vertex_cache[64] = {0}; // 768 bytes
 
-void draw_sector(sector* sect) {
+int draw_sector(sector* sect) {
 
     int dither_floor = 0;//1;
     int dark_floor = 0;//1;
@@ -314,7 +314,8 @@ void draw_sector(sector* sect) {
             //    {x1, y1b}, {x1, y1a}
             //};
             //BMP_drawPolygon(wall_poly, 4, wall_col);
-            insert_span(x1, x2, y1a, y1a, y2a, y2a, y1b, y1b, y2b, y2b, sect_ceil_col, high_col, wall_col, low_col, sect_floor_col, 1, dither_wall, dither_floor);
+            int full = insert_span(x1, x2, y1a, y1a, y2a, y2a, y1b, y1b, y2b, y2b, sect_ceil_col, high_col, wall_col, low_col, sect_floor_col, 1, dither_wall, dither_floor);
+            if(full) { return full; }
         } else {
 
             
@@ -327,15 +328,11 @@ void draw_sector(sector* sect) {
             fix32 nyfloor = nsfloor - ply.where.z;
             int ny1b = H/2 - (fix32ToInt(SAFEMUL32(nyfloor, yscale1)));
             int ny2b = H/2 - (fix32ToInt(SAFEMUL32(nyfloor, yscale2)));
-            insert_span(x1, x2, y1a, ny1a, y2a, ny2a, y1b, ny1b, y2b, ny2b, sect_ceil_col, high_col, wall_col, low_col, sect_floor_col, 0, dither_wall, dither_floor);
-            
-    
+            int full = insert_span(x1, x2, y1a, ny1a, y2a, ny2a, y1b, ny1b, y2b, ny2b, sect_ceil_col, high_col, wall_col, low_col, sect_floor_col, 0, dither_wall, dither_floor);
+            if(full) { return full; }
             
         }
-
-
     }
-    
 }
 
 
@@ -377,23 +374,22 @@ void traverse_all_sectors(bsp_node* node, sector_callback cb) {
 }
 
 
-void draw_bsp_node(bsp_node* node) {
+int draw_bsp_node(bsp_node* node) {
 
     switch(node->type) {
         case LEAF:
-            draw_sector(node->sect);
+            return draw_sector(node->sect);
             break;
         case NODE: do {
                 plane_side side = point_side(&(ply.where), node);
                 if(side == RIGHT_OF_PLANE) {
-                    draw_bsp_node(node->inner.right);
-                    draw_bsp_node(node->inner.left);
+                    return (draw_bsp_node(node->inner.right) ||
+                            draw_bsp_node(node->inner.left));
                 } else {
-                    draw_bsp_node(node->inner.left);
-                    draw_bsp_node(node->inner.right);
+                    return (draw_bsp_node(node->inner.left) ||
+                            draw_bsp_node(node->inner.right));
                 }
         } while(0);
         break;
-
     }
 }

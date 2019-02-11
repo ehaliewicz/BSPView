@@ -128,13 +128,17 @@ void draw_two_sided_span(s16 orig_x1, s16 orig_x2,
     fix32 bot_slope = bot_dy/dx;
     fix32 bot_nslope = bot_ndy/dx;
 
-    for(s16 x = orig_x1; x < draw_x1; x++) {
-        fix_y1a += top_slope;
-        fix_y1b += bot_slope;
-        fix_ny1a += top_nslope;
-        fix_ny2a += bot_nslope;
-    }
-    
+    s16 x1_diff = draw_x1 - orig_x1;
+    fix32 top_slope_diff = top_slope * x1_diff; // 16.16
+    fix32 bot_slope_diff = bot_slope * x1_diff;
+    fix32 top_nslope_diff = top_nslope * x1_diff;
+    fix32 bot_nslope_diff = bot_nslope * x1_diff;
+
+    fix_y1a += top_slope_diff;
+    fix_y1b += bot_slope_diff;
+    fix_ny1a += top_nslope_diff;
+    fix_ny1b += bot_nslope_diff;
+
 
     u8 lower_col2;
     u8 upper_col2;
@@ -156,12 +160,6 @@ void draw_two_sided_span(s16 orig_x1, s16 orig_x2,
     }
 
 
-    // interpolate wall heights if we clipped this wall segment
-    //if((draw_x2 - draw_x1) % 2 != 0) {
-      // odd number of columns
-    //}
-
-    
     for(s16 x = draw_x1; x <= draw_x2; x++) {
         u8 border = (x == draw_x1 || x == draw_x2 || x == 0 || x == W-1);
         s16 cytop = ytop[x];
@@ -226,10 +224,12 @@ void draw_one_sided_span(s16 orig_x1, s16 orig_x2,
     fix32 top_slope = top_dy/dx;
     fix32 bot_slope = bot_dy/dx;
 
-    for(s16 x = orig_x1; x < draw_x1; x++) {
-        fix_y1a += top_slope;
-        fix_y1b += bot_slope;
-    }
+    s16 x1_diff = draw_x1 - orig_x1;
+    fix32 top_slope_diff = top_slope * x1_diff; // 16.16
+    fix32 bot_slope_diff = bot_slope * x1_diff;
+
+    fix_y1a += top_slope_diff;
+    fix_y1b += bot_slope_diff;
 
 
     u8 wall_col2;

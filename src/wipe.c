@@ -13,14 +13,18 @@ void init_column_delays(u32 cur_frame) {
         frame_for_column[i] = cur_frame + (random() % 32);
         if(i > 0) {
             if(frame_for_column[i] > frame_for_column[i-1]) {
-                frame_for_column[i] = frame_for_column[i-1]+1;
+                frame_for_column[i] = frame_for_column[i-1]+2;
             } else if (frame_for_column[i] < frame_for_column[i-1]) {
-                frame_for_column[i] = frame_for_column[i-1]-1;
+                frame_for_column[i] = frame_for_column[i-1]-2;
             }
         }
         wiped[i] = 0;
     }
 }
+
+void wipe_native(u8* read, u8* write, u16 cnt);
+
+const int move = 4;
 
 int process_columns(u32 cur_frame) {
     int done = 1;
@@ -31,20 +35,29 @@ int process_columns(u32 cur_frame) {
         } else {
             done = 0;
         }
+
         if(frame_for_column[i] <= cur_frame && wiped[i] < H) {
 	        u8* bmp_read = BMP_getReadPointer(i<<1, wiped[i]);
 	        u8* bmp_write = BMP_getWritePointer(i<<1, wiped[i]);
-            bmp_write[0] = TRANSPARENT_IDX; 
-            bmp_write[128] = TRANSPARENT_IDX;
-            bmp_write[256] = TRANSPARENT_IDX;
-	        bmp_write[384] = TRANSPARENT_IDX;
+            if(wiped[i] == 0) {
+                for(int y = 0; y < move; y++){
+                    bmp_write[y*128] = TRANSPARENT_IDX;
+                    bmp_read[y*128] = TRANSPARENT_IDX;
+                }
+            }
+
             int cnt = 160-4-wiped[i];
+            bmp_write += (128*move);
+            //wipe_native(bmp_read, bmp_write, cnt-1);
+            
             for(int y = 0; y < cnt; y++) {
-                bmp_write[512] = bmp_read[0];
+                bmp_write[0] = bmp_read[0]; // = *bmp_read;
                 bmp_write += 128;
                 bmp_read += 128;
             }
-            wiped[i] += 4;
+            
+            
+            wiped[i] += move;
         }
     }
     return done;

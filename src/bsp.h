@@ -34,7 +34,7 @@ struct bsp_node {
     };
 };
 
-void draw_bsp_node(bsp_node* node);
+int draw_bsp_node(bsp_node* node);
 
 sector* find_player_sector(bsp_node* node);
 

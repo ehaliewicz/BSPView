@@ -27,9 +27,9 @@ u16 redify(u16 color) {
   u8 red = (color >> 1);
   red = min(7, (red + (red >> 2)));
   u8 grn = (color >> 5);
-  grn >>= 1;
+  grn = (grn * 3) / 4;
   u8 blue = (color >> 9);
-  blue >>= 1;
+  blue = (blue * 3) / 4;
 
   return (blue << 9) | (grn << 5) | (red << 1);
 }
