@@ -330,8 +330,8 @@ int draw_sector(sector* sect) {
             fix32 nyfloor = nsfloor - ply.where.z;
             int ny1b = H/2 - (fix32ToInt(SAFEMUL32(nyfloor, yscale1)));
             int ny2b = H/2 - (fix32ToInt(SAFEMUL32(nyfloor, yscale2)));
-            int full = insert_span(x1, x2, y1a, ny1a, y2a, ny2a, y1b, ny1b, y2b, ny2b, sect_ceil_col, high_col, wall_col, low_col, sect_floor_col, 0, dither_wall, dither_floor);
-            if(full) { return full; }
+            insert_span(x1, x2, y1a, ny1a, y2a, ny2a, y1b, ny1b, y2b, ny2b, sect_ceil_col, high_col, wall_col, low_col, sect_floor_col, 0, dither_wall, dither_floor);
+            
             
         }
     }
