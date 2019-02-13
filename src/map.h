@@ -4,7 +4,10 @@
 #include "bsp.h"
 
 
-extern bsp_node root_node;
+bsp_node root_node;
 Vect2D_f32 vertices[23];
+Vect2D_f32 vertices_cache[23];
+
+ 
 
 #endif

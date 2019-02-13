@@ -84,28 +84,35 @@ typedef struct {
     u32 dist;
 } cache_entry;
 
-//static cache_entry vertex_cache[64] = {0}; // 768 bytes
+
 
 int draw_sector(sector* sect) {
 
-    int dither_floor = 0;//1;
-    int dark_floor = 0;//1;
-    /*
+    int dither_floor = 1;
+    int dark_floor = 1;
+    
+
+
+
     for(u16 i = 0; i < sect->num_walls; i++) {
         wall* w = sect->walls[i];
         
-        fix32 vx1 = w->v1.x;
-        fix32 vy1 = w->v1.y;
-        fix32 vx2 = w->v2.x;
-        fix32 vy2 = w->v2.y;
+        Vect2D_f32 v1 = vertices[w->v1];
+        Vect2D_f32 v2 = vertices[w->v2];
+        fix32 vx1 = v1.x;
+        fix32 vy1 = v1.y;
+        fix32 vx2 = v2.x;
+        fix32 vy2 = v2.y;
         fix32 tx1 = vx1 - ply.where.x;
         fix32 ty1 = vy1 - ply.where.y;
         fix32 tx2 = vx2 - ply.where.x;
         fix32 ty2 = vy2 - ply.where.y;
-        //vertex_cache[i].tx1 = tx1;
-        //vertex_cache[i].ty1 = ty1;
-        //vertex_cache[i].tx2 = tx2;
-        //vertex_cache[i].ty2 = ty2;
+
+        vertices_cache[w->v1].x = tx1;
+        vertices_cache[w->v1].y = ty1;
+        vertices_cache[w->v2].x = tx2;
+        vertices_cache[w->v2].y = ty2;
+
 
         u32 v1_dist = getApproximatedDistance(
             fix32ToInt(tx1),
@@ -114,22 +121,20 @@ int draw_sector(sector* sect) {
             fix32ToInt(tx2),
             fix32ToInt(ty2));
 
-        //vertex_cache[i].v1_dist = v1_dist;
-        //vertex_cache[i].v2_dist = v2_dist;
 
         u32 avg_dist = (v1_dist + v2_dist)/2;
-        //vertex_cache[i].dist = avg_dist;
+        //dist_cache[i] = avg_dist;
 
         if(avg_dist < MID_DIST) {
             dither_floor = 0;
             dark_floor = 0;
-            break;
+            //break;
         } 
         if(avg_dist < DARK_DIST) {
             dark_floor = 0;
         }
     }
-    */
+    
 
     fix32 sect_ceil = sect->ceil_height;
     fix32 sect_floor = sect->floor_height;
@@ -159,25 +164,18 @@ int draw_sector(sector* sect) {
         fix32 vx2 = v2.x;
         fix32 vy2 = v2.y;
         u32 v1_dist = getApproximatedDistance(
-            abs(fix32ToInt(ply.where.x - vx1)),
-            abs(fix32ToInt(ply.where.y - vy1)));
+            abs(fix32ToInt(vx1 - ply.where.x)),
+            abs(fix32ToInt(vy1 - ply.where.y)));
         u32 v2_dist = getApproximatedDistance(
-            abs(fix32ToInt(ply.where.x - vx2)),
-            abs(fix32ToInt(ply.where.x - vy2)));
+            abs(fix32ToInt(vx2 - ply.where.x)),
+            abs(fix32ToInt(vy2 - ply.where.x)));
 
-        //u32 v1_dist = vertex_cache[i].v1_dist;
-        //u32 v2_dist = vertex_cache[i].v2_dist;
-        //u32 avg_dist = vertex_cache[i].dist; 
         u32 avg_dist = (v1_dist + v2_dist)/2;
 
-        fix32 tx1 = vx1 - ply.where.x;
-        fix32 ty1 = vy1 - ply.where.y;
-        fix32 tx2 = vx2 - ply.where.x;
-        fix32 ty2 = vy2 - ply.where.y;
-        //fix32 tx1 = vertex_cache[i].tx1;
-        //fix32 ty1 = vertex_cache[i].ty1;
-        //fix32 tx2 = vertex_cache[i].tx2;
-        //fix32 ty2 = vertex_cache[i].ty2;
+        fix32 tx1 = vertices_cache[w->v1].x; //vx1 - ply.where.x;
+        fix32 ty1 = vertices_cache[w->v1].y; //vy1 - ply.where.y;
+        fix32 tx2 = vertices_cache[w->v2].x; //vx2 - ply.where.x;
+        fix32 ty2 = vertices_cache[w->v2].y; //vy2 - ply.where.y;
         
         fix32 pcos = ply.anglecos;
         fix32 psin = ply.anglesin;
@@ -241,10 +239,6 @@ int draw_sector(sector* sect) {
         }
 
         // do perspective transformation
-        //fix32 xscale1 = fix32Div(HFOV, max(FIX32(0.05), rz1)); // 0.05
-        //fix32 yscale1 = fix32Div(VFOV, max(FIX32(0.05), rz1)); // 0.05
-        //fix32 xscale2 = fix32Div(HFOV, max(FIX32(0.05), rz2)); // 0.05
-        //fix32 yscale2 = fix32Div(VFOV, max(FIX32(0.05), rz2)); // 0.05
 
         fix32 xscale1 = div32(SAFEMUL32(FIX32(W), HFOV), max(FIX32(0.1), rz1)); // 0.05
         fix32 yscale1 = div32(SAFEMUL32(FIX32(H), VFOV), max(FIX32(0.1), rz1)); // 0.05
@@ -335,6 +329,7 @@ int draw_sector(sector* sect) {
             
         }
     }
+    return 0;
 }
 
 
@@ -377,21 +372,22 @@ void traverse_all_sectors(bsp_node* node, sector_callback cb) {
 
 
 int draw_bsp_node(bsp_node* node) {
-
+    plane_side side;
     switch(node->type) {
         case LEAF:
             return draw_sector(node->sect);
             break;
-        case NODE: do {
-                plane_side side = point_side(&(ply.where), node);
-                if(side == RIGHT_OF_PLANE) {
-                    return (draw_bsp_node(node->inner.right) ||
-                            draw_bsp_node(node->inner.left));
-                } else {
-                    return (draw_bsp_node(node->inner.left) ||
-                            draw_bsp_node(node->inner.right));
-                }
-        } while(0);
-        break;
+        case NODE: 
+            side = point_side(&(ply.where), node);
+            if(side == RIGHT_OF_PLANE) {
+                return (draw_bsp_node(node->inner.right) ||
+                        draw_bsp_node(node->inner.left));
+            } else {
+                return (draw_bsp_node(node->inner.left) ||
+                        draw_bsp_node(node->inner.right));
+            }
+            break;
+
     }
+    return 0;
 }

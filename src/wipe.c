@@ -62,6 +62,7 @@ int process_columns(u32 cur_frame) {
 }
 
 void start_wipe(u32 cur_frame) {
+    BMP_setBufferCopy(1);
     init_column_delays(cur_frame);
 }
 

@@ -4,10 +4,7 @@
 #include <genesis.h>
 #include "common.h"
 
-extern u16 ytop[W];
-extern u16 ybottom[W];
-
-extern u8 fill;
+u8 fill;
 
 void clear_clipping_buffers();
 

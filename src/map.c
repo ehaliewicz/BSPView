@@ -10,17 +10,17 @@
 
 #define VERT2(x,y) {FIX32(x), FIX32(y)}
 
-
-Vect2D_f32 vertices[23] = {
+Vect2D_f32 vertices_cache[23];
+const Vect2D_f32 vertices[23] = {
     [0] = VERT2(0, 7),    [1] = VERT2(0, 0),
     [2] = VERT2(6, 0),    [3] = VERT2(8, 2),
     [4] = VERT2(8, 5),    [5] = VERT2(6, 7),
     [6] = VERT2(15, 2),   [7] = VERT2(15, 5),
     [8] = VERT2(16, 5),   [9] = VERT2(18, 5),
     [10] = VERT2(15, 11), [11] = VERT2(18, 11),
-    [12] = VERT2(13, 18), [13] = VERT2(13, 13),
-    [14] = VERT2(20, 13), [15] = VERT2(20, 18),
-    [16] = VERT2(18, 18), [17] = VERT2(15, 18),
+    [12] = VERT2(11, 18), [13] = VERT2(13, 13),
+    [14] = VERT2(20, 13), [15] = VERT2(22, 18),
+    [16] = VERT2(17.5, 18), [17] = VERT2(15.5, 18),
     [18] = VERT2(13, 21), [19] = VERT2(16.5, 21),
     [20] = VERT2(20, 21), [21] = VERT2(15, 23),
     [22] = VERT2(18, 23)
@@ -135,8 +135,8 @@ wall wall9 = {
 sector sector1 = {
     .floor_height = FIX32(-4),
     .ceil_height = FIX32(16),
-    .floor_color = GREEN_IDX,
-    .ceil_color = GREEN_IDX,
+    .floor_color = DARK_STEEL_IDX,
+    .ceil_color = DARK_STEEL_IDX,
     .num_walls = 4,
     .walls = {
         &wall6, &wall7,
@@ -355,8 +355,8 @@ wall wall24 = {
 sector sector4 = {
     .floor_height = FIX32(-10),
     .ceil_height = FIX32(10),
-    .ceil_color = GREEN_IDX,
-    .floor_color = GREEN_IDX,
+    .ceil_color = DARK_STEEL_IDX,
+    .floor_color = DARK_STEEL_IDX,
     .num_walls = 8,
     .walls = {
         &wall17, &wall18, &wall19, &wall20,
@@ -422,7 +422,15 @@ sector sector6 = {
     .walls = {
         &wall30, &wall31, &wall32, &wall33
     },
-    .sector_type = NO_EFFECT,
+    .sector_type = CEILING_UP_DOWN,
+    .sector_params = {
+        .ceiling_up_down = {
+            .max_ceil_height = FIX32(10),
+            .min_ceil_height = FIX32(-10),
+            .frame_delay_at_transition = 20,
+            .state = GOING_DOWN
+        }
+    },
     .sectnum = 6
 };
 

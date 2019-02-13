@@ -52,7 +52,6 @@ int player_squished(sector* sector) {
 
 int hurt_palette = 0;
 int dead = 0;
-int wiping = 0;
 
 void handle_player_input(u16 joy) {
     if((joy & BUTTON_Y || joy & BUTTON_B) && (joy & BUTTON_UP || joy & BUTTON_DOWN)) {
@@ -172,17 +171,6 @@ void run_game() {
 
 
     framecnt++; 
-    if(wiping) {
-
-        int done = wipe(framecnt);
-        wiping = !done;
-
-        if(wiping == 0) {
-            BMP_setBufferCopy(0);
-            hurt_palette = 0;
-        }
-        return;
-    }
 
     u16 joy = JOY_readJoypad(0);
     if(joy & BUTTON_Z && !(last_joy & BUTTON_Z)) {
@@ -202,24 +190,21 @@ void run_game() {
 
     dead = ply.health <= 0;
 
-    if(joy & BUTTON_START) {
-        dead = 0;
-        reset_player();
-        BMP_setBufferCopy(1);
-        start_wipe(framecnt);
-        wiping = 1;
-        return;
-    }
-
     process_sector_effects(framecnt);
     
     if(dead) {
         if(joy & BUTTON_START) {
             dead = 0;
             reset_player();
-            BMP_setBufferCopy(1);
-            start_wipe(framecnt);
-            wiping = 1;
+            start_wipe(framecnt++);
+            while(1) {
+                int done = wipe(framecnt++);
+                if(done) {
+                    BMP_setBufferCopy(0);
+                    hurt_palette = 0;
+                    break;
+                }
+            }
             return;
         }
     } else {
@@ -241,6 +226,7 @@ void run_game() {
             hurt_palette -= 1;
         }
     }
+
 
     reset_span_buffer();
     clear_clipping_buffers();
