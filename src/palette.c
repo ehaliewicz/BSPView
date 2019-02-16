@@ -50,13 +50,9 @@ void init_palettes() {
 void load_palette(int palnum, palette_type typ) {
   switch(typ) {
     case HURT_PAL:
-    //while(1) { }
-
-      //VDP_setPaletteColors(palnum << 4, red_colors, 16);
       VDP_setPalette(palnum, red_colors);
       break;
     case NORMAL_PAL:
-      //VDP_setPaletteColors(palnum << 4, colors, 16);
       VDP_setPalette(palnum, colors);
       break;
   }
