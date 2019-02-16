@@ -2,6 +2,7 @@
 #include "common.h"
 #include "draw.h"
 #include "game.h"
+#include "palette.h"
 
 u16 ytop[W] = {0};
 u16 ybottom[W] = {H-1};
@@ -263,7 +264,6 @@ void draw_one_sided_span(s16 orig_x1, s16 orig_x2,
         s16 cyb = clamp(yb, cytop, cybottom);
 
 
-      
         // draw ceiling
         vline_dither(x, cytop, cya-1, ceil_col, ceil_col2, fill ? 1 : 0);
         // draw floor
@@ -274,9 +274,9 @@ void draw_one_sided_span(s16 orig_x1, s16 orig_x2,
         vline_dither(x, cya, cyb, wall_col, wall_col2, fill ? 1 : border);
 
         
-        
         ytop[x] = clamp(cya, cytop, H-1);
         ybottom[x] = clamp(cyb, 0, cybottom);
+
 
         fix_y1a += top_slope;
         fix_y1b += bot_slope;

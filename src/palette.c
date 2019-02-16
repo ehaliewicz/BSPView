@@ -16,8 +16,8 @@ const u16 colors[16] = {
   RGB24_TO_VDPCOLOR(0x424247),   // A dark steel
   RGB24_TO_VDPCOLOR(0x0d0051),   // B dark blue
   RGB24_TO_VDPCOLOR(0x746C02),   // C dark yellow
-  RGB24_TO_VDPCOLOR(0x173910),   // TODO dark green
-  RGB24_TO_VDPCOLOR(0xEEEEEE),
+  RGB24_TO_VDPCOLOR(0x173910),   // D dark green
+  RGB24_TO_VDPCOLOR(0x000000),   // E black
   RGB24_TO_VDPCOLOR(0xFFFFFF)
 };
 

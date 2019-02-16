@@ -10,6 +10,7 @@
 #include "sector_effects.h"
 #include "palette.h"
 #include "wipe.h"
+#include "../res/bg.h"
 
 static int show_fps = 0;
 static int show_pos = 0;
@@ -39,6 +40,15 @@ void reset_player() {
 void init_game() {
     reset_player();
     traverse_all_sectors(&root_node, &register_active_sector);
+    //VDP_drawBitmap(PLAN_A, )
+    VDP_setPalette(PAL2, bg.palette->data);
+    u16 base_tile = TILE_ATTR_FULL(PAL2, FALSE, FALSE, FALSE, 0x290); //TILE_USERINDEX);
+    VDP_drawImageEx(PLAN_B, &bg, base_tile, 4, 0, 0, DMA);
+
+    BMP_init(0, PLAN_A, 3, 0);
+    BMP_setBufferCopy(0);
+    init_palettes();
+    load_palette(3, NORMAL_PAL);
 }
 
 int player_collides_vertically(sector* sector) {
@@ -175,11 +185,11 @@ void run_game() {
     u16 joy = JOY_readJoypad(0);
     if(joy & BUTTON_Z && !(last_joy & BUTTON_Z)) {
         show_fps = show_fps ? 0 : 1;
-        if(!show_fps) { clear_fps(); }
+        //if(!show_fps) { clear_fps(); }
     }
     if(joy & BUTTON_C && !(last_joy & BUTTON_C)) {
         show_pos = show_pos ? 0 : 1;
-        if(!show_pos) { clear_pos(); }
+        //if(!show_pos) { clear_pos(); }
     }
     if(joy & BUTTON_MODE && !(last_joy & BUTTON_MODE)) {
         fill = !fill;

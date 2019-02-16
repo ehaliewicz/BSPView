@@ -22,7 +22,7 @@ void print_pos() {
 
 void clear_pos() {
   for(int i = 12; i <= 16; i++){
-    VDP_clearTextLineBG(PLAN_A, i);
+    //VDP_clearTextLineBG(PLAN_A, i);
   }
 }
 
@@ -33,5 +33,7 @@ void print_fps() {
 }
 
 void clear_fps() {
-  VDP_clearTextLineBG(PLAN_A, 4);
+  //VDP_clearTextLineBG(PLAN_A, 4);
+  VDP_drawTextBG(PLAN_A, "                               ", 0, 4);
+
 }

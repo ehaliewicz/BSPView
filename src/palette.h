@@ -20,6 +20,7 @@ const u8 dark_col_lut[16];
 #define DARK_BLUE_IDX   0xB
 #define DARK_YELLOW_IDX 0xC
 #define DARK_GREEN_IDX  0xD
+#define BLACK_IDX       0xE
 
 typedef enum {
     NORMAL_PAL,
