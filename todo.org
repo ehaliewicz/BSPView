@@ -4,19 +4,15 @@
 *** TODO wall interpolation
 
 * TODO performance 
-** TODO draw two pixels at once where possible
-*** TODO can this be combined with texturing? i don't know. 
-** TODO span buffering in assembly?
-** TODO vertex transformation and projection in assembly?
+** TODO wall interpolation in assembly
+** TODO span buffering in assembly? (probably not, not a bottleneck)
+** TODO vertex transformation and projection in assembly? (probably not, not a bottleneck)
 
 * TODO texturing  
-** TODO precompile 1 to 160 pixel unrolled loops that load and reuse each texel as much as possible
-** TODO store the length of each "load_texel, n * use_texel" chunk for each size, use that for clipping and jumping to the right chunk
+** TODO this is hard.
 ** TODO for lighting, use pre-lit textures?
 
 
 * TODO projection
+** TODO re-implement all transformation code with fixed point precision in mind
 ** TODO add yaw/looking up and down (one extra multiply per vertex) 
-
-
-
