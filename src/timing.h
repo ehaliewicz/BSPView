@@ -3,6 +3,8 @@
 
 #include <genesis.h>
 
+#define TIMING
+
 typedef enum {
     BSP_TRAVERSAL = 0,
     WALL_TRANSFORM = 1,

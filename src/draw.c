@@ -242,9 +242,9 @@ void draw_two_sided_span(s16 orig_x1, s16 orig_x2,
 
         // draw ceiling
         start_timer(FLAT_FILL);
-        vline_dither(x, cytop, cya, ceil_col, ceil_col2, fill ? 1 : 0);
+        vline_dither(x, cytop, cya-1, ceil_col, ceil_col2, fill ? 1 : 0);
         // draw floor
-        vline_dither(x, cyb, cybottom, floor_col, floor_col2, fill ? 1 : 0);
+        vline_dither(x, cyb+1, cybottom, floor_col, floor_col2, fill ? 1 : 0);
         end_timer(FLAT_FILL);
 
         // draw step from ceiling
@@ -313,7 +313,7 @@ void draw_one_sided_span(s16 orig_x1, s16 orig_x2,
     }
 
 
-    
+    //u8* bmp_ptr
     for(s16 x = draw_x1; x <= draw_x2; x++) {
         u8 border = (x == draw_x1 || x == draw_x2 || x == 0 || x == W-1);
         s16 cytop = ytop[x];
@@ -323,7 +323,7 @@ void draw_one_sided_span(s16 orig_x1, s16 orig_x2,
         s16 cya = clamp(ya, cytop, cybottom);
 
         s16 yb = fix_y1b >> 16;
-        
+
         s16 cyb = clamp(yb, cytop, cybottom);
 
 
@@ -340,7 +340,7 @@ void draw_one_sided_span(s16 orig_x1, s16 orig_x2,
         vline_dither(x, cya, cyb, wall_col, wall_col2, fill ? 1 : border);
         end_timer(WALL_FILL);
         
-      
+
         ytop[x] = clamp(cya, cytop, H-1);
 
         ybottom[x] = clamp(cyb, 0, cybottom);
