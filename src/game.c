@@ -10,7 +10,6 @@
 #include "sector_effects.h"
 #include "palette.h"
 #include "wipe.h"
-#include "timing.h"
 
 static int show_fps = 0;
 static int show_pos = 0;
@@ -170,7 +169,6 @@ void handle_player_input(u16 joy) {
 
 void run_game() {
 
-    reset_timers();
 
     framecnt++; 
 
@@ -236,22 +234,17 @@ void run_game() {
     BMP_waitWhileFlipRequestPending();
     if(!fill) { BMP_clear(); }
 
-    start_timer(BSP_TRAVERSAL);
     draw_bsp_node(&root_node);
-    end_timer(BSP_TRAVERSAL);
 
     
-    BMP_flip(0);
+    BMP_flip(1);
 
     VDP_waitVSync();
     if(show_fps) {
         print_fps();
-        print_timers();
     }
     if(show_pos) {
         print_pos();
     }
-    
-    
     
 }
