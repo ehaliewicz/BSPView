@@ -20,3 +20,8 @@
 
 
 
+* TODO background/skybox
+** TODO add left-right scrolling 
+
+* TODO add sprite objects
+

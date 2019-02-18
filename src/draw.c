@@ -27,7 +27,7 @@ void vline_native_dither(u8* buf, s16 dy, u8 col, u8 col2);
 void vline_native_dither_double(u8* buf, s16 dy, u16 col1, u16 col2);
 
 
-void vline_dither(s16 x, s16 y1, s16 y2, u8 col1, u8 col2, u8 fill) {
+inline void vline_dither(s16 x, s16 y1, s16 y2, u8 col1, u8 col2, u8 fill) {
     //if(framecnt & 1) { SWAP_u8(col1, col2); }
     if (y2 > y1) {
         if(fill) {
@@ -40,60 +40,6 @@ void vline_dither(s16 x, s16 y1, s16 y2, u8 col1, u8 col2, u8 fill) {
     } 
 }
 
-void vline_dither_double(s16 x, s16 ly1, s16 ly2, s16 ry1, s16 ry2, u8 lcol1, u8 lcol2, u8 rcol1, u8 rcol2, u8 fill) {
-  if(!fill) {
-      vline_dither(x, ly1, ly2, lcol1, lcol2, fill);
-      vline_dither(x+1, ry1, ry2, rcol1, rcol2, fill);
-  } else {
-
-      if(ly1 > ly2 && ry1 > ry2) {
-          // draw double column
-          s16 min_bot = min(ly2, ry2);
-
-          if(ly1 < ry1) {
-            // draw left top first
-            vline_dither(x, ly1, ry1, lcol1, lcol2, fill);
-            u8* pix = BMP_getWritePointer(x<<1, ry1);
-            vline_native_dither_double(pix, min_bot-ry1, lcol1 << 8 | rcol1, lcol2 << 8 | rcol2);
-          } else if (ry1 < ly1) {
-            // draw right top first
-            vline_dither(x+1, ry1, ly1, rcol1, rcol2, fill);
-            u8* pix = BMP_getWritePointer(x<<1, ly1);
-            vline_native_dither_double(pix, min_bot-ly1, lcol1 << 8 | rcol1, lcol2 << 8 | rcol2);
-          }
-
-          if(ly2 > ry2) {
-            // draw left bottom
-            vline_dither(x, min_bot, ly2, lcol1, lcol2, fill);
-
-          } else if (ry2 > ly2) {
-            // draw right bottom
-            vline_dither(x+1, min_bot, ry2, rcol1, rcol2, fill);
-          }
-
-
-      } else if (ly1 > ly2) {
-        // draw just left column
-        vline_dither(x, ly1, ly2, lcol1, lcol2, fill);
-      } else if (ry1 > ry2) {
-        // draw just right column
-        vline_dither(x+1, ry1, ry2, rcol1, rcol2, fill);
-      }
-  }
-}
-
-//void vline_dither_double(s16 x, s16 y1, s16 y2, u16 col1, u16 col2, u8 fill) {
-//    //if(framecnt & 1) { SWAP_u8(col1, col2); }
-//    if (y2 > y1) {
-//        if(fill) {
-//          u8* pix = BMP_getWritePointer(x<<1, y1);
-//          vline_native_dither_double(pix, y2-y1, col1, col2);
-//        } else {
-//            pix(x, y1, col1);
-//            pix(x, y2, col1);
-//        }
-//    } 
-//}
 
 u8 swap_nibbles(u8 x) {
   return (((x & 0xF0) >>4) | ((x & 0x0F) << 4));
