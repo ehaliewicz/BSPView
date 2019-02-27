@@ -1,43 +1,58 @@
+This is organized in order from outer to inner loops.
+
 
 BSP traversal:
+-- The bsp tree is organized with splitting planes in the nodes, and sub-sectors in the leaves.
+-- Each splitting plane is a plane that is perfectly vertical, i.e. orthogonal to the xy 2D plane.
+-- Each subsector is a convex set of walls.
 
--- Traverse the bsp tree recursively.  For each branch in the bsp tree, check if the camera is in front of the splitting plane.  If the camera is in front of the splitting plane, traverse the front of the bsp tree first, otherwise traverse the back first.
+-- Traverse the bsp tree recursively.  For each node in the bsp tree, check if the camera is in front of the splitting plane.  If the camera is in front of the splitting plane, traverse the front of the bsp tree first, otherwise traverse the back first.
 
--- This traversal gives us perfect front-to-back sorting of the convex sectors which are stored in the leaf nodes.
--- Each leaf-node/sector visited in this order gets sent to the Sector processing module. 
+-- This traversal gives us perfect front-to-back sorting of the subsectors, regardless of the player camera's position of viewing angle. (but restricts us to 4 degrees of motion!, moving left/right, moving forward/back, moving up/down, and turning left or right (yaw), pitch (looking up/down) can be added, but causes distortion)
+-- Each subsector visited in this order gets sent to the Sector processing module. 
 
 
 Sector processing:
 
-- For each wall in the sector, transform relative to the camera (e.g. wall.pt1.x - camera.x, wall.pt1.y - camera.y), and rotate according to the camera's rotation.
--- All walls are stored in clockwise order, so once rotated, we can check if the wall is backfacing after rotation with a simple comparison.
+- For each wall in the sector, transform it relative to the camera position, and rotate according to the camera's rotation.
+-- All walls are stored in clockwise order, so once rotated, we can check if the wall is backfacing after rotation with a simple comparison (i.e. if the left side is greater than the right side)
 -- Once transformed relative to the camera, clip the walls in 3d camera space against the viewport (could this be improved with proper frustum culling?)
--- Perform perspective projection on clipped walls.  (TODO: add yaw for look up and down?)
+
+-- Perform perspective projection on clipped walls.  Essentially, take the height of the wall, divide it by distance, and offset by the sector's height, subtracting the player's position to make it relative to the player's viewpoint.
+(TODO: add pitch for look up and down?)
 
 -- Send clipped and projected walls to the Span processing module.
 
--- addendum: for portals, we calculate the perspective projection of the backside (i.e. the lower and upper parts of the portal in the sector the portal is connected to)
+-- addendum: for portals, we calculate the perspective projection of the back side of the wall (i.e. the lower and upper parts of the portal in the sector the portal is connected to).  This is so that we can draw steps (when the neighboring sector's floor is higher up), and lowered ceilings (when the neighboring sector's ceiling is lower).
 
 
 Span processing:
 
--- Maintain a linked list of 1d spans of all the space on the screen that hasn't been drawn to with an fully opaque wall (i.e. not a portal).
+-- Maintain a linked list of 1d spans representing all the space on the screen that hasn't been drawn to with an opaque wall.
 
--- For each opaque (not a portal) wall, iterate over the linked list, intersecting the wall with any non-drawn spans, and sending those clipped intersections to the Span interpolation module. 
--- For each intersection against a span in the buffer, cut out that chunk of span from the buffer (sometimes deleting the entry entirely), so that this buffer becomes smaller and gets more efficient as more things are drawn to the screen.
+-- For each opaque wall (i.e. not portals!), iterate over the linked list, intersecting the wall with any non-drawn spans, and sending those clipped intersections to the Span interpolation module. 
+-- For each intersection against a span in the buffer, cut out that chunk of span from the buffer (sometimes deleting the entry entirely), so that this buffer becomes smaller and gets more efficient as more walls are drawn to the screen.
 
--- For each portal wall, perform the same exact intersections, but do not modify the linked list entries.
+-- For each portal wall, perform the same exact intersections, and send the intersecting span portions to the Span interpolation module, but DO NOT modify the linked list entries.  This is because more sectors can be drawn through portals.
+
+(TODO: optimize this to check if the portal top and bottom are flush to each other, and in this case treat it as an opaque wall?)
 
 
 
 Span interpolation:
--- Interpolates between wall heights, maintains a 2d clipping buffer for portals, and draws columns. 
+-- Interpolates between wall heights, maintains two clipping buffers (ytop and ybottom), which keep track of how far up and down a particular column has been filled, and draws columns
 
 -- For opaque walls: Calculate the height of the clipped span edges.  Interpolate between these wall heights,
 ---- for each x:
------ draw column from max(current_top_of_wall, ytop[x]) to min(current_bottom_of_wall, ybot[x])
+----- clip top and bottom against ytop[x] and ybottom[x] 
+----- draw column from top to bottom
 
 -- For portals: Calculate the height of the clipped span edges (for the front and backside of the portal).  Interpolate between these heights.
 ---- for each x:
------- if the lower step is above ybot[x], draw the lower step.  Update ybot[x] to the top of the lower step    
------- if the upper step is below ytop[x], draw the upper step.  Update ytop[x] to the bottom of the upper step.
+------ clip top and bottom of upper step against ytop[x] and ybottom[x]
+------ draw upper step from top to bottom
+------ clip top and bottom of upper step against ytop[x] and ybottom[x]
+------ draw lower step from top to bottom
+------ set ytop[x] to bottom of lower step (so we can only draw below the upper step)
+------ set ybottom[x] to top of upper step (so we can only draw above the lower step)
+
