@@ -9,15 +9,26 @@
 
 typedef struct sector sector;
 
-typedef struct {      
-    u16 v1, v2;     // index of start and end vertices // 4 bytes vs 16 bytes
-    //Vect2D_f32 v1;      // start vertex
-    //Vect2D_f32 v2;      // end vertex
-    u8 lower_color; // if this wall has an attached back sector, this will be used
-    u8 middle_color; 
-    u8 upper_color; // if this wall has an attached back sector, this will be used
-    sector* back_sector; // NULL if no back sector
-} wall;
+typedef struct {
+    u8 lower_col;
+    u8 middle_col;
+    u8 upper_col;
+    sector* facing_sector;
+} sidedef;
+
+typedef struct {
+    u16 v1, v2;
+    u8 double_sided; // if not double sided, only has a right side
+    sidedef* left_side;
+    sidedef* right_side;
+    u16 linenum;
+} linedef;  // a line on the map, not split for subsectors
+
+typedef struct {
+    u8 left_side;  // left side of the linedef, or right
+    u16 v1, v2;
+    linedef* line;
+} seg;
 
 
 struct sector  {
@@ -25,11 +36,15 @@ struct sector  {
     fix32 ceil_height;
     u8 floor_color;
     u8 ceil_color;
-    u16 sectnum;
     sector_effect_type sector_type;
     sector_effect_params sector_params;
-    u16 num_walls;
-    wall* walls[];
+    u16 sectnum;
 };
+
+typedef struct {
+    sector* sect;
+    u16 num_segs;
+    seg* segs[];
+} subsector;
 
 #endif

@@ -86,19 +86,17 @@ typedef struct {
 
 
 
-int draw_sector(sector* sect) {
+int draw_subsector(subsector* subsect) {
 
     int dither_floor = 1;
     int dark_floor = 1;
     
 
-
-
-    for(u16 i = 0; i < sect->num_walls; i++) {
-        wall* w = sect->walls[i];
+    for(u16 i = 0; i < subsect->num_segs; i++) {
+        seg* s = subsect->segs[i];
         
-        Vect2D_f32 v1 = vertices[w->v1];
-        Vect2D_f32 v2 = vertices[w->v2];
+        Vect2D_f32 v1 = vertices[s->v1];
+        Vect2D_f32 v2 = vertices[s->v2];
         fix32 vx1 = v1.x;
         fix32 vy1 = v1.y;
         fix32 vx2 = v2.x;
@@ -108,10 +106,10 @@ int draw_sector(sector* sect) {
         fix32 tx2 = vx2 - ply.where.x;
         fix32 ty2 = vy2 - ply.where.y;
 
-        vertices_cache[w->v1].x = tx1;
-        vertices_cache[w->v1].y = ty1;
-        vertices_cache[w->v2].x = tx2;
-        vertices_cache[w->v2].y = ty2;
+        vertices_cache[s->v1].x = tx1;
+        vertices_cache[s->v1].y = ty1;
+        vertices_cache[s->v2].x = tx2;
+        vertices_cache[s->v2].y = ty2;
 
 
         u32 v1_dist = getApproximatedDistance(
@@ -135,7 +133,7 @@ int draw_sector(sector* sect) {
         }
     }
     
-
+    sector* sect = subsect->sect;
     fix32 sect_ceil = sect->ceil_height;
     fix32 sect_floor = sect->floor_height;
     u8 sect_ceil_col = sect->ceil_color;
@@ -154,11 +152,11 @@ int draw_sector(sector* sect) {
     }
 
 
-    for(u16 i = 0; i < sect->num_walls; i++) {
-        wall* w = sect->walls[i];
+    for(u16 i = 0; i < subsect->num_segs; i++) {
+        seg* s = subsect->segs[i];
         
-        Vect2D_f32 v1 = vertices[w->v1];
-        Vect2D_f32 v2 = vertices[w->v2];
+        Vect2D_f32 v1 = vertices[s->v1];
+        Vect2D_f32 v2 = vertices[s->v2];
         fix32 vx1 = v1.x;
         fix32 vy1 = v1.y;
         fix32 vx2 = v2.x;
@@ -172,10 +170,10 @@ int draw_sector(sector* sect) {
 
         u32 avg_dist = (v1_dist + v2_dist)/2;
 
-        fix32 tx1 = vertices_cache[w->v1].x; //vx1 - ply.where.x;
-        fix32 ty1 = vertices_cache[w->v1].y; //vy1 - ply.where.y;
-        fix32 tx2 = vertices_cache[w->v2].x; //vx2 - ply.where.x;
-        fix32 ty2 = vertices_cache[w->v2].y; //vy2 - ply.where.y;
+        fix32 tx1 = vertices_cache[s->v1].x; //vx1 - ply.where.x;
+        fix32 ty1 = vertices_cache[s->v1].y; //vy1 - ply.where.y;
+        fix32 tx2 = vertices_cache[s->v2].x; //vx2 - ply.where.x;
+        fix32 ty2 = vertices_cache[s->v2].y; //vy2 - ply.where.y;
         
         fix32 pcos = ply.anglecos;
         fix32 psin = ply.anglesin;
@@ -274,11 +272,10 @@ int draw_sector(sector* sect) {
 
         if(y1a > y1b) { continue; }
         if(y2a > y2b) { continue; }
-
-
-        u8 wall_col = w->middle_color;
-        u8 low_col = w->lower_color;
-        u8 high_col = w->upper_color;
+        sidedef* side = s->left_side ? s->line->left_side : s->line->right_side;
+        u8 wall_col = side->middle_col;
+        u8 low_col = side->lower_col;
+        u8 high_col = side->upper_col;
         
         int dither_wall = 1;
 
@@ -302,8 +299,10 @@ int draw_sector(sector* sect) {
         }
         
 
+        linedef* line = s->line;
+        int has_back_sector = line->double_sided;
 
-        if(w->back_sector == NULL) { //w->middle_color != TRANSPARENT_IDX) { 
+        if(!has_back_sector) { //w->middle_color != TRANSPARENT_IDX) { 
             
             //Vect2D_s16 wall_poly[4] = {
             //    {x2, y2a}, {x2, y2b},
@@ -315,8 +314,11 @@ int draw_sector(sector* sect) {
         } else {
 
             
-            fix32 nsceil = w->back_sector->ceil_height;
-            fix32 nsfloor = w->back_sector->floor_height;
+            int is_left_side = s->left_side;
+            sector* back_sector = has_back_sector ? (is_left_side ? line->right_side : line->left_side) : NULL;
+
+            fix32 nsceil = back_sector->ceil_height;
+            fix32 nsfloor = back_sector->floor_height;
 
             fix32 nyceil = nsceil - ply.where.z;
             int ny1a = H/2 - (fix32ToInt(SAFEMUL32(nyceil, yscale1)));
@@ -332,41 +334,33 @@ int draw_sector(sector* sect) {
     return 0;
 }
 
-
-sector* find_player_sector(bsp_node* node) {
-
-    switch(node->type) {
-        case LEAF:
-            return node->sect;
-        case NODE: do {
-                plane_side side = point_side(&(ply.where), node);
-                if(side == RIGHT_OF_PLANE) {
-                    return find_player_sector(node->inner.right);
+subsector* find_player_subsector() {
+    bsp_node* cur_node = &root_node;
+    while(1) {
+        switch(cur_node->type) {
+            case LEAF:
+                return cur_node->subsect;
+            case NODE: do {
+                plane_side side = point_side(&(ply.where), cur_node);
+                if(side == RIGHT_OF_PLANE) { 
+                    cur_node = cur_node->inner.right;
                 } else {
-                    return find_player_sector(node->inner.left);
+                    cur_node = cur_node->inner.left;
                 }
-        } while(0);
+            } while(0);
             break;
-        
-        default:
-            // corrupted
-            while(1) {
-                BMP_drawText("Corrupted BSP tree!", 1, 2);
-            }
-            break;
+        }
     }
 }
 
-void traverse_all_sectors(bsp_node* node, sector_callback cb) {
-    switch(node->type) {
-        case LEAF:
-            cb(node->sect);
-            break;
-        case NODE:
-            traverse_all_sectors(node->inner.left, cb);
-            traverse_all_sectors(node->inner.right, cb);
-            break;
+sector* find_player_sector() {
+    subsector* subsect = find_player_subsector();
+    return subsect->sect;
+}
 
+void traverse_all_sectors(sector_callback cb) {
+    for(int i = 0; i < num_sectors; i++) {
+        cb(&(sectors[i]));
     }
 }
 
@@ -375,7 +369,7 @@ int draw_bsp_node(bsp_node* node) {
     plane_side side;
     switch(node->type) {
         case LEAF:
-            return draw_sector(node->sect);
+            return draw_subsector(node->subsect);
             break;
         case NODE: 
             side = point_side(&(ply.where), node);

@@ -5,8 +5,11 @@
 
 
 bsp_node root_node;
-Vect2D_f32 vertices[23];
-Vect2D_f32 vertices_cache[23];
+Vect2D_f32 vertices[6];
+Vect2D_f32 vertices_cache[6];
+
+const int num_sectors;
+sector sectors[1];
 
  
 

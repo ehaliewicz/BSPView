@@ -9,8 +9,9 @@ typedef struct {
     Vect3D_f32 where, velocity;
     fix16 angle;
     fix32 anglesin, anglecos;
-    sector* cur_sector;
     s8 health;
+    sector* cur_sector;
+    subsector* cur_subsector;
 } player;
 
 extern player ply;

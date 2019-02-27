@@ -32,6 +32,7 @@ void reset_player() {
   ply.anglesin = fix16ToFix32(sinFix16(fix16ToInt(ply.angle)));
   
   ply.cur_sector = find_player_sector(&root_node);
+  ply.cur_subsector = find_player_subsector(&root_node);
   ply.where.z = ply.cur_sector->floor_height + eye_height;
   ply.health = 100;
 
@@ -39,7 +40,7 @@ void reset_player() {
 
 void init_game() {
     reset_player();
-    traverse_all_sectors(&root_node, &register_active_sector);
+    traverse_all_sectors(&register_active_sector);
     //VDP_drawBitmap(PLAN_A, )
     VDP_setPalette(PAL2, bg.palette->data);
     u16 base_tile = TILE_ATTR_FULL(PAL2, FALSE, FALSE, FALSE, 0x290); //TILE_USERINDEX);
@@ -76,6 +77,8 @@ void handle_player_input(u16 joy) {
         }
 
     } else {
+        //VDP_clearTextBG(PLAN_A, 5, 10, 25);
+        //VDP_clearTextBG(PLAN_A, 5, 11, 25);
 
         // move forward or back, with collision detection
         if(joy & BUTTON_UP || joy & BUTTON_DOWN) {
@@ -90,25 +93,38 @@ void handle_player_input(u16 joy) {
             fix32 newx = curx + fix32Mul(speed, ply.anglecos);
             int got_x_collision = 0;
 
-
-            for(int i = 0; i < ply.cur_sector->num_walls; i++) {
-                wall* w = ply.cur_sector->walls[i];
-                Vect2D_f32 v1 = vertices[w->v1];
-                Vect2D_f32 v2 = vertices[w->v2];
+            /*
+            for(int i = 0; i < ply.cur_subsector->num_segs; i++) {
+                seg* s = ply.cur_subsector->segs[i];
+                Vect2D_f32 v1 = vertices[s->v1];
+                Vect2D_f32 v2 = vertices[s->v2];
                 fix32 oldside = PointSide32(curx, cury, v1.x, v1.y, v2.x, v2.y);
                 fix32 newside = PointSide32(newx, cury, v1.x, v1.y, v2.x, v2.y);
                 int signold = (oldside < 0 ? -1 : oldside == 0 ? 0 : 1);
                 int signnew = (newside < 0 ? -1 : oldside == 0 ? 0 : 1);
+                
+                linedef* line = s->line;
+                int is_left_side = s->left_side;
+                int has_back_sector = line->double_sided;
+                sidedef* back_side = has_back_sector ? (is_left_side ? line->right_side : line->left_side) : NULL;
+                sector* back_sector = back_side->facing_sector;
+
                 if(signold != signnew) {
-                    if(w->back_sector == NULL) {
+                    //char buf[32];
+                    //sprintf(buf, "Got x collision with line %u", line->linenum);
+                    //VDP_drawTextBG(PLAN_A, buf, 5, 10);
+                    if(!has_back_sector) {
                         got_x_collision = 1;
                         break;
-                    } else if (player_collides_vertically(w->back_sector)) {
+                    } else if (player_collides_vertically(back_sector)) {
                         got_x_collision = 1;
                         break;
                     }
+                } else {
+                    //VDP_drawTextBG(PLAN_A, "No x collision!", 10, 10);
                 }
             }
+            */
 
             if(!got_x_collision) {
                 moved = 1;
@@ -117,26 +133,39 @@ void handle_player_input(u16 joy) {
 
             fix32 newy = cury + fix32Mul(speed, ply.anglesin);
             int got_y_collision = 0;
-
-            for(int i = 0; i < ply.cur_sector->num_walls; i++) {
-                wall* w = ply.cur_sector->walls[i];
-                Vect2D_f32 v1 = vertices[w->v1];
-                Vect2D_f32 v2 = vertices[w->v2];
+            /*
+            for(int i = 0; i < ply.cur_subsector->num_segs; i++) {
+                seg* s = ply.cur_subsector->segs[i];
+                Vect2D_f32 v1 = vertices[s->v1];
+                Vect2D_f32 v2 = vertices[s->v2];
                 fix32 oldside = PointSide32(curx, cury, v1.x, v1.y, v2.x, v2.y);
                 fix32 newside = PointSide32(curx, newy, v1.x, v1.y, v2.x, v2.y);
                 int signold = (oldside < 0 ? -1 : oldside == 0 ? 0 : 1);
                 int signnew = (newside < 0 ? -1 : oldside == 0 ? 0 : 1);
+
+                linedef* line = s->line;
+                int is_left_side = s->left_side;
+                int has_back_sector = line->double_sided;
+                sidedef* back_side = has_back_sector ? (is_left_side ? line->right_side : line->left_side) : NULL;
+                sector* back_sector = back_side->facing_sector;
+
                 if(signold != signnew) {
-                    if(w->back_sector == NULL) {
+                    //char buf[32];
+                    //sprintf(buf, "Got y collision with line %u", line->linenum);
+                    //VDP_drawTextBG(PLAN_A, buf, 5, 11);
+                    if(!has_back_sector) {
                         got_y_collision = 1;
                         break;
-                    } else if (player_collides_vertically(w->back_sector)) {
+                    } else if (player_collides_vertically(back_sector)) {
                         got_y_collision = 1;
                         break;
                     }
+                } else {
+                    //VDP_drawTextBG(PLAN_A, "No y collision!", 10, 11);
                 }
             }
-
+            */
+           
             if(!got_y_collision) {
                 moved = 1;
                 cury = newy;
