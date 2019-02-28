@@ -1,6 +1,11 @@
+# math improvements
+- large maps seem to completely break the fixed point math (due to integer overflow most likely, hopefully we can get away with 16-bit floating point when we have to do multiplications)
+
+
 # Subpixel accurate rasterization
 - convert whole pipeline to fixed point
 > span buffer
+
 
 > wall interpolation
 
