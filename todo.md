@@ -4,8 +4,8 @@
 
 # Subpixel accurate rasterization
 - convert whole pipeline to fixed point
--- span buffer
--- wall interpolation
+    - span buffer
+    - wall interpolation
 
 # Optimize perforamnce
 - drawing two pixels at a time?
