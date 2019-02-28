@@ -1,6 +1,7 @@
 # Subpixel accurate rasterization
 - convert whole pipeline to fixed point
 > span buffer
+
 > wall interpolation
 
 # Optimize perforamnce
