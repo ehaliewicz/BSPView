@@ -8,7 +8,8 @@ BSP traversal:
 
 -- Traverse the bsp tree recursively.  For each node in the bsp tree, check if the camera is in front of the splitting plane.  If the camera is in front of the splitting plane, traverse the front of the bsp tree first, otherwise traverse the back first.
 
--- This traversal gives us perfect front-to-back sorting of the subsectors, regardless of the player camera's position of viewing angle. (but restricts us to 4 degrees of motion!, moving left/right, moving forward/back, moving up/down, and turning left or right (yaw), pitch (looking up/down) can be added, but causes distortion)
+-- This traversal gives us perfect front-to-back sorting of the subsectors, regardless of the player camera's position or viewing angle. (but restricts us to 4 degrees of motion!, moving left/right, moving forward/back, moving up/down, and turning left or right (yaw).
+-- Pitch (looking up/down) can be added, but causes distortion)
 -- Each subsector visited in this order gets sent to the Sector processing module. 
 
 
