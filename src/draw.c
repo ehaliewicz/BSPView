@@ -160,10 +160,10 @@ void draw_one_sided_span(s16 orig_x1, s16 orig_x2,
     s16 dx = orig_x2 - orig_x1;
     
     
-    fix32 fix_y1a = y1a<<16;
-    fix32 fix_y1b = y1b<<16;
-    fix32 fix_y2a = y2a<<16;
-    fix32 fix_y2b = y2b<<16;
+    fix32 fix_y1a = y1a<<8;
+    fix32 fix_y1b = y1b<<8;
+    fix32 fix_y2a = y2a<<8;
+    fix32 fix_y2b = y2b<<8;
 
     fix32 top_dy = fix_y2a - fix_y1a; 
     fix32 bot_dy = fix_y2b - fix_y1b;
@@ -203,10 +203,10 @@ void draw_one_sided_span(s16 orig_x1, s16 orig_x2,
         s16 cytop = ytop[x];
         s16 cybottom = ybottom[x];
 
-        s16 ya = fix_y1a >> 16;
+        s16 ya = fix_y1a >> 8;
         s16 cya = clamp(ya, cytop, cybottom);
 
-        s16 yb = fix_y1b >> 16;
+        s16 yb = fix_y1b >> 8;
         s16 cyb = clamp(yb, cytop, cybottom);
 
 

@@ -11,6 +11,8 @@ Vect2D_f32 vertices_cache[6];
 const int num_sectors;
 sector sectors[1];
 
+seg seg_split_bottom, seg_split_top;
+
  
 
 #endif

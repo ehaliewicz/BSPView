@@ -7,6 +7,7 @@
 #include "palette.h"
 #include "span_buf.h"
 #include "draw.h"
+#include "plane.h"
 
 #include "map.h"
 
@@ -18,61 +19,10 @@ fix32 div32(fix32 x, fix32 y) {
 }
 
 
-typedef enum {
-    LEFT_OF_PLANE,
-    RIGHT_OF_PLANE,
-    ON_PLANE
-} plane_side;
 
-plane_side point_side(Vect3D_f32* pos, bsp_node* nd) {
-    if(nd->inner.dvec.x == 0) {
-        // vertical splitting plane
-        if(nd->inner.dvec.y < 0) {
-            // plane goes up
-            return (pos->x < nd->inner.pos.x) ? LEFT_OF_PLANE : RIGHT_OF_PLANE;
-            
-        } else {
-            // plane goes down
-            return (pos->x < nd->inner.pos.x) ? RIGHT_OF_PLANE : LEFT_OF_PLANE;
-        }
-    }
+#define fix32ToFix16(value)         (((value) >> (FIX32_FRAC_BITS-FIX16_FRAC_BITS)))
 
-
-    if(nd->inner.dvec.y == 0) {
-        // horizontal splitting plane
-        if(nd->inner.dvec. x < 0) {
-            // plane goes left
-            return (pos->y < nd->inner.pos.y) ? RIGHT_OF_PLANE : LEFT_OF_PLANE;
-        } else {
-            return (pos->y < nd->inner.pos.y) ? LEFT_OF_PLANE : RIGHT_OF_PLANE;
-        }
-    }
-    fix32 dx = pos->x - nd->inner.pos.x;
-    fix32 dy = pos->y - nd->inner.pos.y;
-
-
-    fix32 left = (nd->inner.dvec.x >> FIX32_FRAC_BITS) * dx; // 22 * 22.10 = 22.10 bits
-    fix32 right = (nd->inner.dvec.y >> FIX32_FRAC_BITS) * dy;
-    
-  
-    if(right > left) {
-        return RIGHT_OF_PLANE;
-    } else if (right < left) {
-        return LEFT_OF_PLANE;
-    } else {
-        // 
-        return LEFT_OF_PLANE; 
-
-        while(1) {
-            VDP_drawTextBG(PLAN_A, "exactly on plane wtf", 10, 8);
-        }
-    }
-
-}
-
-#define safeFix32ToFix16(value)         (((value) >> (FIX32_FRAC_BITS-FIX16_FRAC_BITS)))
-
-#define safeFix16ToFix32(value)         (((value) << (FIX32_FRAC_BITS - FIX16_FRAC_BITS)))
+#define fix16ToFix32(value)         (((value) << (FIX32_FRAC_BITS - FIX16_FRAC_BITS)))
 
 
 // 24 bytes
@@ -86,15 +36,25 @@ typedef struct {
 
 
 
-int draw_subsector(subsector* subsect) {
+int draw_subsector(const subsector* subsect) {
 
+  // transform and lighting for walls in this subsector
+  // (should probably be in a separate file)
+  
     int dither_floor = 1;
     int dark_floor = 1;
     
 
+    // lighting for floors and ceilings
+    // (this is handled PER SUBSECTOR, wall lighting is handled PER WALL)
+
+    // loop over all vertices in the sub-sector
+    // if any of them is within a certain distance, consider the
+    // floors/ceilings in this subsector lit, half-lit, or dark (half-lit is dithered)
     for(u16 i = 0; i < subsect->num_segs; i++) {
-        seg* s = subsect->segs[i];
-        
+        const seg* s = subsect->segs[i];
+
+	// transform vertices from world space into player space
         Vect2D_f32 v1 = vertices[s->v1];
         Vect2D_f32 v2 = vertices[s->v2];
         fix32 vx1 = v1.x;
@@ -106,12 +66,13 @@ int draw_subsector(subsector* subsect) {
         fix32 tx2 = vx2 - ply.where.x;
         fix32 ty2 = vy2 - ply.where.y;
 
+	// stash results for later use (investigate if this if worthwhile, add/sub is pretty fast)
         vertices_cache[s->v1].x = tx1;
         vertices_cache[s->v1].y = ty1;
         vertices_cache[s->v2].x = tx2;
         vertices_cache[s->v2].y = ty2;
-
-
+	
+	
         u32 v1_dist = getApproximatedDistance(
             fix32ToInt(tx1),
             fix32ToInt(ty1));
@@ -132,8 +93,10 @@ int draw_subsector(subsector* subsect) {
             dark_floor = 0;
         }
     }
-    
-    sector* sect = subsect->sect;
+
+
+    // calculate floor/ceiling colors for lighting
+    const sector* sect = subsect->sect;
     fix32 sect_ceil = sect->ceil_height;
     fix32 sect_floor = sect->floor_height;
     u8 sect_ceil_col = sect->ceil_color;
@@ -142,6 +105,7 @@ int draw_subsector(subsector* subsect) {
         sect_floor_col = (sect_floor_col << 4) | sect_floor_col;
         sect_ceil_col = (sect_ceil_col << 4) | sect_ceil_col;
     } else if (dark_floor) {
+        // lookup darker colors in lookup table
         u8 dark_floor = dark_col_lut[sect_floor_col];
         u8 dark_ceil = dark_col_lut[sect_ceil_col];
         sect_floor_col = (dark_floor << 4) | dark_floor;
@@ -151,9 +115,9 @@ int draw_subsector(subsector* subsect) {
         sect_ceil_col  = ((dark_col_lut[sect_ceil_col]) << 4)  | sect_ceil_col;
     }
 
-
+    // transform and draw walls and floors
     for(u16 i = 0; i < subsect->num_segs; i++) {
-        seg* s = subsect->segs[i];
+        const seg* s = subsect->segs[i];
         
         Vect2D_f32 v1 = vertices[s->v1];
         Vect2D_f32 v2 = vertices[s->v2];
@@ -174,18 +138,18 @@ int draw_subsector(subsector* subsect) {
         fix32 ty1 = vertices_cache[s->v1].y; //vy1 - ply.where.y;
         fix32 tx2 = vertices_cache[s->v2].x; //vx2 - ply.where.x;
         fix32 ty2 = vertices_cache[s->v2].y; //vy2 - ply.where.y;
-        
+
+	// rotate according to player's camera angle
         fix32 pcos = ply.anglecos;
         fix32 psin = ply.anglesin;
 
-        fix32 rx1 = SAFEMUL32(tx1, psin) - SAFEMUL32(ty1, pcos);
-        fix32 rz1 = SAFEMUL32(tx1, pcos) + SAFEMUL32(ty1, psin);
-        fix32 rx2 = SAFEMUL32(tx2, psin) - SAFEMUL32(ty2, pcos);
-        fix32 rz2 = SAFEMUL32(tx2, pcos) + SAFEMUL32(ty2, psin);
+        fix32 rx1 = fix32Mul(tx1, psin) - fix32Mul(ty1, pcos);
+        fix32 rz1 = fix32Mul(tx1, pcos) + fix32Mul(ty1, psin);
+        fix32 rx2 = fix32Mul(tx2, psin) - fix32Mul(ty2, pcos);
+        fix32 rz2 = fix32Mul(tx2, pcos) + fix32Mul(ty2, psin);
 
-        //char buf[32];
-        
-        
+
+	// if both vertices are off-screen, skip this wall
         if(rz1 <= 0 && rz2 <= 0) { continue; }
         
 
@@ -202,10 +166,10 @@ int draw_subsector(subsector* subsect) {
             // find an intersection between the wall and the approximate edges of the player's view
 
 
-            fix16 rx1_16 = safeFix32ToFix16(rx1);
-            fix16 rz1_16 = safeFix32ToFix16(rz1);
-            fix16 rx2_16 = safeFix32ToFix16(rx2);
-            fix16 rz2_16 = safeFix32ToFix16(rz2);
+            fix16 rx1_16 = fix32ToFix16(rx1);
+            fix16 rz1_16 = fix32ToFix16(rz1);
+            fix16 rx2_16 = fix32ToFix16(rx2);
+            fix16 rz2_16 = fix32ToFix16(rz2);
 
             Vect2D_f16 i1 = Intersect16(rx1_16, rz1_16, rx2_16, rz2_16,
                                         -nearside_16, nearz_16, -farside_16, farz_16);
@@ -214,45 +178,47 @@ int draw_subsector(subsector* subsect) {
 
             if(rz1 < nearz) { 
                 if(i1.y > 0) {
-                    rx1 = safeFix16ToFix32(i1.x);
-                    rz1 = safeFix16ToFix32(i1.y);
+                    rx1 = fix16ToFix32(i1.x);
+                    rz1 = fix16ToFix32(i1.y);
                 } else {
-                    rx1 = safeFix16ToFix32(i2.x);
-                    rz1 = safeFix16ToFix32(i2.y);
+                    rx1 = fix16ToFix32(i2.x);
+                    rz1 = fix16ToFix32(i2.y);
                 }
             }
             if(rz2 < nearz) {
                 if(i1.y > 0) {
-                    //rx2 = i1.x;
-                    //rz2 = i1.y;
-                    rx2 = safeFix16ToFix32(i1.x);
-                    rz2 = safeFix16ToFix32(i1.y);
+                    rx2 = fix16ToFix32(i1.x);
+                    rz2 = fix16ToFix32(i1.y);
                 } else {
-                    //rx2 = i2.x;
-                    //rz2 = i2.y;
-                    rx2 = safeFix16ToFix32(i2.x);
-                    rz2 = safeFix16ToFix32(i2.y);
+                    rx2 = fix16ToFix32(i2.x);
+                    rz2 = fix16ToFix32(i2.y);
                 }
             }
         }
 
         // do perspective transformation
 
-        fix32 xscale1 = div32(SAFEMUL32(FIX32(W), HFOV), max(FIX32(0.1), rz1)); // 0.05
-        fix32 yscale1 = div32(SAFEMUL32(FIX32(H), VFOV), max(FIX32(0.1), rz1)); // 0.05
-        fix32 xscale2 = div32(SAFEMUL32(FIX32(W), HFOV), max(FIX32(0.1), rz2)); // 0.05
-        fix32 yscale2 = div32(SAFEMUL32(FIX32(H), VFOV), max(FIX32(0.1), rz2)); // 0.05
-        
-        s16 x1 = W/2 - (fix32ToInt(SAFEMUL32(rx1, xscale1)));
-        s16 x2 = W/2 - (fix32ToInt(SAFEMUL32(rx2, xscale2)));
-        
-        // only render if it's visible
-        if(x1 >= x2 || x2 < 0 || x1 > W-1) {
-            //BMP_drawText("off-screen        ", 0, 1); 
-            continue; 
-        } else {
-            //BMP_drawText("on-screen     ", 0, 1);
-        }
+	fix32 width_scale = fix32Mul(FIX32(W), HFOV);
+	fix32 height_scale = fix32Mul(FIX32(H), VFOV);
+	
+	
+        fix32 xscale1 = div32(width_scale,
+			      max(FIX32(0.1), rz1));
+        fix32 yscale1 = div32(height_scale,
+			      max(FIX32(0.1), rz1));
+        fix32 xscale2 = div32(width_scale,
+			      max(FIX32(0.1), rz2));
+        fix32 yscale2 = div32(height_scale,
+			      max(FIX32(0.1), rz2));
+
+	// transform into screen-space
+        s16 x1 = W/2 - (fix32ToInt(fix32Mul(rx1, xscale1)));
+        s16 x2 = W/2 - (fix32ToInt(fix32Mul(rx2, xscale2)));
+	
+	// check if screen-space vertices are actually on-screen
+	if(x1 >= x2 || x2 < 0 || x1 > W-1) {
+	  continue; 
+        } 
 
         // acquire the floor and ceiling heights, relative to where the player's view is
         fix32 yceil = sect_ceil - ply.where.z;
@@ -262,17 +228,16 @@ int draw_subsector(subsector* subsect) {
         // project ceiling and floor heights into screen coordinates
         #define Yaw(y,z) (y+fix16Mul(z,ply.yaw))
         
-        s16 y1a = H/2 - (fix32ToInt(SAFEMUL32(yceil, yscale1)));
-        s16 y1b = H/2 - (fix32ToInt(SAFEMUL32(yfloor, yscale1)));
+        s16 y1a = H/2 - (fix32ToInt(fix32Mul(yceil, yscale1)));
+        s16 y1b = H/2 - (fix32ToInt(fix32Mul(yfloor, yscale1)));
 
-        s16 y2a = H/2 - (fix32ToInt(SAFEMUL32(yceil, yscale2)));  // yceil + rz2
-        s16 y2b = H/2 - (fix32ToInt(SAFEMUL32(yfloor, yscale2))); // yfloor + rz2
+        s16 y2a = H/2 - (fix32ToInt(fix32Mul(yceil, yscale2)));  // yceil + rz2
+        s16 y2b = H/2 - (fix32ToInt(fix32Mul(yfloor, yscale2))); // yfloor + rz2
         
-
-
+	
         if(y1a > y1b) { continue; }
         if(y2a > y2b) { continue; }
-        sidedef* side = s->left_side ? s->line->left_side : s->line->right_side;
+        const sidedef* side = s->left_side ? s->line->left_side : s->line->right_side;
         u8 wall_col = side->middle_col;
         u8 low_col = side->lower_col;
         u8 high_col = side->upper_col;
@@ -299,33 +264,29 @@ int draw_subsector(subsector* subsect) {
         }
         
 
-        linedef* line = s->line;
+        const linedef* line = s->line;
         int has_back_sector = line->double_sided;
 
-        if(!has_back_sector) { //w->middle_color != TRANSPARENT_IDX) { 
-            
-            //Vect2D_s16 wall_poly[4] = {
-            //    {x2, y2a}, {x2, y2b},
-            //    {x1, y1b}, {x1, y1a}
-            //};
-            //BMP_drawPolygon(wall_poly, 4, wall_col);
+        if(!has_back_sector) {
+	  
             int full = insert_span(x1, x2, y1a, y1a, y2a, y2a, y1b, y1b, y2b, y2b, sect_ceil_col, high_col, wall_col, low_col, sect_floor_col, 1, dither_wall, dither_floor);
             if(full) { return full; }
         } else {
 
             
             int is_left_side = s->left_side;
-            sector* back_sector = has_back_sector ? (is_left_side ? line->right_side : line->left_side) : NULL;
+            const sidedef* back_side = has_back_sector ? (is_left_side ? line->right_side : line->left_side) : NULL;
+            const sector* back_sector = back_side->facing_sector;
 
             fix32 nsceil = back_sector->ceil_height;
             fix32 nsfloor = back_sector->floor_height;
 
             fix32 nyceil = nsceil - ply.where.z;
-            int ny1a = H/2 - (fix32ToInt(SAFEMUL32(nyceil, yscale1)));
-            int ny2a = H/2 - (fix32ToInt(SAFEMUL32(nyceil, yscale2)));
+            int ny1a = H/2 - (fix32ToInt(fix32Mul(nyceil, yscale1)));
+            int ny2a = H/2 - (fix32ToInt(fix32Mul(nyceil, yscale2)));
             fix32 nyfloor = nsfloor - ply.where.z;
-            int ny1b = H/2 - (fix32ToInt(SAFEMUL32(nyfloor, yscale1)));
-            int ny2b = H/2 - (fix32ToInt(SAFEMUL32(nyfloor, yscale2)));
+            int ny1b = H/2 - (fix32ToInt(fix32Mul(nyfloor, yscale1)));
+            int ny2b = H/2 - (fix32ToInt(fix32Mul(nyfloor, yscale2)));
             insert_span(x1, x2, y1a, ny1a, y2a, ny2a, y1b, ny1b, y2b, ny2b, sect_ceil_col, high_col, wall_col, low_col, sect_floor_col, 0, dither_wall, dither_floor);
             
             
@@ -334,27 +295,33 @@ int draw_subsector(subsector* subsect) {
     return 0;
 }
 
-subsector* find_player_subsector() {
-    bsp_node* cur_node = &root_node;
-    while(1) {
-        switch(cur_node->type) {
-            case LEAF:
-                return cur_node->subsect;
-            case NODE: do {
-                plane_side side = point_side(&(ply.where), cur_node);
-                if(side == RIGHT_OF_PLANE) { 
-                    cur_node = cur_node->inner.right;
-                } else {
-                    cur_node = cur_node->inner.left;
-                }
-            } while(0);
-            break;
+const subsector* find_player_subsector_from(const bsp_node* node) {
+    switch(node->type) {
+        case LEAF:
+            return node->subsect;
+        case NODE: do {
+            plane_side side = point_side(&(ply.where), &(node->inner.split));
+            if(side == RIGHT_OF_PLANE) { 
+                return find_player_subsector_from(node->inner.right);
+            } else {
+                return find_player_subsector_from(node->inner.left);
+            }
+        } while(0);
+        break;
+        default:
+        while(1) {
+            VDP_drawTextBG(PLAN_A, "Corrupted BSP tree!", 10, 10);
         }
     }
 }
 
-sector* find_player_sector() {
-    subsector* subsect = find_player_subsector();
+const subsector* find_player_subsector() {
+    bsp_node* cur_node = &root_node;
+    return find_player_subsector_from(&root_node);
+}
+
+const sector* find_player_sector() {
+    const subsector* subsect = find_player_subsector();
     return subsect->sect;
 }
 
@@ -365,14 +332,14 @@ void traverse_all_sectors(sector_callback cb) {
 }
 
 
-int draw_bsp_node(bsp_node* node) {
+int draw_bsp_node(const bsp_node* node) {
     plane_side side;
     switch(node->type) {
         case LEAF:
             return draw_subsector(node->subsect);
             break;
         case NODE: 
-            side = point_side(&(ply.where), node);
+            side = point_side(&(ply.where), &(node->inner.split));
             if(side == RIGHT_OF_PLANE) {
                 return (draw_bsp_node(node->inner.right) ||
                         draw_bsp_node(node->inner.left));

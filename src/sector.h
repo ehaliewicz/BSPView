@@ -13,21 +13,21 @@ typedef struct {
     u8 lower_col;
     u8 middle_col;
     u8 upper_col;
-    sector* facing_sector;
+    const sector* facing_sector;
 } sidedef;
 
 typedef struct {
-    u16 v1, v2;
-    u8 double_sided; // if not double sided, only has a right side
-    sidedef* left_side;
-    sidedef* right_side;
-    u16 linenum;
+    const u16 v1, v2;
+    const u8 double_sided; // if not double sided, only has a right side
+    const sidedef* left_side;
+    const sidedef* right_side;
+    const u16 linenum;
 } linedef;  // a line on the map, not split for subsectors
 
 typedef struct {
-    u8 left_side;  // left side of the linedef, or right
-    u16 v1, v2;
-    linedef* line;
+    const u8 left_side;  // left side of the linedef, or right
+    const u16 v1, v2;
+    const linedef* line;
 } seg;
 
 
@@ -38,13 +38,14 @@ struct sector  {
     u8 ceil_color;
     sector_effect_type sector_type;
     sector_effect_params sector_params;
-    u16 sectnum;
+    const u16 sectnum;
 };
 
 typedef struct {
-    sector* sect;
-    u16 num_segs;
-    seg* segs[];
+    const sector* sect;
+    const u16 num_segs;
+    const u16 subsectnum;
+    const seg const * segs[];
 } subsector;
 
 #endif

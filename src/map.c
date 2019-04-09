@@ -11,9 +11,9 @@
 Vect2D_f32 vertices_cache[6];
 
 Vect2D_f32 vertices[6] = {
-  [0] = VERT2(0,0),  [1] = VERT2(16, 0),
-  [2] = VERT2(7,14), [3] = VERT2(16, 10),
-  [4] = VERT2(2,24), [5] = VERT2(23, 24)
+  [0] = VERT2(0,0),  [1] = VERT2(16, 0), // top left, top right
+  [2] = VERT2(8,14), [3] = VERT2(14, 10), // middle left, middle right
+  [4] = VERT2(2,24), [5] = VERT2(23, 24) // bottom left, bottom right
 };
 
 const int num_sectors = 1;
@@ -125,7 +125,7 @@ seg seg_top_right = {
 
 seg seg_split_top = {
   .left_side = 1,
-  .v1 = 2, .v2 = 3,
+  .v1 = 3, .v2 = 2,
   .line = &line_middle_split
 };
 
@@ -155,6 +155,7 @@ seg seg_split_bottom = {
 
 subsector subsector_top = {
   .sect = &sectors[0],
+  .subsectnum = 0,
   .num_segs = 4,
   .segs = {
     &seg_top_left, &seg_top, &seg_top_right, &seg_split_top
@@ -163,6 +164,7 @@ subsector subsector_top = {
 
 subsector subsector_bottom = {
   .sect = &sectors[0],
+  .subsectnum = 1,
   .num_segs = 4,
   .segs = {
     &seg_bottom_right, &seg_bottom, &seg_bottom_left, &seg_split_bottom
@@ -184,8 +186,10 @@ bsp_node root_node = {
   .inner = {
     .left = &node_top,
     .right = &node_bottom,
-    .pos = VERT2(7, 14), // middle left
-    .dvec = VERT2(9, -4), // to middle right
+    .split = {
+      .pos = VERT2(7, 14), // middle left
+      .dvec = VERT2(9, -4), // to middle right
+    }
   }
 };
 

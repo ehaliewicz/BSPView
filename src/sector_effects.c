@@ -15,6 +15,8 @@ void process_sector_type(sector* sect, u32 cur_frame) {
     sect->sector_params.delay_to = cur_frame+1;
 
     switch(sect->sector_type) {
+        case NO_EFFECT:
+            return;
         case CEILING_UP_DOWN:
             if(parms.ceiling_up_down.state == GOING_UP) {
                 sect->ceil_height += FIX32(1);

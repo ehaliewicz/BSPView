@@ -11,6 +11,7 @@
 #include "palette.h"
 #include "wipe.h"
 #include "../res/bg.h"
+#include "collision.h"
 
 static int show_fps = 0;
 static int show_pos = 0;
@@ -31,8 +32,8 @@ void reset_player() {
   ply.anglecos = fix16ToFix32(cosFix16(fix16ToInt(ply.angle)));
   ply.anglesin = fix16ToFix32(sinFix16(fix16ToInt(ply.angle)));
   
-  ply.cur_sector = find_player_sector(&root_node);
-  ply.cur_subsector = find_player_subsector(&root_node);
+  ply.cur_sector = find_player_sector();
+  ply.cur_subsector = find_player_subsector();
   ply.where.z = ply.cur_sector->floor_height + eye_height;
   ply.health = 100;
 
@@ -65,7 +66,16 @@ int hurt_palette = 0;
 int dead = 0;
 
 void handle_player_input(u16 joy) {
-    if((joy & BUTTON_Y || joy & BUTTON_B) && (joy & BUTTON_UP || joy & BUTTON_DOWN)) {
+
+    ply.cur_sector = find_player_sector();
+    ply.cur_subsector = find_player_subsector();
+    ply.where.z = ply.cur_sector->floor_height + eye_height;
+    int modify_sector_height = ((joy & BUTTON_Y || joy & BUTTON_B) && (joy & BUTTON_UP || joy & BUTTON_DOWN));
+    int move_forward = !modify_sector_height && (joy & BUTTON_UP || joy & BUTTON_DOWN);
+    int strafe = !modify_sector_height && (joy & BUTTON_B) && (joy & BUTTON_LEFT || joy & BUTTON_RIGHT);
+    int turn = !strafe & (joy & BUTTON_LEFT || joy & BUTTON_RIGHT);
+
+    if(modify_sector_height) {
         //sector* sect = find_player_sector(&root_node);
         sector* sect = ply.cur_sector;
         fix32 inc = (joy & BUTTON_DOWN) ? fix32Neg(FIX32(0.5)) : FIX32(0.5);
@@ -76,112 +86,90 @@ void handle_player_input(u16 joy) {
             sect->floor_height += inc;
         }
 
-    } else {
-        //VDP_clearTextBG(PLAN_A, 5, 10, 25);
-        //VDP_clearTextBG(PLAN_A, 5, 11, 25);
+    }
+        
 
-        // move forward or back, with collision detection
-        if(joy & BUTTON_UP || joy & BUTTON_DOWN) {
-            fix32 oldx = ply.where.x;
-            fix32 oldy = ply.where.y;
-            fix32 curx = oldx;
-            fix32 cury = oldy;
+    // move forward or strafe, with collision detection
+    if(move_forward) { 
+        fix32 oldx = ply.where.x;
+        fix32 oldy = ply.where.y;
+        fix32 curx = oldx;
+        fix32 cury = oldy;
 
-            fix32 speed = (joy & BUTTON_UP) ? move_speed : fix32Neg(move_speed);
-            int moved = 0;
+        fix32 speed = (joy & BUTTON_UP) ? move_speed : fix32Neg(move_speed);
+        int moved = 0;
 
-            fix32 newx = curx + fix32Mul(speed, ply.anglecos);
-            int got_x_collision = 0;
+        fix32 newx = curx + fix32Mul(speed, ply.anglecos);
+        int got_x_collision = 0;
 
-            /*
-            for(int i = 0; i < ply.cur_subsector->num_segs; i++) {
-                seg* s = ply.cur_subsector->segs[i];
-                Vect2D_f32 v1 = vertices[s->v1];
-                Vect2D_f32 v2 = vertices[s->v2];
-                fix32 oldside = PointSide32(curx, cury, v1.x, v1.y, v2.x, v2.y);
-                fix32 newside = PointSide32(newx, cury, v1.x, v1.y, v2.x, v2.y);
-                int signold = (oldside < 0 ? -1 : oldside == 0 ? 0 : 1);
-                int signnew = (newside < 0 ? -1 : oldside == 0 ? 0 : 1);
-                
-                linedef* line = s->line;
-                int is_left_side = s->left_side;
-                int has_back_sector = line->double_sided;
-                sidedef* back_side = has_back_sector ? (is_left_side ? line->right_side : line->left_side) : NULL;
-                sector* back_sector = back_side->facing_sector;
+        Vect2D_f32 old_vec;
+        old_vec.x = oldx;
+        old_vec.y = oldy;
+        
+        Vect2D_f32 dx_vec; 
+        dx_vec.y = oldy; 
+        dx_vec.x = newx;
 
-                if(signold != signnew) {
-                    //char buf[32];
-                    //sprintf(buf, "Got x collision with line %u", line->linenum);
-                    //VDP_drawTextBG(PLAN_A, buf, 5, 10);
-                    if(!has_back_sector) {
-                        got_x_collision = 1;
-                        break;
-                    } else if (player_collides_vertically(back_sector)) {
-                        got_x_collision = 1;
-                        break;
-                    }
-                } else {
-                    //VDP_drawTextBG(PLAN_A, "No x collision!", 10, 10);
-                }
-            }
-            */
+        
+        for(int i = 0; i < ply.cur_subsector->num_segs; i++) {
+            const seg* s = ply.cur_subsector->segs[i];
+            const linedef* line = s->line;
+            int is_left_side = s->left_side;
+            int has_back_sector = line->double_sided;
+            sidedef* back_side = has_back_sector ? (is_left_side ? line->right_side : line->left_side) : NULL;
+            sector* back_sector = back_side->facing_sector;
+            if(has_back_sector) { continue; }
 
-            if(!got_x_collision) {
-                moved = 1;
-                curx = newx;
-            }
-
-            fix32 newy = cury + fix32Mul(speed, ply.anglesin);
-            int got_y_collision = 0;
-            /*
-            for(int i = 0; i < ply.cur_subsector->num_segs; i++) {
-                seg* s = ply.cur_subsector->segs[i];
-                Vect2D_f32 v1 = vertices[s->v1];
-                Vect2D_f32 v2 = vertices[s->v2];
-                fix32 oldside = PointSide32(curx, cury, v1.x, v1.y, v2.x, v2.y);
-                fix32 newside = PointSide32(curx, newy, v1.x, v1.y, v2.x, v2.y);
-                int signold = (oldside < 0 ? -1 : oldside == 0 ? 0 : 1);
-                int signnew = (newside < 0 ? -1 : oldside == 0 ? 0 : 1);
-
-                linedef* line = s->line;
-                int is_left_side = s->left_side;
-                int has_back_sector = line->double_sided;
-                sidedef* back_side = has_back_sector ? (is_left_side ? line->right_side : line->left_side) : NULL;
-                sector* back_sector = back_side->facing_sector;
-
-                if(signold != signnew) {
-                    //char buf[32];
-                    //sprintf(buf, "Got y collision with line %u", line->linenum);
-                    //VDP_drawTextBG(PLAN_A, buf, 5, 11);
-                    if(!has_back_sector) {
-                        got_y_collision = 1;
-                        break;
-                    } else if (player_collides_vertically(back_sector)) {
-                        got_y_collision = 1;
-                        break;
-                    }
-                } else {
-                    //VDP_drawTextBG(PLAN_A, "No y collision!", 10, 11);
-                }
-            }
-            */
-           
-            if(!got_y_collision) {
-                moved = 1;
-                cury = newy;
-            }
-
-            ply.where.x = curx;
-            ply.where.y = cury;
-
-            if(moved) {
-                // if we've moved, check for new sector
-                ply.cur_sector = find_player_sector(&root_node);
-                ply.where.z = ply.cur_sector->floor_height + eye_height;
+            if(crosses_wall(&old_vec, &dx_vec, s)) { 
+                got_x_collision = 1;
+                break;
             }
         }
-    
+
+        if(!got_x_collision) {
+            moved = 1;
+            curx = newx;
+        }
+
+
+        fix32 newy = cury + fix32Mul(speed, ply.anglesin);
+        Vect2D_f32 dy_vec;
+        dy_vec.x = oldx;
+        dy_vec.y = newy;
+        
+        int got_y_collision = 0;
+
+        for(int i = 0; i < ply.cur_subsector->num_segs; i++) {
+            const seg* s = ply.cur_subsector->segs[i];
+
+            const linedef* line = s->line;
+            int is_left_side = s->left_side;
+            int has_back_sector = line->double_sided;
+            const sidedef* back_side = has_back_sector ? (is_left_side ? line->right_side : line->left_side) : NULL;
+            const sector* back_sector = back_side->facing_sector;
+            if(has_back_sector) { continue; }
+
+            if(crosses_wall(&old_vec, &dy_vec, s)) {
+                got_y_collision = 1;
+                break;
+            }
+            
+
+        }
+        if(!got_y_collision) {
+            moved = 1;
+            cury = newy;
+        }
+        
+        if(moved) {
+            ply.where.x = curx;
+            ply.where.y = cury;
+            // if we've moved, check for new sector
+        }
     }
+
+    
+    
 
     // turn left and right
     if(joy & BUTTON_LEFT) {

@@ -3,6 +3,7 @@
 
 #include <genesis.h>
 #include "sector.h"
+#include "plane.h"
 
 typedef enum {
     NODE, LEAF
@@ -14,9 +15,7 @@ typedef struct bsp_node bsp_node;
 typedef struct {
     const bsp_node* left;
     const bsp_node* right;
-    // define splitting plane
-    const Vect2D_f32 pos;
-    const Vect2D_f32 dvec;
+    const plane split;
     int nodenum;
 } bsp_inner;
 
@@ -29,13 +28,13 @@ struct bsp_node {
     };
 };
 
-int draw_bsp_node(bsp_node* node);
+int draw_bsp_node(const bsp_node* node);
 
-sector* find_player_sector();
-subsector* find_player_subsector();
+const sector* find_player_sector();
+const subsector* find_player_subsector();
 
 typedef void (*sector_callback)(sector* sect);
 
-void traverse_all_sectors(sector_callback cb);
+void traverse_all_sectors(const sector_callback cb);
 
 #endif
