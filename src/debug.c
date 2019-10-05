@@ -5,18 +5,18 @@
 void print_pos() {
   char buf[32];
   sprintf(buf, "x: ");
-  fix32ToStr(ply.where.x, buf+3, 3);
+  fix16ToStr(ply.where.x, buf+3, 3);
   VDP_drawTextBG(PLAN_A, buf, 0, 12);
   sprintf(buf, "y: ");
-  fix32ToStr(ply.where.y, buf+3, 3);
+  fix16ToStr(ply.where.y, buf+3, 3);
   VDP_drawTextBG(PLAN_A, buf, 0, 13);
   sprintf(buf, "z: ");
-  fix32ToStr(ply.where.z, buf+3, 3);
+  fix16ToStr(ply.where.z, buf+3, 3);
   VDP_drawTextBG(PLAN_A, buf, 0, 14);
   sprintf(buf, "ang: ");
   fix16ToStr(ply.angle, buf+5, 1);
   VDP_drawTextBG(PLAN_A, buf, 0, 15);
-  sprintf(buf, "sect: %u", ply.cur_sector->sectnum);
+  sprintf(buf, "sect: %u", ply.cur_sector);
   VDP_drawTextBG(PLAN_A, buf, 0, 16);
 }
 

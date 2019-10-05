@@ -6,10 +6,10 @@
 #include "sector.h"
 
 typedef struct {
-    Vect3D_f32 where, velocity;
+    Vect3D_f16 where, velocity;
     fix16 angle;
-    fix32 anglesin, anglecos;
-    sector* cur_sector;
+    fix16 anglesin, anglecos;
+    int cur_sector;
     s8 health;
 } player;
 

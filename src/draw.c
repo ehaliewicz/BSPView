@@ -2,18 +2,24 @@
 #include "common.h"
 #include "draw.h"
 #include "game.h"
-#include "palette.h"
+#include "sector.h"
+#include "player.h"
+#include "map.h"
+
+
 
 u16 ytop[W] = {0};
 u16 ybottom[W] = {H-1};
 
 u8 fill = 1;
 
+u16 drawn_pix = 0;
 void clear_clipping_buffers() {
   for(int i = 0; i < W; i++) {
     ytop[i] = 0; //-1 ?;
     ybottom[i] = H-1; //H ?;
   }
+  drawn_pix = 0;
 }
 
 void pix(s16 x, s16 y, u8 col) {
@@ -21,22 +27,22 @@ void pix(s16 x, s16 y, u8 col) {
   *pix = col;
 }
 
-void vline_dither(s16 x, s16 y1, s16 y2, u8 col1, u8 col2, u8 fill);
+void vline_dither(s16 x, s16 y1, s16 y2, u8 col1, u8 col2); // , u8 fill);
 
 void vline_native_dither(u8* buf, s16 dy, u8 col, u8 col2);
 void vline_native_dither_double(u8* buf, s16 dy, u16 col1, u16 col2);
 
 
-inline void vline_dither(s16 x, s16 y1, s16 y2, u8 col1, u8 col2, u8 fill) {
-    //if(framecnt & 1) { SWAP_u8(col1, col2); }
+inline void vline_dither(s16 x, s16 y1, s16 y2, u8 col1, u8 col2) { //}, u8 fill) {
+    if(framecnt & 1) { SWAP_u8(col1, col2); }
     if (y2 > y1) {
-        if(fill) {
+        //if(fill) {
           u8* pix = BMP_getWritePointer(x<<1, y1);
           vline_native_dither(pix, y2-y1, col1, col2);
-        } else {
-            pix(x, y1, col1);
-            pix(x, y2, col1);
-        }
+        //} else {
+        //    pix(x, y1, col1);
+        //    pix(x, y2, col1);
+        //}
     } 
 }
 
@@ -108,7 +114,7 @@ void draw_two_sided_span(s16 orig_x1, s16 orig_x2,
 
 
     for(s16 x = draw_x1; x <= draw_x2; x++) {
-        u8 border = (x == draw_x1 || x == draw_x2 || x == 0 || x == W-1);
+        // u8 border = (x == draw_x1 || x == draw_x2 || x == 0 || x == W-1);
         s16 cytop = ytop[x];
         s16 cybottom = ybottom[x];
         
@@ -131,14 +137,14 @@ void draw_two_sided_span(s16 orig_x1, s16 orig_x2,
         }
 
         // draw ceiling
-        vline_dither(x, cytop, cya, ceil_col, ceil_col2, fill ? 1 : 0);
+        vline_dither(x, cytop, cya, ceil_col, ceil_col2); //, fill ? 1 : 0);
         // draw floor
-        vline_dither(x, cyb, cybottom, floor_col, floor_col2, fill ? 1 : 0);
+        vline_dither(x, cyb, cybottom, floor_col, floor_col2); //, fill ? 1 : 0);
 
         // draw step from ceiling
-        vline_dither(x, cya, cnya, upper_col, upper_col2, fill ? 1 : border);
+        vline_dither(x, cya, cnya, upper_col, upper_col2); //, fill ? 1 : border);
         // draw lower step
-        vline_dither(x, cnyb, cyb, lower_col, lower_col2, fill ? 1 : border);
+        vline_dither(x, cnyb, cyb, lower_col, lower_col2); //, fill ? 1 : border);
 
 
         fix_y1a += top_slope;
@@ -199,7 +205,7 @@ void draw_one_sided_span(s16 orig_x1, s16 orig_x2,
 
     //u8* bmp_ptr
     for(s16 x = draw_x1; x <= draw_x2; x++) {
-        u8 border = (x == draw_x1 || x == draw_x2 || x == 0 || x == W-1);
+        // u8 border = (x == draw_x1 || x == draw_x2 || x == 0 || x == W-1);
         s16 cytop = ytop[x];
         s16 cybottom = ybottom[x];
 
@@ -211,13 +217,13 @@ void draw_one_sided_span(s16 orig_x1, s16 orig_x2,
 
 
         // draw ceiling
-        vline_dither(x, cytop, cya-1, ceil_col, ceil_col2, fill ? 1 : 0);
+        vline_dither(x, cytop, cya-1, ceil_col, ceil_col2); //, fill ? 1 : 0);
         // draw floor
-        vline_dither(x, cyb+1, cybottom, floor_col, floor_col2, fill ? 1 : 0);
+        vline_dither(x, cyb+1, cybottom, floor_col, floor_col2); //, fill ? 1 : 0);
         
 
         // draw wall
-        vline_dither(x, cya, cyb, wall_col, wall_col2, fill ? 1 : border);
+        vline_dither(x, cya, cyb, wall_col, wall_col2); //, fill ? 1 : border);
 
         
         ytop[x] = clamp(cya, cytop, H-1);

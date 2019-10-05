@@ -3,6 +3,7 @@
 
 #include <genesis.h>
 #include "common.h"
+#include "sector.h"
 
 u8 fill;
 

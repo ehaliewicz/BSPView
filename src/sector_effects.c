@@ -17,14 +17,14 @@ void process_sector_type(sector* sect, u32 cur_frame) {
     switch(sect->sector_type) {
         case CEILING_UP_DOWN:
             if(parms.ceiling_up_down.state == GOING_UP) {
-                sect->ceil_height += FIX32(1);
+                sect->ceil_height += FIX16(1);
                 if(sect->ceil_height >= parms.ceiling_up_down.max_ceil_height) {
                     sect->sector_params.ceiling_up_down.state = GOING_DOWN;
                     sect->sector_params.delay_to = cur_frame + parms.ceiling_up_down.frame_delay_at_transition;
                 }
             } else {
                 // going down
-                sect->ceil_height -= FIX32(1);
+                sect->ceil_height -= FIX16(1);
                 if(sect->ceil_height <= parms.ceiling_up_down.min_ceil_height) {
                     sect->sector_params.sector_up_down.state = GOING_UP;
                     sect->sector_params.delay_to = cur_frame + parms.sector_up_down.frame_delay_at_transition;
@@ -33,16 +33,16 @@ void process_sector_type(sector* sect, u32 cur_frame) {
             break;
         case SECTOR_UP_DOWN:
             if(parms.sector_up_down.state == GOING_UP) {
-                sect->ceil_height += FIX32(1);
-                sect->floor_height += FIX32(1);
+                sect->ceil_height += FIX16(1);
+                sect->floor_height += FIX16(1);
                 if(sect->floor_height >= parms.sector_up_down.max_floor_height) {
                     sect->sector_params.sector_up_down.state = GOING_DOWN;
                     sect->sector_params.delay_to = cur_frame + parms.sector_up_down.frame_delay_at_transition;
                 }
             } else {
                 // going down
-                sect->ceil_height -= FIX32(1);
-                sect->floor_height -= FIX32(1);
+                sect->ceil_height -= FIX16(1);
+                sect->floor_height -= FIX16(1);
                 if(sect->floor_height <= parms.sector_up_down.min_floor_height) {
                     sect->sector_params.sector_up_down.state = GOING_UP;
                     sect->sector_params.delay_to = cur_frame + parms.sector_up_down.frame_delay_at_transition;

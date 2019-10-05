@@ -13,15 +13,15 @@ typedef enum {
 } sector_effect_state;
 
 typedef struct {
-    fix32 max_floor_height;
-    fix32 min_floor_height;
+    fix16 max_floor_height;
+    fix16 min_floor_height;
     u32 frame_delay_at_transition;
     sector_effect_state state;
 } sector_up_down_params;
 
 typedef struct {
-    fix32 max_ceil_height;
-    fix32 min_ceil_height;
+    fix16 max_ceil_height;
+    fix16 min_ceil_height;
     u32 frame_delay_at_transition;
     sector_effect_state state;
 } ceiling_up_down_params;
