@@ -4,7 +4,7 @@
 #include <genesis.h>
 
 #define W 128
-#define H 160
+#define H 144 //160
 
 typedef struct {
     fix32 x,y;

@@ -34,7 +34,8 @@ void reset_player() {
   ply.cur_sector = find_player_sector(&root_node);
   ply.where.z = ply.cur_sector->floor_height + eye_height;
   ply.health = 100;
-
+  ply.bob_offset = 0;
+  ply.sway_offset = 0;
 }
 
 void init_game() {
@@ -176,6 +177,10 @@ void handle_player_input(u16 joy) {
 
 }
 
+int bobs[] = {1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,0,0,0,0,0,0,0,0};
+static int bob_idx = 0;
+int num_bobs = sizeof(bobs)/sizeof(int);
+static int sway_idx = 12;
 
 void run_game() {
 
@@ -191,8 +196,11 @@ void run_game() {
         show_pos = show_pos ? 0 : 1;
         //if(!show_pos) { clear_pos(); }
     }
-    if(joy & BUTTON_MODE && !(last_joy & BUTTON_MODE)) {
+    if(joy & BUTTON_START && !(last_joy & BUTTON_START)) {
         fill = !fill;
+    }
+    if(joy & BUTTON_MODE && !(last_joy & BUTTON_MODE)) {
+        subpixel = !subpixel;
     }
 
 
@@ -203,7 +211,8 @@ void run_game() {
     process_sector_effects(framecnt);
     
     if(dead) {
-        if(joy & BUTTON_START) {
+        
+        if(joy) { // } & BUTTON_START) {
             dead = 0;
             reset_player();
             start_wipe(framecnt++);
@@ -238,12 +247,14 @@ void run_game() {
     }
 
 
+    ply.bob_offset += bobs[bob_idx++] * FIX32(.15);
+    if(bob_idx >= num_bobs) { bob_idx = 0; }
+
     reset_span_buffer();
     clear_clipping_buffers();
 
     BMP_waitWhileFlipRequestPending();
     if(!fill) { BMP_clear(); }
-
     draw_bsp_node(&root_node);
 
     

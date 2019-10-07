@@ -240,14 +240,14 @@ int draw_sector(sector* sect) {
 
         // do perspective transformation
 
-        fix32 xscale1 = div32(SAFEMUL32(FIX32(W), HFOV), max(FIX32(0.1), rz1)); // 0.05
+        fix32 xscale1 = div32(SAFEMUL32(FIX32(W), HFOV), max(FIX32(0.1), rz1)); // 0.05  // SAFEMUL32 ? // div32?
         fix32 yscale1 = div32(SAFEMUL32(FIX32(H), VFOV), max(FIX32(0.1), rz1)); // 0.05
         fix32 xscale2 = div32(SAFEMUL32(FIX32(W), HFOV), max(FIX32(0.1), rz2)); // 0.05
         fix32 yscale2 = div32(SAFEMUL32(FIX32(H), VFOV), max(FIX32(0.1), rz2)); // 0.05
         
-        s16 x1 = W/2 - (fix32ToInt(SAFEMUL32(rx1, xscale1)));
-        s16 x2 = W/2 - (fix32ToInt(SAFEMUL32(rx2, xscale2)));
-        
+        s16 x1 = W/2 - fix32ToInt(SAFEMUL32(rx1, xscale1));
+        s16 x2 = W/2 - fix32ToInt(SAFEMUL32(rx2, xscale2));
+
         // only render if it's visible
         if(x1 >= x2 || x2 < 0 || x1 > W-1) {
             //BMP_drawText("off-screen        ", 0, 1); 
@@ -256,24 +256,33 @@ int draw_sector(sector* sect) {
             //BMP_drawText("on-screen     ", 0, 1);
         }
 
+        // x1 += fix32ToInt(ply.sway_offset);
+        // x2 += fix32ToInt(ply.sway_offset);
+
         // acquire the floor and ceiling heights, relative to where the player's view is
-        fix32 yceil = sect_ceil - ply.where.z;
-        fix32 yfloor = sect_floor - ply.where.z;
+        fix32 yceil = sect_ceil - (ply.where.z + ply.bob_offset);
+        fix32 yfloor = sect_floor - (ply.where.z + ply.bob_offset);
 
 
         // project ceiling and floor heights into screen coordinates
         #define Yaw(y,z) (y+fix16Mul(z,ply.yaw))
         
-        s16 y1a = H/2 - (fix32ToInt(SAFEMUL32(yceil, yscale1)));
-        s16 y1b = H/2 - (fix32ToInt(SAFEMUL32(yfloor, yscale1)));
+        //s16 y1a = H/2 - (fix32ToInt(SAFEMUL32(yceil, yscale1)));
+        //s16 y1b = H/2 - (fix32ToInt(SAFEMUL32(yfloor, yscale1)));
 
-        s16 y2a = H/2 - (fix32ToInt(SAFEMUL32(yceil, yscale2)));  // yceil + rz2
-        s16 y2b = H/2 - (fix32ToInt(SAFEMUL32(yfloor, yscale2))); // yfloor + rz2
+        //s16 y2a = H/2 - (fix32ToInt(SAFEMUL32(yceil, yscale2)));
+        //s16 y2b = H/2 - (fix32ToInt(SAFEMUL32(yfloor, yscale2)));
+        
+        fix32 fy1a = (FIX32(H/2) - (SAFEMUL32(yceil, yscale1)))<<6; // 16.6
+        fix32 fy1b = (FIX32(H/2) - (SAFEMUL32(yfloor, yscale1)))<<6; 
+
+        fix32 fy2a = (FIX32(H/2) - (SAFEMUL32(yceil, yscale2)))<<6;
+        fix32 fy2b = (FIX32(H/2) - (SAFEMUL32(yfloor, yscale2)))<<6;
         
 
 
-        if(y1a > y1b) { continue; }
-        if(y2a > y2b) { continue; }
+        if(fy1a > fy1b) { continue; }
+        if(fy2a > fy2b) { continue; }
 
 
         u8 wall_col = w->middle_color;
@@ -310,7 +319,7 @@ int draw_sector(sector* sect) {
             //    {x1, y1b}, {x1, y1a}
             //};
             //BMP_drawPolygon(wall_poly, 4, wall_col);
-            int full = insert_span(x1, x2, y1a, y1a, y2a, y2a, y1b, y1b, y2b, y2b, sect_ceil_col, high_col, wall_col, low_col, sect_floor_col, 1, dither_wall, dither_floor);
+            int full = insert_span(x1, x2, fy1a, fy1a, fy2a, fy2a, fy1b, fy1b, fy2b, fy2b, sect_ceil_col, high_col, wall_col, low_col, sect_floor_col, 1, dither_wall, dither_floor);
             if(full) { return full; }
         } else {
 
@@ -318,13 +327,19 @@ int draw_sector(sector* sect) {
             fix32 nsceil = w->back_sector->ceil_height;
             fix32 nsfloor = w->back_sector->floor_height;
 
-            fix32 nyceil = nsceil - ply.where.z;
-            int ny1a = H/2 - (fix32ToInt(SAFEMUL32(nyceil, yscale1)));
-            int ny2a = H/2 - (fix32ToInt(SAFEMUL32(nyceil, yscale2)));
-            fix32 nyfloor = nsfloor - ply.where.z;
-            int ny1b = H/2 - (fix32ToInt(SAFEMUL32(nyfloor, yscale1)));
-            int ny2b = H/2 - (fix32ToInt(SAFEMUL32(nyfloor, yscale2)));
-            insert_span(x1, x2, y1a, ny1a, y2a, ny2a, y1b, ny1b, y2b, ny2b, sect_ceil_col, high_col, wall_col, low_col, sect_floor_col, 0, dither_wall, dither_floor);
+            fix32 nyceil = nsceil - (ply.where.z + ply.bob_offset);
+            //int ny1a = H/2 - (fix32ToInt(SAFEMUL32(nyceil, yscale1)));
+            //int ny2a = H/2 - (fix32ToInt(SAFEMUL32(nyceil, yscale2)));
+            fix32 nyfloor = nsfloor - (ply.where.z + ply.bob_offset);
+            //int ny1b = H/2 - (fix32ToInt(SAFEMUL32(nyfloor, yscale1)));
+            //int ny2b = H/2 - (fix32ToInt(SAFEMUL32(nyfloor, yscale2)));
+
+
+            fix32 fny1a = (FIX32(H/2) - (SAFEMUL32(nyceil, yscale1))) << 6;
+            fix32 fny2a = (FIX32(H/2) - (SAFEMUL32(nyceil, yscale2))) << 6;
+            fix32 fny1b = (FIX32(H/2) - (SAFEMUL32(nyfloor, yscale1))) << 6;
+            fix32 fny2b = (FIX32(H/2) - (SAFEMUL32(nyfloor, yscale2))) << 6;
+            insert_span(x1, x2, fy1a, fny1a, fy2a, fny2a, fy1b, fny1b, fy2b, fny2b, sect_ceil_col, high_col, wall_col, low_col, sect_floor_col, 0, dither_wall, dither_floor);
             
             
         }

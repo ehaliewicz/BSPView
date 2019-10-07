@@ -116,7 +116,7 @@ resolution: exit
 
 
 int insert_span(s16 x1, s16 x2, 
-                s16 y1a, s16 ny1a, s16 y2a, s16 ny2a, s16 y1b, s16 ny1b, s16 y2b, s16 ny2b, 
+                fix32 y1a, fix32 ny1a, fix32 y2a, fix32 ny2a, fix32 y1b, fix32 ny1b, fix32 y2b, fix32 ny2b, 
                 u8 ceil_col, u8 upper_col, u8 wall_col, u8 lower_col, u8 floor_col, 
                 u8 insert, u8 dither_wall, u8 dither_floor) {
   s16 orig_x1 = x1;
