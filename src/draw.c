@@ -7,7 +7,7 @@
 u16 yclip[W*2];
 
 u8 fill = 1;
-u8 subpixel = 0;
+u8 subpixel = 1;
 
 void clear_clipping_buffers() {
   for(int i = 0; i < W*2; i += 2) {

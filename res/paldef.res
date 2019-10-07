@@ -1,0 +1,1 @@
+PALETTE pal "palette.png" NONE

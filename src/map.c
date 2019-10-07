@@ -10,6 +10,9 @@
 
 #define VERT2(x,y) {FIX32(x), FIX32(y)}
 
+#define FLASH_FRAMES 2
+#define NO_FLASH_FRAMES 10
+
 Vect2D_f32 vertices_cache[23];
 const Vect2D_f32 vertices[23] = {
     [0] = VERT2(0, 7),    [1] = VERT2(0, 0),
@@ -56,7 +59,7 @@ wall wall3 = {
     .v2 = 4,
     .lower_color = RED_IDX,
     .middle_color = TRANSPARENT_IDX,
-    .upper_color = TRANSPARENT_IDX, //RED_IDX,
+    .upper_color = DARK_STEEL_IDX, //RED_IDX,
     .back_sector = &sector1
 };
 
@@ -77,14 +80,15 @@ wall wall5 = {
 sector sector0 = {
     .floor_height = FIX32(20),
     .ceil_height = FIX32(40),
-    .floor_color = BLUE_IDX,
-    .ceil_color = TRANSPARENT_IDX,
+    .floor_color = DARK_BLUE_IDX,
+    .ceil_color = DARK_BLUE_IDX,
     .num_walls = 6,
     .walls = {
         &wall0, &wall1,
         &wall2, &wall3,
         &wall4, &wall5
     },
+    .light_level = 1,
     .sectnum = 0,
     .sector_type = SECTOR_UP_DOWN,
     .sector_params = {
@@ -92,18 +96,18 @@ sector sector0 = {
             .max_floor_height = FIX32(16),
             .min_floor_height = FIX32(-4),
             .frame_delay_at_transition = 20,
-            .state = GOING_DOWN
         },
-        .delay_to = 0
+        .delay_to = 0,
+        .state = GOING_DOWN
     }
 };
 
 wall wall6 = {
     .v1 = 4,
     .v2 = 3,
-    .upper_color = TRANSPARENT_IDX, //RED_IDX,
+    .upper_color = DARK_STEEL_IDX, //RED_IDX,
     .middle_color = TRANSPARENT_IDX,
-    .lower_color = BROWN_IDX,
+    .lower_color = DARK_BROWN_IDX,
     .back_sector = &sector0
 };
 
@@ -119,9 +123,9 @@ sector sector2;
 wall wall8 = {
     .v1 = 6,
     .v2 = 7,
-    .upper_color = TRANSPARENT_IDX, //BROWN_IDX,
+    .upper_color = DARK_STEEL_IDX, //BROWN_IDX,
     .middle_color = TRANSPARENT_IDX,
-    .lower_color = BROWN_IDX,
+    .lower_color = DARK_BROWN_IDX,
     .back_sector = &sector2
 };
 
@@ -136,12 +140,13 @@ sector sector1 = {
     .floor_height = FIX32(-4),
     .ceil_height = FIX32(16),
     .floor_color = DARK_STEEL_IDX,
-    .ceil_color = TRANSPARENT_IDX,
+    .ceil_color = DARK_STEEL_IDX,
     .num_walls = 4,
     .walls = {
         &wall6, &wall7,
         &wall8, &wall9
     },
+    .light_level = 0,
     .sector_type = NO_EFFECT,
     .sectnum = 1
 };
@@ -171,9 +176,9 @@ bsp_node node2 = {
 wall wall10 = {
     .v1 = 8,
     .v2 = 6,
-    .upper_color = TRANSPARENT_IDX, //RED_IDX,
+    .upper_color = DARK_STEEL_IDX, //RED_IDX,
     .middle_color = TRANSPARENT_IDX,
-    .lower_color = BROWN_IDX,
+    .lower_color = DARK_BROWN_IDX,
     .back_sector = &sector1
 };
 
@@ -189,22 +194,32 @@ sector sector3;
 wall wall12 = {
     .v1 = 9,
     .v2 = 7,
-    .upper_color = TRANSPARENT_IDX, //RED_IDX,
+    .upper_color = DARK_STEEL_IDX, //RED_IDX,
     .middle_color = TRANSPARENT_IDX,
-    .lower_color = BROWN_IDX,
+    .lower_color = DARK_BROWN_IDX,
     .back_sector = &sector3
 };
 
 sector sector2 = {
     .floor_height = FIX32(-6),
     .ceil_height = FIX32(14),
-    .floor_color = GREEN_IDX,
-    .ceil_color = TRANSPARENT_IDX,
+    .floor_color = STEEL_IDX,
+    .ceil_color = STEEL_IDX,
     .num_walls = 3,
     .walls = {
         &wall10, &wall11, &wall12
     },
-    .sector_type = NO_EFFECT,
+    .light_level = 0,
+    .sector_type = FLASHING, //CEILING_UP_DOWN,
+    .sector_params = {
+        .flash = {
+            .normal_light_level = -2,
+            .flash_light_level = 2,
+            .frames_to_flash = FLASH_FRAMES,
+            .frames_no_flash = NO_FLASH_FRAMES,
+        },
+        .delay_to = 20
+    },
     .sectnum = 2
 };
 
@@ -223,9 +238,9 @@ wall wall13 = {
 wall wall14 = {
     .v1 = 7,
     .v2 = 9,
-    .upper_color = TRANSPARENT_IDX, //RED_IDX,
+    .upper_color = DARK_STEEL_IDX, //RED_IDX,
     .middle_color = TRANSPARENT_IDX,
-    .lower_color = BROWN_IDX,
+    .lower_color = DARK_BROWN_IDX,
     .back_sector = &sector2
 };
 
@@ -241,21 +256,22 @@ sector sector4;
 wall wall16 = {
     .v1 = 11,
     .v2 = 10,
-    .upper_color = TRANSPARENT_IDX, //RED_IDX,
+    .upper_color = DARK_STEEL_IDX, //RED_IDX,
     .middle_color = TRANSPARENT_IDX,
-    .lower_color = BROWN_IDX,
+    .lower_color = DARK_BROWN_IDX,
     .back_sector = &sector4
 };
 
 sector sector3 = {
     .floor_height = FIX32(-8),
     .ceil_height = FIX32(12),
-    .floor_color = GREEN_IDX,
-    .ceil_color = TRANSPARENT_IDX,
+    .floor_color = DARK_STEEL_IDX,
+    .ceil_color = DARK_STEEL_IDX,
     .num_walls = 4,
     .walls = {
         &wall13, &wall14, &wall15, &wall16
     },
+    .light_level = 0,
     .sector_type = NO_EFFECT,
     .sectnum = 3
 };
@@ -304,7 +320,7 @@ wall wall18 = {
 wall wall19 = {
     .v1 = 10,
     .v2 = 11,
-    .upper_color = TRANSPARENT_IDX, //RED_IDX,
+    .upper_color = RED_IDX, //RED_IDX,
     .lower_color = RED_IDX,
     .back_sector = &sector3
 };
@@ -328,16 +344,16 @@ sector sector7;
 wall wall22 = {
     .v1 = 15,
     .v2 = 16,
-    .upper_color = TRANSPARENT_IDX, //RED_IDX,
+    .upper_color = DARK_STEEL_IDX,
     .middle_color = TRANSPARENT_IDX,
-    .lower_color = BROWN_IDX,
+    .lower_color = DARK_BROWN_IDX,
     .back_sector = &sector7
 };
 
 wall wall23 = {
     .v1 = 16,
     .v2 = 17,
-    .middle_color = YELLOW_IDX,
+    .middle_color = LIGHT_GREEN_IDX,
     .back_sector = NULL
 };
 
@@ -346,30 +362,31 @@ sector sector6;
 wall wall24 = {
     .v1 = 16,
     .v2 = 12,
-    .upper_color = TRANSPARENT_IDX, //RED_IDX,
+    .upper_color = DARK_BROWN_IDX, //RED_IDX,
     .middle_color = TRANSPARENT_IDX,
-    .lower_color = BROWN_IDX,
+    .lower_color = DARK_BROWN_IDX,
     .back_sector = &sector6
 };
 
 sector sector4 = {
     .floor_height = FIX32(-10),
     .ceil_height = FIX32(10),
-    .ceil_color = TRANSPARENT_IDX, // RED_IDX
-    .floor_color = DARK_STEEL_IDX,
+    .ceil_color = STEEL_IDX, // RED_IDX
+    .floor_color = STEEL_IDX,
     .num_walls = 8,
     .walls = {
         &wall17, &wall18, &wall19, &wall20,
         &wall21, &wall22, &wall23, &wall24
     },
     .sectnum = 4,
-    .sector_type = NO_EFFECT, //CEILING_UP_DOWN,
+    .light_level = -2,
+    .sector_type = FLASHING, //CEILING_UP_DOWN,
     .sector_params = {
-        .ceiling_up_down = {
-            .max_ceil_height = FIX32(10),
-            .min_ceil_height = FIX32(-10),
-            .frame_delay_at_transition = 20,
-            .state = GOING_DOWN
+        .flash = {
+            .normal_light_level = -2,
+            .flash_light_level = 2,
+            .frames_to_flash = FLASH_FRAMES,
+            .frames_no_flash = NO_FLASH_FRAMES,
         }
     },
 };
@@ -389,7 +406,7 @@ wall wall30 = {
 wall wall31 = {
     .v1 = 12,
     .v2 = 17,
-    .upper_color = TRANSPARENT_IDX, //RED_IDX,
+    .upper_color = DARK_BROWN_IDX, //RED_IDX,
     .middle_color = TRANSPARENT_IDX,
     .lower_color = RED_IDX,
     .back_sector = &sector4
@@ -398,7 +415,7 @@ wall wall31 = {
 wall wall32 = {
     .v1 = 17,
     .v2 = 19,
-    .middle_color = YELLOW_IDX,
+    .middle_color = LIGHT_GREEN_IDX,
     .back_sector = NULL
 };
 
@@ -407,7 +424,7 @@ sector sector5;
 wall wall33 = {
     .v1 = 19,
     .v2 = 18,
-    .upper_color = TRANSPARENT_IDX, //RED_IDX,
+    .upper_color = DARK_STEEL_IDX, //RED_IDX,
     .middle_color = TRANSPARENT_IDX,
     .lower_color = RED_IDX,
     .back_sector = &sector5
@@ -416,19 +433,20 @@ wall wall33 = {
 sector sector6 = {
     .floor_height = FIX32(-10),
     .ceil_height = FIX32(10),
-    .ceil_color = TRANSPARENT_IDX, //RED_IDX,
+    .ceil_color = STEEL_IDX,
     .floor_color = RED_IDX,
     .num_walls = 4,
     .walls = {
         &wall30, &wall31, &wall32, &wall33
     },
-    .sector_type = NO_EFFECT, //CEILING_UP_DOWN,
+    .light_level = -2,
+    .sector_type = FLASHING,
     .sector_params = {
-        .ceiling_up_down = {
-            .max_ceil_height = FIX32(10),
-            .min_ceil_height = FIX32(-10),
-            .frame_delay_at_transition = 20,
-            .state = GOING_DOWN
+        .flash = {
+            .normal_light_level = -2,
+            .flash_light_level = 2,
+            .frames_to_flash = FLASH_FRAMES,
+            .frames_no_flash = NO_FLASH_FRAMES,
         }
     },
     .sectnum = 6
@@ -442,7 +460,7 @@ bsp_node leaf6 = {
 wall wall34 = {
     .v1 = 19,
     .v2 = 16,
-    .middle_color = YELLOW_IDX,
+    .middle_color = LIGHT_GREEN_IDX,
     .back_sector = NULL
 };
 
@@ -474,19 +492,20 @@ wall wall37 = {
 sector sector7 = {
     .floor_height = FIX32(-10),
     .ceil_height = FIX32(10),
-    .ceil_color = TRANSPARENT_IDX, //RED_IDX,
+    .ceil_color = STEEL_IDX,
     .floor_color = RED_IDX,
     .num_walls = 4,
     .walls = {
         &wall34, &wall35, &wall36, &wall37
     },
-    .sector_type = NO_EFFECT, //CEILING_UP_DOWN,
+    .light_level = -2,
+    .sector_type = FLASHING,
     .sector_params = {
-        .ceiling_up_down = {
-            .max_ceil_height = FIX32(10),
-            .min_ceil_height = FIX32(-10),
-            .frame_delay_at_transition = 20,
-            .state = GOING_DOWN
+        .flash = {
+            .normal_light_level = -2,
+            .flash_light_level = 2,
+            .frames_to_flash = FLASH_FRAMES,
+            .frames_no_flash = NO_FLASH_FRAMES,
         }
     },
     .sectnum = 7
@@ -551,19 +570,20 @@ wall wall29 = {
 sector sector5 = {
     .floor_height = FIX32(-10),
     .ceil_height = FIX32(10),
-    .ceil_color = TRANSPARENT_IDX, //RED_IDX,
+    .ceil_color = BLUE_IDX,
     .floor_color = BLUE_IDX,
     .num_walls = 5,
     .walls = {
         &wall25, &wall26, &wall27, &wall28, &wall29
     },
-    .sector_type = NO_EFFECT, //CEILING_UP_DOWN,
+    .light_level = -2,
+    .sector_type = FLASHING,
     .sector_params = {
-        .ceiling_up_down = {
-            .max_ceil_height = FIX32(10),
-            .min_ceil_height = FIX32(-10),
-            .frame_delay_at_transition = 20,
-            .state = GOING_DOWN
+        .flash = {
+            .normal_light_level = -2,
+            .flash_light_level = 2,
+            .frames_to_flash = FLASH_FRAMES,
+            .frames_no_flash = NO_FLASH_FRAMES,
         }
     },
     .sectnum = 5

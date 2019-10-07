@@ -180,7 +180,6 @@ void handle_player_input(u16 joy) {
 int bobs[] = {1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,0,0,0,0,0,0,0,0};
 static int bob_idx = 0;
 int num_bobs = sizeof(bobs)/sizeof(int);
-static int sway_idx = 12;
 
 void run_game() {
 

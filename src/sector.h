@@ -26,6 +26,7 @@ struct sector  {
     u8 floor_color;
     u8 ceil_color;
     u16 sectnum;
+    s8 light_level;
     sector_effect_type sector_type;
     sector_effect_params sector_params;
     u16 num_walls;

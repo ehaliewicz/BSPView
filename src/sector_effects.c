@@ -11,32 +11,47 @@ sector* sectors_to_process[MAX_SECTORS_TO_PROCESS];
 
 void process_sector_type(sector* sect, u32 cur_frame) {
     sector_effect_params parms = sect->sector_params;
+    sector_effect_state state = parms.state;
     // default delay to next frame
+    u32 delay_to;   // process this sector at this frame
     sect->sector_params.delay_to = cur_frame+1;
 
     switch(sect->sector_type) {
+        case FLASHING:
+            if(parms.state == NORMAL_BRIGHTNESS) {
+                sect->sector_params.state = HIGH_BRIGHTNESS;
+                sect->sector_params.delay_to = cur_frame + parms.flash.frames_to_flash;
+                sect->light_level = parms.flash.flash_light_level;
+            } else {
+                sect->sector_params.state = NORMAL_BRIGHTNESS;
+                sect->sector_params.delay_to = cur_frame + parms.flash.frames_no_flash + (random() % 10);
+                sect->light_level = parms.flash.normal_light_level;
+            }
+            break;
+        case NO_EFFECT:
+            break;
         case CEILING_UP_DOWN:
-            if(parms.ceiling_up_down.state == GOING_UP) {
+            if(state == GOING_UP) {
                 sect->ceil_height += FIX32(1);
                 if(sect->ceil_height >= parms.ceiling_up_down.max_ceil_height) {
-                    sect->sector_params.ceiling_up_down.state = GOING_DOWN;
+                    sect->sector_params.state = GOING_DOWN;
                     sect->sector_params.delay_to = cur_frame + parms.ceiling_up_down.frame_delay_at_transition;
                 }
             } else {
                 // going down
                 sect->ceil_height -= FIX32(1);
                 if(sect->ceil_height <= parms.ceiling_up_down.min_ceil_height) {
-                    sect->sector_params.sector_up_down.state = GOING_UP;
+                    sect->sector_params.state = GOING_UP;
                     sect->sector_params.delay_to = cur_frame + parms.sector_up_down.frame_delay_at_transition;
                 }
             }
             break;
         case SECTOR_UP_DOWN:
-            if(parms.sector_up_down.state == GOING_UP) {
+            if(state == GOING_UP) {
                 sect->ceil_height += FIX32(1);
                 sect->floor_height += FIX32(1);
                 if(sect->floor_height >= parms.sector_up_down.max_floor_height) {
-                    sect->sector_params.sector_up_down.state = GOING_DOWN;
+                    sect->sector_params.state = GOING_DOWN;
                     sect->sector_params.delay_to = cur_frame + parms.sector_up_down.frame_delay_at_transition;
                 }
             } else {
@@ -44,7 +59,7 @@ void process_sector_type(sector* sect, u32 cur_frame) {
                 sect->ceil_height -= FIX32(1);
                 sect->floor_height -= FIX32(1);
                 if(sect->floor_height <= parms.sector_up_down.min_floor_height) {
-                    sect->sector_params.sector_up_down.state = GOING_UP;
+                    sect->sector_params.state = GOING_UP;
                     sect->sector_params.delay_to = cur_frame + parms.sector_up_down.frame_delay_at_transition;
                 }
             }

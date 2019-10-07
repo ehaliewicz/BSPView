@@ -10,12 +10,6 @@
 
 #include "map.h"
 
-#define MID_DIST 10
-#define DARK_DIST 15
-
-fix32 div32(fix32 x, fix32 y) {
-    return fix32Div(x, y);
-}
 
 
 typedef enum {
@@ -87,13 +81,11 @@ typedef struct {
 
 
 int draw_sector(sector* sect) {
-
-    int dither_floor = 1;
-    int dark_floor = 1;
     
+    fix32 sect_ceil = sect->ceil_height;
+    fix32 sect_floor = sect->floor_height;
 
-
-
+    u32 total_dist = 0;
     for(u16 i = 0; i < sect->num_walls; i++) {
         wall* w = sect->walls[i];
         
@@ -123,36 +115,13 @@ int draw_sector(sector* sect) {
 
 
         u32 avg_dist = (v1_dist + v2_dist)/2;
-        //dist_cache[i] = avg_dist;
+        total_dist += avg_dist;
 
-        if(avg_dist < MID_DIST) {
-            dither_floor = 0;
-            dark_floor = 0;
-            //break;
-        } 
-        if(avg_dist < DARK_DIST) {
-            dark_floor = 0;
-        }
     }
-    
-
-    fix32 sect_ceil = sect->ceil_height;
-    fix32 sect_floor = sect->floor_height;
-    u8 sect_ceil_col = sect->ceil_color;
-    u8 sect_floor_col = sect->floor_color;
-    if(!dither_floor) {
-        sect_floor_col = (sect_floor_col << 4) | sect_floor_col;
-        sect_ceil_col = (sect_ceil_col << 4) | sect_ceil_col;
-    } else if (dark_floor) {
-        u8 dark_floor = dark_col_lut[sect_floor_col];
-        u8 dark_ceil = dark_col_lut[sect_ceil_col];
-        sect_floor_col = (dark_floor << 4) | dark_floor;
-        sect_ceil_col  = (dark_ceil << 4)  | dark_ceil;
-    } else {
-        sect_floor_col = ((dark_col_lut[sect_floor_col]) << 4) | sect_floor_col;
-        sect_ceil_col  = ((dark_col_lut[sect_ceil_col]) << 4)  | sect_ceil_col;
-    }
-
+    u32 real_avg_dist = total_dist / sect->num_walls;
+    u8 sect_floor_col = calculate_color(sect->floor_color, real_avg_dist, sect->light_level);
+    u8 sect_ceil_col = calculate_color(sect->ceil_color, real_avg_dist, sect->light_level);
+    u8 dither_floor = needs_dither(real_avg_dist);
 
     for(u16 i = 0; i < sect->num_walls; i++) {
         wall* w = sect->walls[i];
@@ -240,10 +209,10 @@ int draw_sector(sector* sect) {
 
         // do perspective transformation
 
-        fix32 xscale1 = div32(SAFEMUL32(FIX32(W), HFOV), max(FIX32(0.1), rz1)); // 0.05  // SAFEMUL32 ? // div32?
-        fix32 yscale1 = div32(SAFEMUL32(FIX32(H), VFOV), max(FIX32(0.1), rz1)); // 0.05
-        fix32 xscale2 = div32(SAFEMUL32(FIX32(W), HFOV), max(FIX32(0.1), rz2)); // 0.05
-        fix32 yscale2 = div32(SAFEMUL32(FIX32(H), VFOV), max(FIX32(0.1), rz2)); // 0.05
+        fix32 xscale1 = fix32Div(SAFEMUL32(FIX32(W), HFOV), max(FIX32(0.1), rz1)); // 0.05  // SAFEMUL32 ? // div32?
+        fix32 yscale1 = fix32Div(SAFEMUL32(FIX32(H), VFOV), max(FIX32(0.1), rz1)); // 0.05
+        fix32 xscale2 = fix32Div(SAFEMUL32(FIX32(W), HFOV), max(FIX32(0.1), rz2)); // 0.05
+        fix32 yscale2 = fix32Div(SAFEMUL32(FIX32(H), VFOV), max(FIX32(0.1), rz2)); // 0.05
         
         s16 x1 = W/2 - fix32ToInt(SAFEMUL32(rx1, xscale1));
         s16 x2 = W/2 - fix32ToInt(SAFEMUL32(rx2, xscale2));
@@ -285,33 +254,12 @@ int draw_sector(sector* sect) {
         if(fy2a > fy2b) { continue; }
 
 
-        u8 wall_col = w->middle_color;
-        u8 low_col = w->lower_color;
-        u8 high_col = w->upper_color;
+        u8 wall_col = calculate_color(w->middle_color, avg_dist, sect->light_level);
+        u8 low_col = calculate_color(w->lower_color, avg_dist, sect->light_level);
+        u8 high_col = calculate_color(w->upper_color, avg_dist, sect->light_level);
+        u8 dither_wall = needs_dither(avg_dist);
+
         
-        int dither_wall = 1;
-
-        if(avg_dist < MID_DIST) {
-            wall_col = (wall_col << 4 | wall_col);
-            low_col = (low_col << 4 | low_col);
-            high_col = (high_col << 4 | high_col);
-            dither_wall = 0;
-        } else if (avg_dist < DARK_DIST) {
-            wall_col = ((dark_col_lut[wall_col]) << 4) | wall_col;
-            low_col  = ((dark_col_lut[low_col]) << 4)  | low_col;
-            high_col = ((dark_col_lut[high_col]) << 4) | high_col;
-        } else {
-            u8 dark_wall = dark_col_lut[wall_col];
-            u8 dark_low = dark_col_lut[low_col];
-            u8 dark_high = dark_col_lut[high_col];
-            wall_col = (dark_wall << 4) | dark_wall;
-            low_col  = (dark_low << 4)  | dark_low;
-            high_col = (dark_high << 4) | dark_high;
-
-        }
-        
-
-
         if(w->back_sector == NULL) { //w->middle_color != TRANSPARENT_IDX) { 
             
             //Vect2D_s16 wall_poly[4] = {
