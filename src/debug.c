@@ -40,16 +40,22 @@ void clear_fps() {
 }
 
 void print_transform_stats() {
-/*
   char buf[32];
-  sprintf(buf, "%i transformed", walls_transformed);
-  sprintf(buf, "%i ", )
-int transformed_walls;
-int transformed_portals;
-int walls_transformed;
-int walls_frustum_culled_after_transform;
-int walls_clipped_after_transform;
-int transformed_backfacing_walls;
-int upside_down_walls;
-*/
+
+  #define PR(str, var, x, y) \
+    sprintf(buf, str, var); \
+    VDP_drawTextBG(PLAN_A, buf, x, y);
+
+  PR("%2i walls transformed", walls_transformed, 0, 5);
+  PR("%2i walls clipped after transform", walls_clipped_after_transform, 0, 6);
+  PR("%2i walls frustum culled after transform", walls_frustum_culled_after_transform, 0, 7);
+  PR("%2i walls projected", walls_projected, 0, 8);
+  PR("%2i walls backfacing after projection", projected_backfacing_walls, 0, 9);
+  PR("%2i walls frustum culled after projection", walls_frustum_culled_after_projection, 0, 10);
+  // PR("%i upside_down walls", upside_down_walls, 0, 11);
+  PR("%2i walls not culled", walls_sent_to_screen_clipper, 0, 11);
+  PR("%2i portals not culled", portals_sent_to_screen_clipper, 0, 12);
+
+  #undef PR
+
 }

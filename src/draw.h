@@ -4,7 +4,7 @@
 #include <genesis.h>
 #include "common.h"
 
-u8 fill, subpixel;
+u8 fill;
 
 void clear_clipping_buffers();
 

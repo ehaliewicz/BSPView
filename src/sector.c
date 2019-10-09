@@ -4,59 +4,79 @@
 #include "player.h"
 #include "common.h"
 #include "palette.h"
+#include "span_buf.h"
 
-int walls_transformed;
-int walls_frustum_culled_after_transform;
+int walls_transformed, walls_projected;
+int walls_frustum_culled_after_transform, walls_frustum_culled_after_projection;
 int walls_clipped_after_transform;
-int transformed_backfacing_walls;
-int upside_down_walls;
-int transformed_walls;
-int transformed_portals;
+int projected_backfacing_walls;
+int walls_sent_to_screen_clipper, portals_sent_to_screen_clipper;
 
-int clear_sector_data() {
+void clear_transform_stats() {
     walls_transformed = 0;
     walls_frustum_culled_after_transform = 0;
+    walls_frustum_culled_after_projection = 0;
     walls_clipped_after_transform = 0;
-    transformed_backfacing_walls = 0;
-    upside_down_walls = 0;
-    transformed_walls = 0;
-    transformed_portals = 0;
+    projected_backfacing_walls = 0;
+    walls_sent_to_screen_clipper = 0;
+    portals_sent_to_screen_clipper = 0;
+    walls_projected = 0;
+}
+
+void translate_and_calc_distance(int vidx) {
+    if(vertices_cache[vidx].info &= (CACHED_DIST | CACHED_TRANSFORMATION)) {
+        return;
+    }
+    Vect2D_f32* vert = &vertices[vidx];
+    Vect2D_f32* trans_vert = &vertices_cache[vidx].translated_vertex;
+    fix32 tx = vert->x - ply.where.x;
+    fix32 ty = vert->y - ply.where.y;
+
+    vertices_cache[vidx].dist = getApproximatedDistance(fix32ToInt(tx), fix32ToInt(ty));
+    trans_vert->x = tx;
+    trans_vert->y = ty;
+    vertices_cache[vidx].info = CACHED_DIST;
+}
+
+void transform_vertex(int vidx, fix32 psin, fix32 pcos) {
+    if(vertices_cache[vidx].info &= (CACHED_TRANSFORMATION)) {
+        return;
+    }
+
+    fix32 tx = vertices_cache[vidx].translated_vertex.x;
+    fix32 ty = vertices_cache[vidx].translated_vertex.y;
+    fix32 rx1 = SAFEMUL32(tx, psin) - SAFEMUL32(ty, pcos);
+    fix32 rz1 = SAFEMUL32(tx, pcos) + SAFEMUL32(ty, psin);
+    vertices_cache[vidx].transformed_vertex.x = rx1;
+    vertices_cache[vidx].transformed_vertex.y = rz1;
+    vertices_cache[vidx].info = CACHED_TRANSFORMATION;
 }
 
 int draw_sector(sector* sect) {
-    
+
     fix32 sect_ceil = sect->ceil_height;
     fix32 sect_floor = sect->floor_height;
 
     u32 total_dist = 0;
+
+    int vert_idx = 0;
+
+    //for(int i = 0; i < sect->num_walls+1; i++) {
+    //    int v1idx = sect->walls[i]->v1;
+    //
+    //}
+    fix32 pcos = ply.anglecos;
+    fix32 psin = ply.anglesin;
+
+    
     for(u16 i = 0; i < sect->num_walls; i++) {
         wall* w = sect->walls[i];
+
+        translate_and_calc_distance(w->v1);
+        translate_and_calc_distance(w->v2);
+        u32 v1_dist = vertices_cache[w->v1].dist;
+        u32 v2_dist = vertices_cache[w->v2].dist;
         
-        Vect2D_f32 v1 = vertices[w->v1];
-        Vect2D_f32 v2 = vertices[w->v2];
-        fix32 vx1 = v1.x;
-        fix32 vy1 = v1.y;
-        fix32 vx2 = v2.x;
-        fix32 vy2 = v2.y;
-        fix32 tx1 = vx1 - ply.where.x;
-        fix32 ty1 = vy1 - ply.where.y;
-        fix32 tx2 = vx2 - ply.where.x;
-        fix32 ty2 = vy2 - ply.where.y;
-
-        vertices_cache[w->v1].x = tx1;
-        vertices_cache[w->v1].y = ty1;
-        vertices_cache[w->v2].x = tx2;
-        vertices_cache[w->v2].y = ty2;
-
-
-        u32 v1_dist = getApproximatedDistance(
-            fix32ToInt(tx1),
-            fix32ToInt(ty1));
-        u32 v2_dist = getApproximatedDistance(
-            fix32ToInt(tx2),
-            fix32ToInt(ty2));
-
-
         u32 avg_dist = (v1_dist + v2_dist)/2;
         total_dist += avg_dist;
 
@@ -75,31 +95,38 @@ int draw_sector(sector* sect) {
         fix32 vy1 = v1.y;
         fix32 vx2 = v2.x;
         fix32 vy2 = v2.y;
+
+        /*
         u32 v1_dist = getApproximatedDistance(
             abs(fix32ToInt(vx1 - ply.where.x)),
             abs(fix32ToInt(vy1 - ply.where.y)));
         u32 v2_dist = getApproximatedDistance(
             abs(fix32ToInt(vx2 - ply.where.x)),
             abs(fix32ToInt(vy2 - ply.where.x)));
-
+        */
+        // we know that every vertex in this sector has already 
+        // been translated and had the distance calcualted
+        u32 v1_dist = vertices_cache[w->v1].dist;
+        u32 v2_dist = vertices_cache[w->v2].dist;
         u32 avg_dist = (v1_dist + v2_dist)/2;
 
-        fix32 tx1 = vertices_cache[w->v1].x; //vx1 - ply.where.x;
-        fix32 ty1 = vertices_cache[w->v1].y; //vy1 - ply.where.y;
-        fix32 tx2 = vertices_cache[w->v2].x; //vx2 - ply.where.x;
-        fix32 ty2 = vertices_cache[w->v2].y; //vy2 - ply.where.y;
+        //fix32 tx1 = vertices_cache[w->v1].translated_vertex.x; 
+        //fix32 tx1 = vx1 - ply.where.x;
+        //fix32 ty1 = vertices_cache[w->v1].translated_vertex.y; 
+        //fix32 ty1 = vy1 - ply.where.y;
+        //fix32 tx2 = vertices_cache[w->v2].translated_vertex.x; 
+        //fix32 tx2 = vx2 - ply.where.x;
+        //fix32 ty2 = vertices_cache[w->v2].translated_vertex.y; 
+        //fix32 ty2 = vy2 - ply.where.y;
         
-        fix32 pcos = ply.anglecos;
-        fix32 psin = ply.anglesin;
+        transform_vertex(w->v1, psin, pcos);
+        transform_vertex(w->v2, psin, pcos);
+        //char buf[32];     
+        fix32 rx1 = vertices_cache[w->v1].transformed_vertex.x;
+        fix32 rz1 = vertices_cache[w->v1].transformed_vertex.y;
+        fix32 rx2 = vertices_cache[w->v2].transformed_vertex.x;
+        fix32 rz2 = vertices_cache[w->v2].transformed_vertex.y;
 
-        fix32 rx1 = SAFEMUL32(tx1, psin) - SAFEMUL32(ty1, pcos);
-        fix32 rz1 = SAFEMUL32(tx1, pcos) + SAFEMUL32(ty1, psin);
-        fix32 rx2 = SAFEMUL32(tx2, psin) - SAFEMUL32(ty2, pcos);
-        fix32 rz2 = SAFEMUL32(tx2, pcos) + SAFEMUL32(ty2, psin);
-
-        //char buf[32];
-        
-        
         if(rz1 <= 0 && rz2 <= 0) { 
             walls_frustum_culled_after_transform++; 
             continue;
@@ -155,23 +182,22 @@ int draw_sector(sector* sect) {
         }
         
 
-        // do perspective transformation
+        //if(rx2-rx1 > FIX32(0.1)) { continue; }
+        
+        // do perspective projection
 
-        fix32 xscale1 = fix32Div(SAFEMUL32(FIX32(W), HFOV), max(FIX32(0.1), rz1)); // 0.05  // SAFEMUL32 ? // div32?
-        fix32 yscale1 = fix32Div(SAFEMUL32(FIX32(H), VFOV), max(FIX32(0.1), rz1)); // 0.05
-        fix32 xscale2 = fix32Div(SAFEMUL32(FIX32(W), HFOV), max(FIX32(0.1), rz2)); // 0.05
-        fix32 yscale2 = fix32Div(SAFEMUL32(FIX32(H), VFOV), max(FIX32(0.1), rz2)); // 0.05
-        
+        fix32 xscale1 = fix32Div(SAFEMUL32(FIX32(W), HFOV), max(FIX32(0.1), rz1));
         s16 x1 = W/2 - fix32ToInt(SAFEMUL32(rx1, xscale1));
+        walls_projected++;
+        if(x1 > W-1) { walls_frustum_culled_after_projection++; continue; }
+        fix32 xscale2 = fix32Div(SAFEMUL32(FIX32(W), HFOV), max(FIX32(0.1), rz2));
         s16 x2 = W/2 - fix32ToInt(SAFEMUL32(rx2, xscale2));
-        
-        if(x1 >= x2 || x2 < 0 || x1 > W-1) {
-            //projected_backfacing_walls++;
-            //BMP_drawText("off-screen        ", 0, 1); 
-            continue; 
-        } else {
-            //BMP_drawText("on-screen     ", 0, 1);
-        }
+        if(x2 < 0) { walls_frustum_culled_after_projection++; continue; }
+        if(x1 >= x2) { projected_backfacing_walls++; continue; }
+
+        fix32 yscale2 = fix32Div(SAFEMUL32(FIX32(H), VFOV), max(FIX32(0.1), rz2));
+        fix32 yscale1 = fix32Div(SAFEMUL32(FIX32(H), VFOV), max(FIX32(0.1), rz1));
+
 
         // x1 += fix32ToInt(ply.sway_offset);
         // x2 += fix32ToInt(ply.sway_offset);
@@ -198,8 +224,8 @@ int draw_sector(sector* sect) {
         
 
 
-        if(fy1a > fy1b) { upside_down_walls++; continue; }
-        if(fy2a > fy2b) { upside_down_walls++; continue; }
+        //if(fy1a > fy1b) { upside_down_walls++; continue; }
+        //if(fy2a > fy2b) { upside_down_walls++; continue; }
 
 
         u8 wall_col = calculate_color(w->middle_color, avg_dist, sect->light_level);
@@ -215,7 +241,7 @@ int draw_sector(sector* sect) {
             //    {x1, y1b}, {x1, y1a}
             //};
             //BMP_drawPolygon(wall_poly, 4, wall_col);
-            transformed_walls++;
+            walls_sent_to_screen_clipper++;
             int full = insert_span(x1, x2, fy1a, fy1a, fy2a, fy2a, fy1b, fy1b, fy2b, fy2b, sect_ceil_col, high_col, wall_col, low_col, sect_floor_col, 1, dither_wall, dither_floor);
             if(full) { return full; }
         } else {
@@ -236,7 +262,7 @@ int draw_sector(sector* sect) {
             fix32 fny2a = (FIX32(H/2) - (SAFEMUL32(nyceil, yscale2))) << 6;
             fix32 fny1b = (FIX32(H/2) - (SAFEMUL32(nyfloor, yscale1))) << 6;
             fix32 fny2b = (FIX32(H/2) - (SAFEMUL32(nyfloor, yscale2))) << 6;
-            transformed_portals++;
+            portals_sent_to_screen_clipper++;
             insert_span(x1, x2, fy1a, fny1a, fy2a, fny2a, fy1b, fny1b, fy2b, fny2b, sect_ceil_col, high_col, wall_col, low_col, sect_floor_col, 0, dither_wall, dither_floor);
         }
     }

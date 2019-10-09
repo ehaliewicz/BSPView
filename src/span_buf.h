@@ -10,7 +10,7 @@ int insert_span(s16 x1, s16 x2,
                 u8 ceil_col, u8 upper_col, u8 wall_col, u8 lower_col, u8 floor_col, 
                 u8 insert, u8 dither_wall, u8 dither_floor);
 
-void reset_span_buffer();
+void clear_span_buffer();
 
 #endif
 

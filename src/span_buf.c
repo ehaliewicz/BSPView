@@ -190,7 +190,7 @@ int insert_span(s16 x1, s16 x2,
 }
 
 
-void reset_span_buffer() {
+void clear_span_buffer() {
     for(int i = 0; i < MAX_SPANS-1; i++) {
         all_spans[i].next = &(all_spans[i+1]);
     }

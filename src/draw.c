@@ -7,7 +7,6 @@
 u16 yclip[W*2];
 
 u8 fill = 1;
-u8 subpixel = 1;
 
 void clear_clipping_buffers() {
   for(int i = 0; i < W*2; i += 2) {
@@ -310,12 +309,6 @@ void draw_span(s16 orig_x1, s16 orig_x2,
                s16 draw_x1, s16 draw_x2, 
                u8 ceil_col, u8 upper_col, u8 wall_col, u8 lower_col, u8 floor_col, 
                u8 update_vertical_clipping, u8 dither_wall, u8 dither_floor) {
-    if(!subpixel) {
-      CLEAR_SUBPIXELS(y1a); CLEAR_SUBPIXELS(ny1a); 
-      CLEAR_SUBPIXELS(y1b); CLEAR_SUBPIXELS(ny1a);
-      CLEAR_SUBPIXELS(y2a); CLEAR_SUBPIXELS(ny2a); 
-      CLEAR_SUBPIXELS(y2b); CLEAR_SUBPIXELS(ny2a);
-    }
     if(update_vertical_clipping) {           
         draw_two_sided_span(orig_x1, orig_x2, y1a, ny1a, y1b, ny1b, y2a, ny2a, y2b, ny2b, draw_x1, draw_x2, ceil_col, upper_col, lower_col, floor_col, dither_wall, dither_floor);
     } else {        

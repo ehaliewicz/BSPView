@@ -180,7 +180,7 @@ void handle_player_input(u16 joy) {
 
 }
 
-int bobs[] = {1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,0,0,0,0,0,0,0,0};
+int bobs[] = {1,1,1,1,1,1,1,1,1,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,0,0,0,0};
 static int bob_idx = 0;
 int num_bobs = sizeof(bobs)/sizeof(int);
 
@@ -202,7 +202,7 @@ void run_game() {
         fill = !fill;
     }
     if(joy & BUTTON_MODE && !(last_joy & BUTTON_MODE)) {
-        subpixel = !subpixel;
+        //subpixel = !subpixel;
     }
 
 
@@ -249,12 +249,13 @@ void run_game() {
     }
 
 
-    ply.bob_offset += bobs[bob_idx++] * FIX32(.15);
+    ply.bob_offset += bobs[bob_idx++] * FIX32(.1);
     if(bob_idx >= num_bobs) { bob_idx = 0; }
 
-    reset_span_buffer();
+    clear_span_buffer();
     clear_clipping_buffers();
-
+    clear_transform_stats();
+    clear_vertex_cache();
     BMP_waitWhileFlipRequestPending();
     if(!fill) { BMP_clear(); }
     draw_bsp_node(&root_node);
@@ -262,12 +263,12 @@ void run_game() {
     
     BMP_flip(1);
 
-    VDP_waitVSync();
+    //VDP_waitVSync();
     if(show_fps) {
         print_fps();
     }
     if(show_pos) {
         print_pos();
     }
-    
+    //print_transform_stats();
 }

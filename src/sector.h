@@ -34,13 +34,13 @@ struct sector  {
 };
 
 int draw_sector(sector* sect);
+void clear_transform_stats();
 
 extern int walls_transformed;
-extern int walls_frustum_culled_after_transform;
-extern int walls_clipped_after_transform;
-extern int transformed_backfacing_walls;
+extern int walls_frustum_culled_after_transform, walls_frustum_culled_after_projection, walls_clipped_after_transform;
+extern int walls_projected, projected_backfacing_walls;
 extern int upside_down_walls;
-extern int transformed_walls;
-extern int transformed_portals;
+extern int walls_sent_to_screen_clipper;
+extern int portals_sent_to_screen_clipper;
 
 #endif

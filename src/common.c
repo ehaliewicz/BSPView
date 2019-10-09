@@ -4,7 +4,9 @@
 fix32 eye_height = FIX32(10);
 
 fix16 vxs16(fix16 x0, fix16 y0, fix16 x1, fix16 y1) {
-    return fix16Mul(x0, y1) - fix16Mul(x1, y0);
+    // TODO: fix32ToFix16((x0*y1) - (x1 * y0)); ?
+    fix32ToFix16((x0*y1) - (x1 * y0));
+    //return fix16Mul(x0, y1) - fix16Mul(x1, y0);
 }
 
 fix32 vxs32(fix32 x0, fix32 y0, fix32 x1, fix32 y1) {
@@ -14,6 +16,16 @@ fix32 vxs32(fix32 x0, fix32 y0, fix32 x1, fix32 y1) {
 fix32 cross16To32(fix16 x0, fix16 y0, fix16 x1, fix16 y1) {
     return (x0 * y1) - (x1 * y0); // 20.12 fixed point
 }
+
+fix32 vdp16To32(fix16 x0, fix16 y0, fix16 x1, fix16 y1) {
+    return (x0 * x1) + (y0 * y1);
+}
+
+fix16 vdp16(fix16 x0, fix16 y0, fix16 x1, fix16 y1) {
+    return fix32ToFix16(vdp16To32(x0, y0, x1, y1));
+}
+
+
 
 #define FRAC12_TO_FRAC6(x) ((fix16)((x) >> 6))
 

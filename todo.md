@@ -1,15 +1,9 @@
-# Subpixel accurate rasterization
-- convert whole pipeline to fixed point
-> span buffer
-> wall interpolation
-
 # Optimize perforamnce
 - drawing two pixels at a time?
 - optimizing span buffering and vertex/3d math in assembly?
 
   
 # texturing 
-- needs subpixel accurate rasterization
 - slow accurate texturing is easy
 - fast, inaccurate texturing is easy
 - fast and accurate texturing. how?

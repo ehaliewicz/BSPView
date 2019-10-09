@@ -7,13 +7,22 @@
 #include "bsp.h"
 #include "palette.h"
 #include "sector_effect_types.h"
+#include "map.h"
+
+void clear_vertex_cache() {
+    for(int i = 0; i < NUM_VERTEXES; i++) {
+        vertices_cache[i].info = UNCACHED;
+    }
+}
 
 #define VERT2(x,y) {FIX32(x), FIX32(y)}
 
 #define FLASH_FRAMES 2
 #define NO_FLASH_FRAMES 10
 
-Vect2D_f32 vertices_cache[23];
+//Vect2D_f32 vertices_cache[23];
+vertex_cache_entry vertices_cache[23];
+
 const Vect2D_f32 vertices[23] = {
     [0] = VERT2(0, 7),    [1] = VERT2(0, 0),
     [2] = VERT2(6, 0),    [3] = VERT2(8, 2),
