@@ -47,6 +47,9 @@ void init_game() {
     VDP_drawImageEx(PLAN_B, &bg, base_tile, 4, 0, 0, DMA);
 
     BMP_init(0, PLAN_A, 3, 0);
+    //VDP_setBPlanAddress(VDP_getAPlanAddress());
+    //VDP_setScrollingMode(HSCROLL_PLANE, VSCROLL_PLANE);
+    //VDP_setVerticalScroll(PLAN_A, 1);
     BMP_setBufferCopy(0);
     init_palettes();
     load_palette(3, NORMAL_PAL);
@@ -253,7 +256,8 @@ void run_game() {
     clear_clipping_buffers();
 
     BMP_waitWhileFlipRequestPending();
-    if(!fill) { BMP_clear(); }
+    //if(!fill) { BMP_clear(); }
+    BMP_clear();
     draw_bsp_node(&root_node);
 
     

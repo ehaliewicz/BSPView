@@ -54,4 +54,9 @@ Vect2D_f32 Intersect32(fix32 x1, fix32 y1, fix32 x2, fix32 y2, fix32 x3, fix32 y
 
 
 
+#define safeFix32ToFix16(value)         (((value) >> (FIX32_FRAC_BITS-FIX16_FRAC_BITS)))
+
+#define safeFix16ToFix32(value)         (((value) << (FIX32_FRAC_BITS - FIX16_FRAC_BITS)))
+
+
 #endif

@@ -7,4 +7,5 @@ void clear_pos();
 void print_fps();
 void clear_fps();
 
+void print_transform_stats();
 #endif

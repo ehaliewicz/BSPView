@@ -162,7 +162,7 @@ int insert_span(s16 x1, s16 x2,
       
       if (current->x2<=x2) { // case 4
 	
-        draw_span(orig_x1, orig_x2, y1a, ny1a, y1b, ny1b, y2a, ny2a, y2b, ny2b, current->x1,current->x2, ceil_col, upper_col, wall_col, lower_col, floor_col, update_vert_clipping, dither_wall, dither_floor);
+        draw_span(orig_x1, orig_x2, y1a, ny1a, y1b, ny1b, y2a, ny2a, y2b, ny2b, current->x1, current->x2, ceil_col, upper_col, wall_col, lower_col, floor_col, update_vert_clipping, dither_wall, dither_floor);
         
         n=current->next;
         if(insert) {
@@ -179,7 +179,7 @@ int insert_span(s16 x1, s16 x2,
             return 0;
         }
       } else { // case 5
-	    draw_span(orig_x1, orig_x2, y1a, ny1a, y1b, ny1b, y2a, ny2a, y2b, ny2b, current->x1, x2, ceil_col, upper_col, wall_col, lower_col, floor_col, update_vert_clipping, dither_wall, dither_floor);
+	      draw_span(orig_x1, orig_x2, y1a, ny1a, y1b, ny1b, y2a, ny2a, y2b, ny2b, current->x1, x2, ceil_col, upper_col, wall_col, lower_col, floor_col, update_vert_clipping, dither_wall, dither_floor);
         if(insert) {
             current->x1 = x2;
         }

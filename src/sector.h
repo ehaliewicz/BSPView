@@ -33,4 +33,14 @@ struct sector  {
     wall* walls[];
 };
 
+int draw_sector(sector* sect);
+
+extern int walls_transformed;
+extern int walls_frustum_culled_after_transform;
+extern int walls_clipped_after_transform;
+extern int transformed_backfacing_walls;
+extern int upside_down_walls;
+extern int transformed_walls;
+extern int transformed_portals;
+
 #endif

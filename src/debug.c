@@ -1,6 +1,7 @@
 #include <genesis.h>
 
 #include "player.h"
+#include "sector.h"
 
 void print_pos() {
   char buf[32];
@@ -36,4 +37,19 @@ void clear_fps() {
   //VDP_clearTextLineBG(PLAN_A, 4);
   VDP_drawTextBG(PLAN_A, "                               ", 0, 4);
 
+}
+
+void print_transform_stats() {
+/*
+  char buf[32];
+  sprintf(buf, "%i transformed", walls_transformed);
+  sprintf(buf, "%i ", )
+int transformed_walls;
+int transformed_portals;
+int walls_transformed;
+int walls_frustum_culled_after_transform;
+int walls_clipped_after_transform;
+int transformed_backfacing_walls;
+int upside_down_walls;
+*/
 }
