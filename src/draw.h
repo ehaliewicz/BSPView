@@ -8,6 +8,8 @@ u8 fill;
 
 void clear_clipping_buffers();
 
+void init_column_offset_table();
+
 
 void draw_span(s16 orig_x1, s16 orig_x2, 
                fix32 y1a, fix32 ny1a, fix32 y1b, fix32 ny1b, fix32 y2a, fix32 ny2a, fix32 y2b, fix32 ny2b, 

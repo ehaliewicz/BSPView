@@ -41,12 +41,15 @@ void reset_player() {
 void init_game() {
     reset_player();
     traverse_all_sectors(&root_node, &register_active_sector);
-    //VDP_drawBitmap(PLAN_A, )
+    init_column_offset_table();
+
     VDP_setPalette(PAL2, bg.palette->data);
     u16 base_tile = TILE_ATTR_FULL(PAL2, FALSE, FALSE, FALSE, 0x290); //TILE_USERINDEX);
     VDP_drawImageEx(PLAN_B, &bg, base_tile, 4, 0, 0, DMA);
 
     BMP_init(0, PLAN_A, 3, 0);
+
+    // two plane half-resolution hacks
     //VDP_setBPlanAddress(VDP_getAPlanAddress());
     //VDP_setScrollingMode(HSCROLL_PLANE, VSCROLL_PLANE);
     //VDP_setVerticalScroll(PLAN_A, 1);
