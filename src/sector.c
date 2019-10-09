@@ -24,10 +24,10 @@ void clear_transform_stats() {
 }
 
 void translate_and_calc_distance(int vidx) {
-    if(vertices_cache[vidx].info &= (CACHED_DIST | CACHED_TRANSFORMATION)) {
+    if(vertices_cache[vidx].info &= (CACHED_DIST | CACHED_TRANSFORMATION | CACHED_X_PROJECTION | CACHED_Y_PROJECTION)) {
         return;
     }
-    Vect2D_f32* vert = &vertices[vidx];
+    const Vect2D_f32* vert = &vertices[vidx];
     Vect2D_f32* trans_vert = &vertices_cache[vidx].translated_vertex;
     fix32 tx = vert->x - ply.where.x;
     fix32 ty = vert->y - ply.where.y;
@@ -35,21 +35,43 @@ void translate_and_calc_distance(int vidx) {
     vertices_cache[vidx].dist = getApproximatedDistance(fix32ToInt(tx), fix32ToInt(ty));
     trans_vert->x = tx;
     trans_vert->y = ty;
-    vertices_cache[vidx].info = CACHED_DIST;
+    vertices_cache[vidx].info |= CACHED_DIST;
 }
 
 void transform_vertex(int vidx, fix32 psin, fix32 pcos) {
-    if(vertices_cache[vidx].info &= (CACHED_TRANSFORMATION)) {
+    if(vertices_cache[vidx].info &= (CACHED_TRANSFORMATION | CACHED_X_PROJECTION | CACHED_Y_PROJECTION)) {
         return;
     }
 
     fix32 tx = vertices_cache[vidx].translated_vertex.x;
     fix32 ty = vertices_cache[vidx].translated_vertex.y;
-    fix32 rx1 = SAFEMUL32(tx, psin) - SAFEMUL32(ty, pcos);
-    fix32 rz1 = SAFEMUL32(tx, pcos) + SAFEMUL32(ty, psin);
-    vertices_cache[vidx].transformed_vertex.x = rx1;
-    vertices_cache[vidx].transformed_vertex.y = rz1;
-    vertices_cache[vidx].info = CACHED_TRANSFORMATION;
+    fix32 rx = SAFEMUL32(tx, psin) - SAFEMUL32(ty, pcos);
+    fix32 rz = SAFEMUL32(tx, pcos) + SAFEMUL32(ty, psin);
+    vertices_cache[vidx].transformed_vertex.x = rx;
+    vertices_cache[vidx].transformed_vertex.y = rz;
+    vertices_cache[vidx].info |= CACHED_TRANSFORMATION;
+}
+
+void project_vertex_x(int vidx) {
+    if(vertices_cache[vidx].info &= (CACHED_X_PROJECTION | CACHED_Y_PROJECTION)) {
+        return;
+    }
+    fix32 rx = vertices_cache[vidx].transformed_vertex.x;
+    fix32 rz = vertices_cache[vidx].transformed_vertex.y;
+    fix32 xscale = fix32Div(SAFEMUL32(FIX32(W), HFOV), max(FIX32(0.1), rz));
+    s16 x = W/2 - fix32ToInt(SAFEMUL32(rx, xscale));
+    vertices_cache[vidx].x = x;
+    vertices_cache[vidx].info |= CACHED_X_PROJECTION;
+}
+
+void project_vertex_y(int vidx) {
+    if(vertices_cache[vidx].info &= CACHED_Y_PROJECTION) {
+        return;
+    }
+    fix32 rz = vertices_cache[vidx].transformed_vertex.y;
+    fix32 yscale = fix32Div(SAFEMUL32(FIX32(H), VFOV), max(FIX32(0.1), rz));
+    vertices_cache[vidx].yscale = yscale;
+    vertices_cache[vidx].info |= CACHED_Y_PROJECTION;
 }
 
 int draw_sector(sector* sect) {
@@ -59,12 +81,6 @@ int draw_sector(sector* sect) {
 
     u32 total_dist = 0;
 
-    int vert_idx = 0;
-
-    //for(int i = 0; i < sect->num_walls+1; i++) {
-    //    int v1idx = sect->walls[i]->v1;
-    //
-    //}
     fix32 pcos = ply.anglecos;
     fix32 psin = ply.anglesin;
 
@@ -88,40 +104,17 @@ int draw_sector(sector* sect) {
 
     for(u16 i = 0; i < sect->num_walls; i++) {
         wall* w = sect->walls[i];
-        
-        Vect2D_f32 v1 = vertices[w->v1];
-        Vect2D_f32 v2 = vertices[w->v2];
-        fix32 vx1 = v1.x;
-        fix32 vy1 = v1.y;
-        fix32 vx2 = v2.x;
-        fix32 vy2 = v2.y;
 
-        /*
-        u32 v1_dist = getApproximatedDistance(
-            abs(fix32ToInt(vx1 - ply.where.x)),
-            abs(fix32ToInt(vy1 - ply.where.y)));
-        u32 v2_dist = getApproximatedDistance(
-            abs(fix32ToInt(vx2 - ply.where.x)),
-            abs(fix32ToInt(vy2 - ply.where.x)));
-        */
         // we know that every vertex in this sector has already 
         // been translated and had the distance calcualted
         u32 v1_dist = vertices_cache[w->v1].dist;
         u32 v2_dist = vertices_cache[w->v2].dist;
         u32 avg_dist = (v1_dist + v2_dist)/2;
 
-        //fix32 tx1 = vertices_cache[w->v1].translated_vertex.x; 
-        //fix32 tx1 = vx1 - ply.where.x;
-        //fix32 ty1 = vertices_cache[w->v1].translated_vertex.y; 
-        //fix32 ty1 = vy1 - ply.where.y;
-        //fix32 tx2 = vertices_cache[w->v2].translated_vertex.x; 
-        //fix32 tx2 = vx2 - ply.where.x;
-        //fix32 ty2 = vertices_cache[w->v2].translated_vertex.y; 
-        //fix32 ty2 = vy2 - ply.where.y;
         
         transform_vertex(w->v1, psin, pcos);
         transform_vertex(w->v2, psin, pcos);
-        //char buf[32];     
+
         fix32 rx1 = vertices_cache[w->v1].transformed_vertex.x;
         fix32 rz1 = vertices_cache[w->v1].transformed_vertex.y;
         fix32 rx2 = vertices_cache[w->v2].transformed_vertex.x;
@@ -131,10 +124,14 @@ int draw_sector(sector* sect) {
             walls_frustum_culled_after_transform++; 
             continue;
         }
-        
 
+        int clipped = 0;
+
+        int left_clipped = rz1 <= 0;
+        int right_clipped = rz2 <= 0;
         // if it's partially behind the player, clip it against player's view frustum
-        if(rz1 <= 0 || rz2 <= 0) {   
+        if(left_clipped || right_clipped) {   
+            clipped = 1;
             walls_clipped_after_transform++;
 
             fix32 nearz = FIX32(0.1);
@@ -182,21 +179,25 @@ int draw_sector(sector* sect) {
         }
         
 
-        //if(rx2-rx1 > FIX32(0.1)) { continue; }
-        
+        s16 x1,x2;
         // do perspective projection
+        if(clipped) {
+            fix32 xscale1 = fix32Div(SAFEMUL32(FIX32(W), HFOV), max(FIX32(0.1), rz1));
+            x1 = W/2 - fix32ToInt(SAFEMUL32(rx1, xscale1));
+            fix32 xscale2 = fix32Div(SAFEMUL32(FIX32(W), HFOV), max(FIX32(0.1), rz2));
+            x2 = W/2 - fix32ToInt(SAFEMUL32(rx2, xscale2));
+        } else {
+          project_vertex_x(w->v1);
+          project_vertex_x(w->v2);
+          x1 = vertices_cache[w->v1].x;
+          x2 = vertices_cache[w->v2].x;
+        }
 
-        fix32 xscale1 = fix32Div(SAFEMUL32(FIX32(W), HFOV), max(FIX32(0.1), rz1));
-        s16 x1 = W/2 - fix32ToInt(SAFEMUL32(rx1, xscale1));
         walls_projected++;
+
         if(x1 > W-1) { walls_frustum_culled_after_projection++; continue; }
-        fix32 xscale2 = fix32Div(SAFEMUL32(FIX32(W), HFOV), max(FIX32(0.1), rz2));
-        s16 x2 = W/2 - fix32ToInt(SAFEMUL32(rx2, xscale2));
         if(x2 < 0) { walls_frustum_culled_after_projection++; continue; }
         if(x1 >= x2) { projected_backfacing_walls++; continue; }
-
-        fix32 yscale2 = fix32Div(SAFEMUL32(FIX32(H), VFOV), max(FIX32(0.1), rz2));
-        fix32 yscale1 = fix32Div(SAFEMUL32(FIX32(H), VFOV), max(FIX32(0.1), rz1));
 
 
         // x1 += fix32ToInt(ply.sway_offset);
@@ -206,15 +207,19 @@ int draw_sector(sector* sect) {
         fix32 yceil = sect_ceil - (ply.where.z + ply.bob_offset);
         fix32 yfloor = sect_floor - (ply.where.z + ply.bob_offset);
 
+        fix32 yscale1, yscale2;
+        if(clipped) {
+            yscale1 = fix32Div(SAFEMUL32(FIX32(H), VFOV), max(FIX32(0.1), rz1));
+            yscale2 = fix32Div(SAFEMUL32(FIX32(H), VFOV), max(FIX32(0.1), rz2));
+        } else {
+            project_vertex_y(w->v1);
+            project_vertex_y(w->v2);
+            yscale1 = vertices_cache[w->v1].yscale;
+            yscale2 = vertices_cache[w->v2].yscale;
 
+        }
         // project ceiling and floor heights into screen coordinates
         #define Yaw(y,z) (y+fix16Mul(z,ply.yaw))
-        
-        //s16 y1a = H/2 - (fix32ToInt(SAFEMUL32(yceil, yscale1)));
-        //s16 y1b = H/2 - (fix32ToInt(SAFEMUL32(yfloor, yscale1)));
-
-        //s16 y2a = H/2 - (fix32ToInt(SAFEMUL32(yceil, yscale2)));
-        //s16 y2b = H/2 - (fix32ToInt(SAFEMUL32(yfloor, yscale2)));
         
         fix32 fy1a = (FIX32(H/2) - (SAFEMUL32(yceil, yscale1)))<<6; // 16.6
         fix32 fy1b = (FIX32(H/2) - (SAFEMUL32(yfloor, yscale1)))<<6; 
@@ -222,11 +227,6 @@ int draw_sector(sector* sect) {
         fix32 fy2a = (FIX32(H/2) - (SAFEMUL32(yceil, yscale2)))<<6;
         fix32 fy2b = (FIX32(H/2) - (SAFEMUL32(yfloor, yscale2)))<<6;
         
-
-
-        //if(fy1a > fy1b) { upside_down_walls++; continue; }
-        //if(fy2a > fy2b) { upside_down_walls++; continue; }
-
 
         u8 wall_col = calculate_color(w->middle_color, avg_dist, sect->light_level);
         u8 low_col = calculate_color(w->lower_color, avg_dist, sect->light_level);

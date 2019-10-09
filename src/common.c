@@ -5,7 +5,7 @@ fix32 eye_height = FIX32(10);
 
 fix16 vxs16(fix16 x0, fix16 y0, fix16 x1, fix16 y1) {
     // TODO: fix32ToFix16((x0*y1) - (x1 * y0)); ?
-    fix32ToFix16((x0*y1) - (x1 * y0));
+    return fix32ToFix16((x0*y1) - (x1 * y0));
     //return fix16Mul(x0, y1) - fix16Mul(x1, y0);
 }
 
