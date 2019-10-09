@@ -256,8 +256,7 @@ void run_game() {
     clear_clipping_buffers();
 
     BMP_waitWhileFlipRequestPending();
-    //if(!fill) { BMP_clear(); }
-    BMP_clear();
+    if(!fill) { BMP_clear(); }
     draw_bsp_node(&root_node);
 
     
