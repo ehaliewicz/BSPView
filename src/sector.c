@@ -181,9 +181,14 @@ int draw_sector(sector* sect) {
 
         s16 x1,x2;
         // do perspective projection
-        if(clipped) {
+        if(left_clipped) {
             fix32 xscale1 = fix32Div(SAFEMUL32(FIX32(W), HFOV), max(FIX32(0.1), rz1));
             x1 = W/2 - fix32ToInt(SAFEMUL32(rx1, xscale1));
+            project_vertex_x(w->v2);
+            x2 = vertices_cache[w->v2].x;
+        } else if (right_clipped) {
+            project_vertex_x(w->v1);
+            x1 = vertices_cache[w->v1].x;
             fix32 xscale2 = fix32Div(SAFEMUL32(FIX32(W), HFOV), max(FIX32(0.1), rz2));
             x2 = W/2 - fix32ToInt(SAFEMUL32(rx2, xscale2));
         } else {
@@ -208,8 +213,13 @@ int draw_sector(sector* sect) {
         fix32 yfloor = sect_floor - (ply.where.z + ply.bob_offset);
 
         fix32 yscale1, yscale2;
-        if(clipped) {
+        if(left_clipped) {
             yscale1 = fix32Div(SAFEMUL32(FIX32(H), VFOV), max(FIX32(0.1), rz1));
+            project_vertex_y(w->v2);
+            yscale2 = vertices_cache[w->v2].yscale;
+        } else if (right_clipped) {
+            project_vertex_y(w->v1);
+            yscale1 = vertices_cache[w->v1].yscale;
             yscale2 = fix32Div(SAFEMUL32(FIX32(H), VFOV), max(FIX32(0.1), rz2));
         } else {
             project_vertex_y(w->v1);
