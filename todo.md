@@ -1,7 +1,10 @@
-# Optimize perforamnce
-- drawing two pixels at a time?
-- optimizing span buffering and vertex/3d math in assembly?
-
+# Optimize performance
+- backface culling in worldspace?
+- check sector AABBs or spheres against frustum and span-buffer
+- drawing horizontal rectangular regions horizontally?
+- optimize vertex transformation with assembly?
+- optimize span-buffer with assembly?
+- optimize wall rasterization with assembly?
   
 # texturing 
 - slow accurate texturing is easy
@@ -10,7 +13,7 @@
 - ideas: for light levels, use pre-lit textures?
 
 # improvements 
-- add yaw/looking up and down (one extra multiply per vertex)
+- add yaw/looking up and down? (one extra multiply per vertex)
 - add left-right scrolling to skybox (it's currently fixed in place) 
 - add sprite objects
 - add an automap

@@ -101,6 +101,8 @@ void draw_two_sided_span(s16 orig_x1, s16 orig_x2,
     draw_x2 -= 1;
     s16 dx = orig_x2 - orig_x1;
 
+    // 22.10
+    // 12.4
     fix32 fix_y1a = y1a; //y1a<<16;
     fix32 fix_y1b = y1b; //y1b<<16;
     fix32 fix_y2a = y2a; //y2a<<16;
@@ -122,7 +124,7 @@ void draw_two_sided_span(s16 orig_x1, s16 orig_x2,
     fix32 bot_nslope = bot_ndy/dx;
 
     s16 x1_diff = draw_x1 - orig_x1;
-    fix32 top_slope_diff = top_slope * x1_diff; // 16.16
+    fix32 top_slope_diff = top_slope * x1_diff;
     fix32 bot_slope_diff = bot_slope * x1_diff;
     fix32 top_nslope_diff = top_nslope * x1_diff;
     fix32 bot_nslope_diff = bot_nslope * x1_diff;
@@ -131,7 +133,6 @@ void draw_two_sided_span(s16 orig_x1, s16 orig_x2,
     fix_y1b += bot_slope_diff;
     fix_ny1a += top_nslope_diff;
     fix_ny1b += bot_nslope_diff;
-
 
     s16* edge_list_ptr = edge_list;
     u16* yclip_ptr = &(yclip[draw_x1<<1]);
@@ -195,31 +196,31 @@ void draw_two_sided_span(s16 orig_x1, s16 orig_x2,
                          
     edge_list_ptr = edge_list;
     u8* col_ptr = getDMAWritePointer(draw_x1, 0);
-    for(s16 x = draw_x1; x <= draw_x2; x++, col_ptr += column_offset_table[x]) {
+    for(s16 x = draw_x1; x <= draw_x2; x++,col_ptr += column_offset_table[x]) {
         u8 border = (x == draw_x1 || x == draw_x2 || x == 0 || x == W-1);
         s16 cytop = *edge_list_ptr++;
         s16 cya = *edge_list_ptr++;
+
         // draw ceiling
         u8* ceil_ptr = col_ptr + (cytop * 4);
         vline_dither_fast(ceil_ptr, cytop, cya, ceil_col, ceil_col2, fill ? 1 : 0);
-        //vline_dither(x, cytop, cya, ceil_col, ceil_col2, fill ? 1 : 0);
+
         s16 cnya = *edge_list_ptr++;
         // draw step from ceiling
         u8* top_step_ptr = col_ptr + (cya * 4);
         vline_dither_fast(top_step_ptr, cya, cnya, upper_col, upper_col2, fill ? 1 : border);
-        //vline_dither(x, cya, cnya, upper_col, upper_col2, fill ? 1 : border);
 
         s16 cnyb = *edge_list_ptr++;
         s16 cyb = *edge_list_ptr++;
         // draw lower step
         u8* lower_step_ptr = col_ptr + (cnyb * 4);
         vline_dither_fast(lower_step_ptr, cnyb, cyb, lower_col, lower_col2, fill ? 1 : border);
-        //vline_dither(x, cnyb, cyb, lower_col, lower_col2, fill ? 1 : border);
+        
         s16 cybottom = *edge_list_ptr++;
         // draw floor
         u8* floor_ptr = col_ptr + (cyb * 4);
         vline_dither_fast(floor_ptr, cyb, cybottom, floor_col, floor_col2, fill ? 1 : 0);
-        //vline_dither(x, cyb, cybottom, floor_col, floor_col2, fill ? 1 : 0);
+
 
     }
 }
@@ -255,10 +256,11 @@ void draw_one_sided_span(s16 orig_x1, s16 orig_x2,
     draw_x2 -= 1;
     s16 dx = orig_x2 - orig_x1;
     
-    fix32 fix_y1a = y1a; //y1a<<16;
-    fix32 fix_y1b = y1b; //y1b<<16;
-    fix32 fix_y2a = y2a; //y2a<<16;
-    fix32 fix_y2b = y2b; //y2b<<16;
+    // 16.16
+    fix32 fix_y1a = y1a;
+    fix32 fix_y1b = y1b;
+    fix32 fix_y2a = y2a;
+    fix32 fix_y2b = y2b;
 
     fix32 top_dy = fix_y2a - fix_y1a;
     fix32 bot_dy = fix_y2b - fix_y1b;
@@ -303,9 +305,6 @@ void draw_one_sided_span(s16 orig_x1, s16 orig_x2,
     }
     
 
-  
-
-
     yclip_ptr = &(yclip[draw_x1<<1]);
     edge_list_ptr = edge_list;
     u8* col_ptr = getDMAWritePointer(draw_x1, 0);
@@ -315,26 +314,18 @@ void draw_one_sided_span(s16 orig_x1, s16 orig_x2,
         s16 cya = *edge_list_ptr++;
         s16 cyb = *edge_list_ptr++;
         s16 cybottom = *edge_list_ptr++;
-        //s16 cytop = *yclip_ptr++;
-        //s16 cybottom = *yclip_ptr++;
-
-        //s16 cya = clamp(ya, cytop, cybottom);
-        //s16 cyb = clamp(yb, cytop, cybottom);
 
         // draw ceiling
-        //u8* ceil_ptr = getDMAWritePointer(x, cytop);
         u8* ceil_ptr = col_ptr + (cytop * 4);
         vline_dither_fast(ceil_ptr, cytop, cya-1, ceil_col, ceil_col2, fill ? 1 : 0);
         
         // draw wall
         u8* wall_ptr = col_ptr + (cya * 4);
         vline_dither_fast(wall_ptr, cya, cyb, wall_col, wall_col2, fill ? 1 : border);
-        //vline_dither(x, cya, cyb, wall_col, wall_col2, fill ? 1 : border);
 
         // draw floor
         u8* floor_ptr = col_ptr + ((cyb+1) * 4);
         vline_dither_fast(floor_ptr, cyb+1, cybottom, floor_col, floor_col2, fill ? 1 : 0);
-        //vline_dither(x, cyb+1, cybottom, floor_col, floor_col2, fill ? 1 : 0);
         
 
     }

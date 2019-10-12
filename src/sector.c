@@ -75,7 +75,6 @@ void project_vertex_y(int vidx) {
 }
 
 int draw_sector(sector* sect) {
-
     fix32 sect_ceil = sect->ceil_height;
     fix32 sect_floor = sect->floor_height;
 
@@ -84,7 +83,8 @@ int draw_sector(sector* sect) {
     fix32 pcos = ply.anglecos;
     fix32 psin = ply.anglesin;
 
-    
+    // TODO: add a center point to each sector
+
     for(u16 i = 0; i < sect->num_walls; i++) {
         wall* w = sect->walls[i];
 
@@ -104,9 +104,8 @@ int draw_sector(sector* sect) {
 
     for(u16 i = 0; i < sect->num_walls; i++) {
         wall* w = sect->walls[i];
-
         // we know that every vertex in this sector has already 
-        // been translated and had the distance calcualted
+        // been translated and had the distance calculated
         u32 v1_dist = vertices_cache[w->v1].dist;
         u32 v2_dist = vertices_cache[w->v2].dist;
         u32 avg_dist = (v1_dist + v2_dist)/2;
@@ -125,13 +124,11 @@ int draw_sector(sector* sect) {
             continue;
         }
 
-        int clipped = 0;
 
         int left_clipped = rz1 <= 0;
         int right_clipped = rz2 <= 0;
         // if it's partially behind the player, clip it against player's view frustum
         if(left_clipped || right_clipped) {   
-            clipped = 1;
             walls_clipped_after_transform++;
 
             fix32 nearz = FIX32(0.1);
@@ -182,6 +179,7 @@ int draw_sector(sector* sect) {
         s16 x1,x2;
         // do perspective projection
         if(left_clipped) {
+
             fix32 xscale1 = fix32Div(SAFEMUL32(FIX32(W), HFOV), max(FIX32(0.1), rz1));
             x1 = W/2 - fix32ToInt(SAFEMUL32(rx1, xscale1));
             project_vertex_x(w->v2);
@@ -200,9 +198,15 @@ int draw_sector(sector* sect) {
 
         walls_projected++;
 
-        if(x1 > W-1) { walls_frustum_culled_after_projection++; continue; }
-        if(x2 < 0) { walls_frustum_culled_after_projection++; continue; }
-        if(x1 >= x2) { projected_backfacing_walls++; continue; }
+        if(x1 > W-1 || x2 < 0) { 
+            walls_frustum_culled_after_projection++; 
+            continue; 
+        }
+
+        if(x1 >= x2) { 
+            projected_backfacing_walls++; 
+            continue; 
+        }
 
 
         // x1 += fix32ToInt(ply.sway_offset);
@@ -231,11 +235,11 @@ int draw_sector(sector* sect) {
         // project ceiling and floor heights into screen coordinates
         #define Yaw(y,z) (y+fix16Mul(z,ply.yaw))
         
-        fix32 fy1a = (FIX32(H/2) - (SAFEMUL32(yceil, yscale1)))<<6; // 16.6
-        fix32 fy1b = (FIX32(H/2) - (SAFEMUL32(yfloor, yscale1)))<<6; 
+        fix32 fy1a = (FIX32(H/2) - (SAFEMUL32(yceil, yscale1)))<<6; // 16.16
+        fix32 fy1b = (FIX32(H/2) - (SAFEMUL32(yfloor, yscale1)))<<6; // 16.16
 
-        fix32 fy2a = (FIX32(H/2) - (SAFEMUL32(yceil, yscale2)))<<6;
-        fix32 fy2b = (FIX32(H/2) - (SAFEMUL32(yfloor, yscale2)))<<6;
+        fix32 fy2a = (FIX32(H/2) - (SAFEMUL32(yceil, yscale2)))<<6; // 16.16
+        fix32 fy2b = (FIX32(H/2) - (SAFEMUL32(yfloor, yscale2)))<<6; // 16.16
         
 
         u8 wall_col = calculate_color(w->middle_color, avg_dist, sect->light_level);
@@ -268,7 +272,7 @@ int draw_sector(sector* sect) {
             //int ny2b = H/2 - (fix32ToInt(SAFEMUL32(nyfloor, yscale2)));
 
 
-            fix32 fny1a = (FIX32(H/2) - (SAFEMUL32(nyceil, yscale1))) << 6;
+            fix32 fny1a = (FIX32(H/2) - (SAFEMUL32(nyceil, yscale1))) << 6; // 16.16
             fix32 fny2a = (FIX32(H/2) - (SAFEMUL32(nyceil, yscale2))) << 6;
             fix32 fny1b = (FIX32(H/2) - (SAFEMUL32(nyfloor, yscale1))) << 6;
             fix32 fny2b = (FIX32(H/2) - (SAFEMUL32(nyfloor, yscale2))) << 6;
@@ -276,5 +280,6 @@ int draw_sector(sector* sect) {
             insert_span(x1, x2, fy1a, fny1a, fy2a, fny2a, fy1b, fny1b, fy2b, fny2b, sect_ceil_col, high_col, wall_col, low_col, sect_floor_col, 0, dither_wall, dither_floor);
         }
     }
+
     return 0;
 }

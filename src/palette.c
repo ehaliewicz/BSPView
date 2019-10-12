@@ -81,10 +81,9 @@ void load_palette(int palnum, palette_type typ) {
   }
 }
 
-#define MID_DIST 8
-#define MID_DARK_DIST 12
-#define DARK_DIST 17
-
+#define MID_DIST 6
+#define MID_DARK_DIST 10
+#define DARK_DIST 15
 
 
 u8 calculate_color(u8 col_idx, u32 dist, s8 light_level) {
@@ -101,6 +100,9 @@ u8 calculate_color(u8 col_idx, u32 dist, s8 light_level) {
     case 1:
       col_idx = light_col_lut[col_idx];
       break;
+  }
+  if(light_level == 2) {
+    return (col_idx << 4) | col_idx;
   }
   if(dist >= DARK_DIST) {
     return (dark_col_lut[col_idx] << 4) | dark_col_lut[col_idx];
