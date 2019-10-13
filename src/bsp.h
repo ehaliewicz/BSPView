@@ -20,8 +20,8 @@ typedef struct {
     bsp_node* left;
     bsp_node* right;
     // define splitting plane
-    Vect2D_f32 pos;
-    Vect2D_f32 dvec;
+    Vect2D_f16 pos;
+    Vect2D_f16 dvec;
     int nodenum;
 } bsp_inner;
 

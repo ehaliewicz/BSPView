@@ -15,15 +15,14 @@ void clear_vertex_cache() {
     }
 }
 
-#define VERT2(x,y) {FIX32(x), FIX32(y)}
+#define VERT2(x,y) {FIX16(x), FIX16(y)}
 
 #define FLASH_FRAMES 2
 #define NO_FLASH_FRAMES 10
 
-//Vect2D_f32 vertices_cache[23];
 vertex_cache_entry vertices_cache[23];
 
-const Vect2D_f32 vertices[23] = {
+const Vect2D_f16 vertices[23] = {
     [0] = VERT2(0, 7),    [1] = VERT2(0, 0),
     [2] = VERT2(6, 0),    [3] = VERT2(8, 2),
     [4] = VERT2(8, 5),    [5] = VERT2(6, 7),
@@ -87,8 +86,8 @@ wall wall5 = {
 };
 
 sector sector0 = {
-    .floor_height = FIX32(20),
-    .ceil_height = FIX32(40),
+    .floor_height = FIX16(20),
+    .ceil_height = FIX16(40),
     .floor_color = DARK_BLUE_IDX,
     .ceil_color = DARK_BLUE_IDX,
     .num_walls = 6,
@@ -102,8 +101,8 @@ sector sector0 = {
     .sector_type = SECTOR_UP_DOWN,
     .sector_params = {
         .sector_up_down = {
-            .max_floor_height = FIX32(16),
-            .min_floor_height = FIX32(-4),
+            .max_floor_height = FIX16(16),
+            .min_floor_height = FIX16(-4),
             .frame_delay_at_transition = 20,
         },
         .delay_to = 0,
@@ -146,8 +145,8 @@ wall wall9 = {
 };
 
 sector sector1 = {
-    .floor_height = FIX32(-4),
-    .ceil_height = FIX32(16),
+    .floor_height = FIX16(-4),
+    .ceil_height = FIX16(16),
     .floor_color = DARK_STEEL_IDX,
     .ceil_color = DARK_STEEL_IDX,
     .num_walls = 4,
@@ -210,24 +209,19 @@ wall wall12 = {
 };
 
 sector sector2 = {
-    .floor_height = FIX32(-6),
-    .ceil_height = FIX32(14),
+    .floor_height = FIX16(-6),
+    .ceil_height = FIX16(14),
     .floor_color = STEEL_IDX,
     .ceil_color = STEEL_IDX,
     .num_walls = 3,
     .walls = {
         &wall10, &wall11, &wall12
     },
-    .light_level = 0,
-    .sector_type = FLASHING, //CEILING_UP_DOWN,
+    .light_level = 1,
+    .sector_type = FLICKER,
     .sector_params = {
-        .flash = {
-            .normal_light_level = -2,
-            .flash_light_level = 2,
-            .frames_to_flash = FLASH_FRAMES,
-            .frames_no_flash = NO_FLASH_FRAMES,
-        },
-        .delay_to = 20
+        .state = NOT_FLICKERING,
+        .delay_to = 0
     },
     .sectnum = 2
 };
@@ -272,8 +266,8 @@ wall wall16 = {
 };
 
 sector sector3 = {
-    .floor_height = FIX32(-8),
-    .ceil_height = FIX32(12),
+    .floor_height = FIX16(-8),
+    .ceil_height = FIX16(12),
     .floor_color = DARK_STEEL_IDX,
     .ceil_color = DARK_STEEL_IDX,
     .num_walls = 4,
@@ -378,8 +372,8 @@ wall wall24 = {
 };
 
 sector sector4 = {
-    .floor_height = FIX32(-10),
-    .ceil_height = FIX32(10),
+    .floor_height = FIX16(-10),
+    .ceil_height = FIX16(10),
     .ceil_color = STEEL_IDX, // RED_IDX
     .floor_color = STEEL_IDX,
     .num_walls = 8,
@@ -388,15 +382,14 @@ sector sector4 = {
         &wall21, &wall22, &wall23, &wall24
     },
     .sectnum = 4,
-    .light_level = -2,
-    .sector_type = FLASHING, //CEILING_UP_DOWN,
+    .light_level = 1,
+    .sector_type = FLICKER,
     .sector_params = {
-        .flash = {
-            .normal_light_level = -2,
-            .flash_light_level = 2,
-            .frames_to_flash = FLASH_FRAMES,
-            .frames_no_flash = NO_FLASH_FRAMES,
-        }
+        .state = FLICKERING,
+        .flicker = {
+            .normal_light_level = 1
+        },
+        .delay_to = 0
     },
 };
 
@@ -440,23 +433,19 @@ wall wall33 = {
 };
 
 sector sector6 = {
-    .floor_height = FIX32(-10),
-    .ceil_height = FIX32(10),
+    .floor_height = FIX16(-10),
+    .ceil_height = FIX16(10),
     .ceil_color = STEEL_IDX,
     .floor_color = RED_IDX,
     .num_walls = 4,
     .walls = {
         &wall30, &wall31, &wall32, &wall33
     },
-    .light_level = -2,
-    .sector_type = FLASHING,
+    .light_level = 1,
+    .sector_type = LINKED_LIGHT_LEVEL,
     .sector_params = {
-        .flash = {
-            .normal_light_level = -2,
-            .flash_light_level = 2,
-            .frames_to_flash = FLASH_FRAMES,
-            .frames_no_flash = NO_FLASH_FRAMES,
-        }
+        .link = 4,
+        .delay_to = 0
     },
     .sectnum = 6
 };
@@ -499,23 +488,19 @@ wall wall37 = {
 };
 
 sector sector7 = {
-    .floor_height = FIX32(-10),
-    .ceil_height = FIX32(10),
+    .floor_height = FIX16(-10),
+    .ceil_height = FIX16(10),
     .ceil_color = STEEL_IDX,
     .floor_color = RED_IDX,
     .num_walls = 4,
     .walls = {
         &wall34, &wall35, &wall36, &wall37
     },
-    .light_level = -2,
-    .sector_type = FLASHING,
+    .light_level = 1,
+    .sector_type = LINKED_LIGHT_LEVEL,
     .sector_params = {
-        .flash = {
-            .normal_light_level = -2,
-            .flash_light_level = 2,
-            .frames_to_flash = FLASH_FRAMES,
-            .frames_no_flash = NO_FLASH_FRAMES,
-        }
+        .link = 4,
+        .delay_to = 0
     },
     .sectnum = 7
 };
@@ -577,23 +562,19 @@ wall wall29 = {
 
 
 sector sector5 = {
-    .floor_height = FIX32(-10),
-    .ceil_height = FIX32(10),
+    .floor_height = FIX16(-10),
+    .ceil_height = FIX16(10),
     .ceil_color = BLUE_IDX,
     .floor_color = BLUE_IDX,
     .num_walls = 5,
     .walls = {
         &wall25, &wall26, &wall27, &wall28, &wall29
     },
-    .light_level = -2,
-    .sector_type = FLASHING,
+    .light_level = 1,
+    .sector_type = LINKED_LIGHT_LEVEL,
     .sector_params = {
-        .flash = {
-            .normal_light_level = -2,
-            .flash_light_level = 2,
-            .frames_to_flash = FLASH_FRAMES,
-            .frames_no_flash = NO_FLASH_FRAMES,
-        }
+        .link = 4,
+        .delay_to = 0
     },
     .sectnum = 5
 };
@@ -636,3 +617,8 @@ bsp_node root_node = {
     }
 };
 
+const sector* sectors[] = {
+    &sector0, &sector1, &sector2, &sector3, 
+    &sector4, &sector5, &sector6, &sector7};
+
+const int num_sectors = 8;

@@ -15,14 +15,14 @@ typedef struct {
 } Vect3D_f32;
 
 
-#define BASE_EYE_HEIGHT FIX32(10)
-extern fix32 eye_height;
-#define DUCK_HEIGHT FIX32(3.5)
-#define HEAD_MARGIN FIX32(1)
-#define KNEE_HEIGHT FIX32(2.5)
+#define BASE_EYE_HEIGHT FIX16(10)
+extern fix16 eye_height;
+#define DUCK_HEIGHT FIX16(3.5)
+#define HEAD_MARGIN FIX16(1)
+#define KNEE_HEIGHT FIX16(2.5)
 
-#define HFOV FIX32(0.35 * H/W) //FIX32(0.73 * H/W) //FIX32(0.73 * H)
-#define VFOV FIX32(.2f) //*H)
+#define HFOV FIX16(0.35 * H/W)
+#define VFOV FIX16(.2f) //*H)
 
 
 
@@ -30,8 +30,6 @@ extern fix32 eye_height;
 
 
 #define SAFEMUL32(x,y) (((x)>>FIX32_FRAC_BITS/2) * ((y)>>FIX32_FRAC_BITS/2))
-
-//#define SAVEDIV32(x,y) (((x)<<FIX32_FRAC_BITS/2) / ((y)<<FIX32_FRAC_BITS/2))
 
 // vxs: Vector cross product
 fix16 vxs16(fix16 x0, fix16 y0, fix16 x1, fix16 y1);

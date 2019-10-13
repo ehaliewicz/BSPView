@@ -18,7 +18,7 @@ typedef enum {
     ON_PLANE
 } plane_side;
 
-plane_side point_side(Vect3D_f32* pos, bsp_node* nd) {
+plane_side point_side(Vect3D_f16* pos, bsp_node* nd) {
     if(nd->inner.dvec.x == 0) {
         // vertical splitting plane
         if(nd->inner.dvec.y < 0) {
@@ -41,12 +41,12 @@ plane_side point_side(Vect3D_f32* pos, bsp_node* nd) {
             return (pos->y < nd->inner.pos.y) ? LEFT_OF_PLANE : RIGHT_OF_PLANE;
         }
     }
-    fix32 dx = pos->x - nd->inner.pos.x;
-    fix32 dy = pos->y - nd->inner.pos.y;
+    fix16 dx = pos->x - nd->inner.pos.x;
+    fix16 dy = pos->y - nd->inner.pos.y;
 
 
-    fix32 left = (nd->inner.dvec.x >> FIX32_FRAC_BITS) * dx; // 22 * 22.10 = 22.10 bits
-    fix32 right = (nd->inner.dvec.y >> FIX32_FRAC_BITS) * dy;
+    fix16 left = (nd->inner.dvec.x >> FIX16_FRAC_BITS) * dx; // 22 * 22.10 = 22.10 bits
+    fix16 right = (nd->inner.dvec.y >> FIX16_FRAC_BITS) * dy;
     
   
     if(right > left) {
@@ -63,16 +63,6 @@ plane_side point_side(Vect3D_f32* pos, bsp_node* nd) {
     }
 
 }
-
-// 24 bytes
-typedef struct {
-    fix32 tx1; 
-    fix32 ty1;
-    fix32 tx2;
-    fix32 ty2;
-    u32 dist;
-} cache_entry;
-
 
 
 sector* find_player_sector(bsp_node* node) {

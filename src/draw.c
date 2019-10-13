@@ -103,6 +103,7 @@ void draw_two_sided_span(s16 orig_x1, s16 orig_x2,
 
     // 22.10
     // 12.4
+    // we only really need 4 subpixel bits, we have 12 here
     fix32 fix_y1a = y1a; //y1a<<16;
     fix32 fix_y1b = y1b; //y1b<<16;
     fix32 fix_y2a = y2a; //y2a<<16;
@@ -141,14 +142,14 @@ void draw_two_sided_span(s16 orig_x1, s16 orig_x2,
         s16 cytop = *yclip_ptr; // ytop[x];
         s16 cybottom = *(yclip_ptr+1); //ybottom[x];
 
-        s16 ya = fix_y1a >> 16;
+        s16 ya = fix_y1a>>12;
         s16 cya = clamp(ya, cytop, cybottom);
-        s16 nya = fix_ny1a >> 16;
+        s16 nya = fix_ny1a>>12;
         s16 cnya = clamp(nya, cytop, cybottom);
 
-        s16 yb = fix_y1b >> 16;
+        s16 yb = fix_y1b>>12;
         s16 cyb = clamp(yb, cytop, cybottom);
-        s16 nyb = fix_ny1b >> 16;
+        s16 nyb = fix_ny1b>>12;
         s16 cnyb = clamp(nyb, cytop, cybottom);
 
         if(cnyb < cya) {
@@ -157,6 +158,9 @@ void draw_two_sided_span(s16 orig_x1, s16 orig_x2,
         if(cnya > cyb) {
             cnya = cyb;
         }
+        //if(cnyb < cnya) {
+        //  cnyb = cnya;
+        //}
         
         *yclip_ptr++ = clamp(max(cya, cnya), cytop, H-1);
         *yclip_ptr++ = clamp(min(cyb, cnyb), 0, cybottom);
@@ -225,10 +229,6 @@ void draw_two_sided_span(s16 orig_x1, s16 orig_x2,
     }
 }
 
-fix32 stash_fix_y1a, stash_fix_y1b, stash_top_slope, stash_bot_slope;
-s16 stash_ddx;
-s16* stash_edge_list_ptr;
-u16* stash_yclip_ptr;
 
 
 void draw_one_sided_span(s16 orig_x1, s16 orig_x2, 
@@ -254,27 +254,29 @@ void draw_one_sided_span(s16 orig_x1, s16 orig_x2,
     }
 
     draw_x2 -= 1;
-    s16 dx = orig_x2 - orig_x1;
-    
-    // 16.16
-    fix32 fix_y1a = y1a;
-    fix32 fix_y1b = y1b;
-    fix32 fix_y2a = y2a;
-    fix32 fix_y2b = y2b;
 
-    fix32 top_dy = fix_y2a - fix_y1a;
+    // 10.12
+    // 10.4
+    
+    fix32 fix_y1a = y1a<<4;
+    fix32 fix_y1b = y1b<<4;
+    fix32 fix_y2a = y2a<<4;
+    fix32 fix_y2b = y2b<<4;
+
+    fix32 top_dy = fix_y2a - fix_y1a; // 10.12
     fix32 bot_dy = fix_y2b - fix_y1b;
 
-    fix32 top_slope = top_dy/dx;
-    fix32 bot_slope = bot_dy/dx;
+    s16 dx = orig_x2 - orig_x1;
+    fix32 top_slope = (top_dy/dx);
+    fix32 bot_slope = (bot_dy/dx);
 
     s16 x1_diff = draw_x1 - orig_x1;
-    fix32 top_slope_diff = top_slope * x1_diff;
-    fix32 bot_slope_diff = bot_slope * x1_diff;
+    fix32 top_slope_diff = (top_slope * x1_diff); // 10.12
+    fix32 bot_slope_diff = (bot_slope * x1_diff);
 
     fix_y1a += top_slope_diff;
     fix_y1b += bot_slope_diff;
-
+  
 
     s16* edge_list_ptr = edge_list;
     u16* yclip_ptr = &(yclip[draw_x1<<1]);
@@ -289,10 +291,10 @@ void draw_one_sided_span(s16 orig_x1, s16 orig_x2,
         s16 cytop = *yclip_ptr++;
         s16 cybottom = *yclip_ptr++; 
 
-        s16 ya = fix_y1a >> 16;
+        s16 ya = fix_y1a>>16;
         s16 cya = clamp(ya, cytop, cybottom);
 
-        s16 yb = fix_y1b >> 16;
+        s16 yb = fix_y1b>>16;
         s16 cyb = clamp(yb, cytop, cybottom);
 
         *edge_list_ptr++ = cytop;
@@ -326,11 +328,7 @@ void draw_one_sided_span(s16 orig_x1, s16 orig_x2,
         // draw floor
         u8* floor_ptr = col_ptr + ((cyb+1) * 4);
         vline_dither_fast(floor_ptr, cyb+1, cybottom, floor_col, floor_col2, fill ? 1 : 0);
-        
-
     }
-    
-    
 }
 
 #define CLEAR_SUBPIXELS(x) ((x) &= ~0xFFFF)
