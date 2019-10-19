@@ -5,13 +5,14 @@
 #include "palette.h"
 
 u16 yclip[W*2];
+u8 y_full_clip[W];
 
 u8 fill = 1;
 
 void clear_clipping_buffers() {
-  for(int i = 0; i < W*2; i += 2) {
-    yclip[i] = 4;
-    yclip[i+1] = H-5; //H-1;
+  for(int i = 0; i < W; i++) {
+    yclip[(i*2)] = 4;
+    yclip[(i*2)+1] = H-5; //H-1;
   }
 }
 #define PIXEL_RIGHT_STEP 1
@@ -19,18 +20,8 @@ void clear_clipping_buffers() {
 #define TILE_RIGHT_STEP 640
 
 inline u8* getDMAWritePointer(u16 x, u16 y) {
-    // const u16 off = (y * BMP_PITCH) + (x >> 1);
-    // return write address
-    // return bmp_buffer_write + off;
     u16 hor_tile_idx = x/4;
-    u16 hor_pixel_idx = x%4; //0b11;
-    //u16 vert_offset = y<<2; // y*4;
-    // slow multiply
-  
-    // 128 + 512
-    int hor_128 = hor_tile_idx << 7;
-    int hor_512 = hor_128 << 2;
-
+    u16 hor_pixel_idx = x%4;
     return (bmp_buffer_write + 32 + (hor_tile_idx * TILE_RIGHT_STEP) +
             (hor_pixel_idx * PIXEL_RIGHT_STEP) + (y * PIXEL_DOWN_STEP));
 
@@ -278,56 +269,49 @@ void draw_one_sided_span(s16 orig_x1, s16 orig_x2,
     fix_y1b += bot_slope_diff;
   
 
-    s16* edge_list_ptr = edge_list;
     u16* yclip_ptr = &(yclip[draw_x1<<1]);
+    u8* y_full_clip_ptr = &(y_full_clip[draw_x1]);
 
-    for(s16 x = draw_x1; x <= draw_x2; x++) {
-        //loop needs 
-        // draw_x1, draw_x2
-        // yclip_ptr, fix_y1a, fix_y1b
-        // edge_list_ptr
-        // top_slope, bot_slope
+    u8* col_ptr = getDMAWritePointer(draw_x1, 0);
+    for(s16 x = draw_x1; x <= draw_x2; x++, col_ptr += column_offset_table[x]) {
+        u8 border = (x == draw_x1 || x == draw_x2 || x == 0 || x == W-1);
+
+        if(*y_full_clip_ptr++) {
+          yclip_ptr += 2;
+          goto end_of_loop;
+        }
         
         s16 cytop = *yclip_ptr++;
         s16 cybottom = *yclip_ptr++; 
 
         s16 ya = fix_y1a>>16;
-        s16 cya = clamp(ya, cytop, cybottom);
-
         s16 yb = fix_y1b>>16;
-        s16 cyb = clamp(yb, cytop, cybottom);
 
-        *edge_list_ptr++ = cytop;
-        *edge_list_ptr++ = cya;
-        *edge_list_ptr++ = cyb;
-        *edge_list_ptr++ = cybottom;
-        
+        if(cytop >= ya) {
+          // skip ceiling
+          ya = cytop;
+        } else {
+        // draw ceiling
+          u8* ceil_ptr = col_ptr + (cytop * 4);
+          vline_dither_fast(ceil_ptr, cytop, ya-1, ceil_col, ceil_col2, fill ? 1 : 0);
+        }
+
+        if(cybottom <= yb) {
+          // skip floor
+          yb = cybottom;
+        } else {
+        // draw floor
+          u8* floor_ptr = col_ptr + ((yb+1) * 4);
+          vline_dither_fast(floor_ptr, yb+1, cybottom, floor_col, floor_col2, fill ? 1 : 0);
+        }
+
+        // draw wall
+        u8* wall_ptr = col_ptr + (ya * 4);
+        vline_dither_fast(wall_ptr, ya, yb, wall_col, wall_col2, fill ? 1 : border);
+
+end_of_loop:
         fix_y1a += top_slope;
         fix_y1b += bot_slope;
-    }
-    
-
-    yclip_ptr = &(yclip[draw_x1<<1]);
-    edge_list_ptr = edge_list;
-    u8* col_ptr = getDMAWritePointer(draw_x1, 0);
-    for(s16 x = draw_x1; x <= draw_x2; x++, col_ptr += column_offset_table[x]) {
-        u8 border = (x == draw_x1 || x == draw_x2 || x == 0 || x == W-1);
-        s16 cytop = *edge_list_ptr++;
-        s16 cya = *edge_list_ptr++;
-        s16 cyb = *edge_list_ptr++;
-        s16 cybottom = *edge_list_ptr++;
-
-        // draw ceiling
-        u8* ceil_ptr = col_ptr + (cytop * 4);
-        vline_dither_fast(ceil_ptr, cytop, cya-1, ceil_col, ceil_col2, fill ? 1 : 0);
-        
-        // draw wall
-        u8* wall_ptr = col_ptr + (cya * 4);
-        vline_dither_fast(wall_ptr, cya, cyb, wall_col, wall_col2, fill ? 1 : border);
-
-        // draw floor
-        u8* floor_ptr = col_ptr + ((cyb+1) * 4);
-        vline_dither_fast(floor_ptr, cyb+1, cybottom, floor_col, floor_col2, fill ? 1 : 0);
     }
 }
 
