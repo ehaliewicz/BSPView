@@ -90,6 +90,7 @@ sector* find_player_sector(bsp_node* node) {
 }
 
 void traverse_all_sectors(bsp_node* node, sector_callback cb) {
+
     switch(node->type) {
         case LEAF:
             cb(node->sect);
@@ -102,8 +103,45 @@ void traverse_all_sectors(bsp_node* node, sector_callback cb) {
     }
 }
 
+typedef struct {
+    int went_left;
+    bsp_node* node;
+} stk_entry;
 
+stk_entry traverse_stk[128];
+stk_entry* sp;
 int draw_bsp_node(bsp_node* node) {
+    /*
+    sp = traverse_stk;
+    while(node != NULL) {
+        plane_side side = point_side(&(ply.where), node);
+        switch(node->type) {
+            case LEAF:
+                if(draw_sector(node->sect)) { return 1; }
+                if(sp == traverse_stk) { return 1; }
+                stk_entry entr = *(--sp); //traverse_stk[--sp];
+                node = entr.node;
+                if(entr.went_left) {
+                    node = node->inner.right;
+                } else {
+                    node = node->inner.left;
+                }
+                break;
+            case NODE:
+                side = point_side(&(ply.where), node);
+                if(side == RIGHT_OF_PLANE) {
+                    *sp++ = (stk_entry){.went_left = 0, .node = node};
+                    node = node->inner.right;
+                } else {
+                    *sp++ = (stk_entry){.went_left = 1, .node = node};
+                    node = node->inner.left;
+                }
+                break;
+        }
+    }
+    */
+
+    
     plane_side side;
     switch(node->type) {
         case LEAF:
@@ -121,5 +159,6 @@ int draw_bsp_node(bsp_node* node) {
             break;
 
     }
+    
     return 0;
 }

@@ -20,7 +20,7 @@ void clear_vertex_cache() {
 #define FLASH_FRAMES 2
 #define NO_FLASH_FRAMES 10
 
-vertex_cache_entry vertices_cache[23];
+vertex_cache_entry vertices_cache[NUM_VERTEXES];
 
 const Vect2D_f16 vertices[23] = {
     [0] = VERT2(0, 7),    [1] = VERT2(0, 0),

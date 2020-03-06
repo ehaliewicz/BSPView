@@ -114,7 +114,6 @@ resolution: exit
 */
 
 
-
 int insert_span(s16 x1, s16 x2, 
                 fix32 y1a, fix32 ny1a, fix32 y2a, fix32 ny2a, fix32 y1b, fix32 ny1b, fix32 y2b, fix32 ny2b, 
                 u8 ceil_col, u8 upper_col, u8 wall_col, u8 lower_col, u8 floor_col, 
@@ -131,6 +130,20 @@ int insert_span(s16 x1, s16 x2,
        current != NULL;
        old = current, current = current->next) {
       
+    if(current->x2 == x2 && current->x1 == x1) {
+      n=current->next;
+      draw_span(orig_x1, orig_x2, y1a, ny1a, y1b, ny1b, y2a, ny2a, y2b, ny2b, x1, x2, ceil_col, upper_col, wall_col, lower_col, floor_col, update_vert_clipping, dither_wall, dither_floor);
+      if(insert) {
+          free_span(current);
+          if (old) {
+              old->next=n;
+          } else {
+              span_buf_head = n;
+              if(span_buf_head == NULL) { return 1; }
+          }
+      }
+      return 0;
+    }
     if (current->x2 <= x1) { // case 1
       continue;
     }
@@ -140,7 +153,8 @@ int insert_span(s16 x1, s16 x2,
         draw_span(orig_x1, orig_x2, y1a, ny1a, y1b, ny1b, y2a, ny2a, y2b, ny2b, x1, current->x2, ceil_col, upper_col, wall_col, lower_col, floor_col, update_vert_clipping, dither_wall, dither_floor);
         if(insert) {
             current->x2 = x1;
-        }
+        } 
+        if(current->x2 == x2) { return 0; }
       }
       else { // case 3
         draw_span(orig_x1, orig_x2, y1a, ny1a, y1b, ny1b, y2a, ny2a, y2b, ny2b, x1, x2, ceil_col, upper_col, wall_col, lower_col, floor_col, update_vert_clipping, dither_wall, dither_floor);
@@ -164,6 +178,7 @@ int insert_span(s16 x1, s16 x2,
 	
         draw_span(orig_x1, orig_x2, y1a, ny1a, y1b, ny1b, y2a, ny2a, y2b, ny2b, current->x1, current->x2, ceil_col, upper_col, wall_col, lower_col, floor_col, update_vert_clipping, dither_wall, dither_floor);
         
+        s16 cx2 = current->x2;
         n=current->next;
         if(insert) {
             free_span(current);
@@ -172,8 +187,10 @@ int insert_span(s16 x1, s16 x2,
                 old->next=n;
             } else {
                 span_buf_head = n;
+                if(span_buf_head == NULL) { return 1; }
             }
         }
+        if(cx2 == x2) { return 0; }
         current=n;
         if (current==NULL) {
             return 0;

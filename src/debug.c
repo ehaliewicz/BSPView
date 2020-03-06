@@ -29,13 +29,17 @@ void clear_pos() {
 
 void print_fps() {
   char buf[32];
-  fix32ToStr(getFPS_f(), buf, 1);
+  buf[0] = buf[1] = buf[2] = buf[3] = buf[4] = buf[5] = buf[6] = ' ';
+  fix32ToStr(getFrameTime(), buf, 1);
   VDP_drawTextBG(PLAN_A, buf, 0, 4);
+  //fix32ToStr(getFPS_f(), buf, 1);
+  //VDP_drawTextBG(PLAN_A, buf, 0, 5);
 }
 
 void clear_fps() {
   //VDP_clearTextLineBG(PLAN_A, 4);
   VDP_drawTextBG(PLAN_A, "                               ", 0, 4);
+  VDP_drawTextBG(PLAN_A, "                               ", 0, 5);
 
 }
 

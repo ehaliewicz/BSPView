@@ -58,3 +58,10 @@ Vect2D_f32 Intersect32(fix32 x1, fix32 y1, fix32 x2, fix32 y2, fix32 x3, fix32 y
     fix32 y = fix32Div(vxs32(x1y1crossx2y2, y1minusy2, x3y3crossx4y4, y3minusy4), rightside);
     return (Vect2D_f32){x, y};
 }
+
+fix32 getFrameTime() {
+    fix32 fix_fps = getFPS_f();
+    fix32 recip_fps = fix32Div(FIX32(1), max(fix_fps, FIX32_EPSILON));
+    fix32 ms = fix32Mul(FIX32(1000), recip_fps);
+    return ms;
+}

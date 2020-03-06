@@ -27,7 +27,7 @@ void register_active_sector(sector* sect) {
 }
 
 void reset_player() {
-    memcpy(&ply, &init_ply, sizeof(player));
+  memcpy(&ply, &init_ply, sizeof(player));
   ply.anglecos = cosFix16(fix16ToInt(ply.angle));
   ply.anglesin = sinFix16(fix16ToInt(ply.angle));
   
@@ -49,11 +49,6 @@ void init_game() {
 
     BMP_init(0, PLAN_A, 3, 0);
 
-    // two plane half-resolution hacks
-    //VDP_setBPlanAddress(VDP_getAPlanAddress());
-    //VDP_setScrollingMode(HSCROLL_PLANE, VSCROLL_PLANE);
-    //VDP_setVerticalScroll(PLAN_A, 1);
-    BMP_setBufferCopy(0);
     init_palettes();
     load_palette(3, NORMAL_PAL);
 }
@@ -205,7 +200,6 @@ void run_game() {
         fill = !fill;
     }
     if(joy & BUTTON_MODE && !(last_joy & BUTTON_MODE)) {
-        //subpixel = !subpixel;
     }
 
 
