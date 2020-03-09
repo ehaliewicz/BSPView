@@ -40,5 +40,6 @@ extern int walls_projected, projected_backfacing_walls;
 extern int upside_down_walls;
 extern int walls_sent_to_screen_clipper;
 extern int portals_sent_to_screen_clipper;
+extern int max_pixel_height_for_wall;
 
 #endif

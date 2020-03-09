@@ -1,4 +1,81 @@
-.globl vline_native_dither, vline_native_dither_skip
+.globl vline_native_dither, vline_native_dither_movep
+
+vline_native_dither_movep:
+	| vline_native_dither_movep(u8* buf, s16 dy, u32 col1_col2) 
+	move.l 4(%sp), %a0		| load pointer
+    moveq.l #0, %d0
+    move.w 10(%sp), %d0
+    move.l 12(%sp), %d1
+
+    andi.w #3, %d0
+    beq after_edge_loop
+    subq.b #1, %d0
+edge_loop:
+    move.b %d1, (%a0)
+    addq.l #2, %a0
+    ror.l #8, %d1
+    dbeq %d0, edge_loop
+
+after_edge_loop:
+    
+    moveq.l #0, %d0
+    move.w 10(%sp), %d0
+    andi.w #65532, %d0
+    beq exit
+
+    lsr.l #2, %d0
+    neg.w %d0
+    add.w #36, %d0
+    lsl.w #2, %d0
+    jmp dither_draw_table_movep(%pc, %d0.W)
+
+
+dither_draw_table_movep:
+    | movep.l %d1, 312(%a0)
+    | movep.l %d1, 304(%a0)
+    | movep.l %d1, 296(%a0)
+    | movep.l %d1, 288(%a0)
+    movep.l %d1, 280(%a0)
+    movep.l %d1, 272(%a0)
+    movep.l %d1, 264(%a0)
+    movep.l %d1, 256(%a0)
+    movep.l %d1, 248(%a0)
+    movep.l %d1, 240(%a0)
+    movep.l %d1, 232(%a0)
+    movep.l %d1, 224(%a0)
+    movep.l %d1, 216(%a0)
+    movep.l %d1, 208(%a0)
+    movep.l %d1, 200(%a0)
+    movep.l %d1, 192(%a0)
+    movep.l %d1, 184(%a0)
+    movep.l %d1, 176(%a0)
+    movep.l %d1, 168(%a0)
+    movep.l %d1, 160(%a0)
+    movep.l %d1, 152(%a0)
+    movep.l %d1, 144(%a0)
+    movep.l %d1, 136(%a0)
+    movep.l %d1, 128(%a0)
+    movep.l %d1, 120(%a0)
+    movep.l %d1, 112(%a0)
+    movep.l %d1, 104(%a0)
+    movep.l %d1, 96(%a0)
+    movep.l %d1, 88(%a0)
+    movep.l %d1, 80(%a0)
+    movep.l %d1, 72(%a0)
+    movep.l %d1, 64(%a0)
+    movep.l %d1, 56(%a0)
+    movep.l %d1, 48(%a0)
+    movep.l %d1, 40(%a0)
+    movep.l %d1, 32(%a0)
+    movep.l %d1, 24(%a0)
+    movep.l %d1, 16(%a0)
+    movep.l %d1, 8(%a0)
+    movep.l %d1, 0(%a0)
+exit:
+	rts
+
+
+
 
 vline_native_dither:
 	| vline_native_dither(u8* buf, s16 dy, u8 col1, u8 col2)
@@ -177,101 +254,3 @@ dither_draw_table:
 	move.l (%sp)+, %d2
 	rts
 
-
-vline_native_dither_skip:
-	| vline_native_dither(u8* buf, s16 dy, u8 col1, u8 col2)
-	move.l 4(%sp), %a0		| load pointer
-	moveq.l #0, %d0
-	move.w #79, %d0
-	sub.w 10(%sp), %d0		| d0 is 79-dy
-	move.b 15(%sp), %d1 	| load color 1
-	move.l %d2, -(%sp)
-	| move.b 4+19(%sp), %d2		| load color 2
-	move.b %d1, %d2
-    lsl.w #2, %d0
-	jmp dither_draw_table_skip(%pc, %d0.W)
-
-
-dither_draw_table_skip:
-    move.b %d2, 632(%a0)
-    move.b %d1, 624(%a0)
-    move.b %d2, 616(%a0)
-    move.b %d1, 608(%a0)
-    move.b %d2, 600(%a0)
-    move.b %d1, 592(%a0)
-    move.b %d2, 584(%a0)
-    move.b %d1, 576(%a0)
-    move.b %d2, 568(%a0)
-    move.b %d1, 560(%a0)
-    move.b %d2, 552(%a0)
-    move.b %d1, 544(%a0)
-    move.b %d2, 536(%a0)
-    move.b %d1, 528(%a0)
-    move.b %d2, 520(%a0)
-    move.b %d1, 512(%a0)
-    move.b %d2, 504(%a0)
-    move.b %d1, 496(%a0)
-    move.b %d2, 488(%a0)
-    move.b %d1, 480(%a0)
-    move.b %d2, 472(%a0)
-    move.b %d1, 464(%a0)
-    move.b %d2, 456(%a0)
-    move.b %d1, 448(%a0)
-    move.b %d2, 440(%a0)
-    move.b %d1, 432(%a0)
-    move.b %d2, 424(%a0)
-    move.b %d1, 416(%a0)
-    move.b %d2, 408(%a0)
-    move.b %d1, 400(%a0)
-    move.b %d2, 392(%a0)
-    move.b %d1, 384(%a0)
-    move.b %d2, 376(%a0)
-    move.b %d1, 368(%a0)
-    move.b %d2, 360(%a0)
-    move.b %d1, 352(%a0)
-    move.b %d2, 344(%a0)
-    move.b %d1, 336(%a0)
-    move.b %d2, 328(%a0)
-    move.b %d1, 320(%a0)
-    move.b %d2, 312(%a0)
-    move.b %d1, 304(%a0)
-    move.b %d2, 296(%a0)
-    move.b %d1, 288(%a0)
-    move.b %d2, 280(%a0)
-    move.b %d1, 272(%a0)
-    move.b %d2, 264(%a0)
-    move.b %d1, 256(%a0)
-    move.b %d2, 248(%a0)
-    move.b %d1, 240(%a0)
-    move.b %d2, 232(%a0)
-    move.b %d1, 224(%a0)
-    move.b %d2, 216(%a0)
-    move.b %d1, 208(%a0)
-    move.b %d2, 200(%a0)
-    move.b %d1, 192(%a0)
-    move.b %d2, 184(%a0)
-    move.b %d1, 176(%a0)
-    move.b %d2, 168(%a0)
-    move.b %d1, 160(%a0)
-    move.b %d2, 152(%a0)
-    move.b %d1, 144(%a0)
-    move.b %d2, 136(%a0)
-    move.b %d1, 128(%a0)
-    move.b %d2, 120(%a0)
-    move.b %d1, 112(%a0)
-    move.b %d2, 104(%a0)
-    move.b %d1, 96(%a0)
-    move.b %d2, 88(%a0)
-    move.b %d1, 80(%a0)
-    move.b %d2, 72(%a0)
-    move.b %d1, 64(%a0)
-    move.b %d2, 56(%a0)
-    move.b %d1, 48(%a0)
-    move.b %d2, 40(%a0)
-    move.b %d1, 32(%a0)
-    move.b %d2, 24(%a0)
-    move.b %d1, 16(%a0)
-    move.b %d2, 8(%a0)
-    move.b %d1, 0(%a0)
-	move.l (%sp)+, %d2
-	rts

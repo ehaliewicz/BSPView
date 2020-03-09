@@ -4,7 +4,9 @@
 #include <genesis.h>
 
 #define W 128
-#define H 144 //160
+#define H 144
+#define FB_H 160 
+// 160
 
 
 typedef struct {

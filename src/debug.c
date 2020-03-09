@@ -3,8 +3,16 @@
 #include "player.h"
 #include "sector.h"
 
+static char buf[32];
+
+  #define PR(str, var, x, y) do {         \
+      sprintf(buf, str, var);             \
+      VDP_drawTextBG(PLAN_A, buf, x, y);  \
+  } while(0);
+
 void print_pos() {
-  char buf[32];
+  PR("max pixel height for wall %i   ", max_pixel_height_for_wall, 0, 6);
+  return; 
   sprintf(buf, "x: ");
   fix16ToStr(ply.where.x, buf+3, 3);
   VDP_drawTextBG(PLAN_A, buf, 0, 12);
@@ -29,8 +37,10 @@ void clear_pos() {
 
 void print_fps() {
   char buf[32];
-  buf[0] = buf[1] = buf[2] = buf[3] = buf[4] = buf[5] = buf[6] = ' ';
+
   fix32ToStr(getFrameTime(), buf, 1);
+  buf[4] = 'm';
+  buf[5] = 's';
   VDP_drawTextBG(PLAN_A, buf, 0, 4);
   //fix32ToStr(getFPS_f(), buf, 1);
   //VDP_drawTextBG(PLAN_A, buf, 0, 5);
@@ -44,11 +54,11 @@ void clear_fps() {
 }
 
 void print_transform_stats() {
-  char buf[32];
 
-  #define PR(str, var, x, y) \
-    sprintf(buf, str, var); \
-    VDP_drawTextBG(PLAN_A, buf, x, y);
+
+
+  return;
+
 
   PR("%2i walls transformed", walls_transformed, 0, 5);
   PR("%2i walls clipped after transform", walls_clipped_after_transform, 0, 6);
@@ -60,6 +70,6 @@ void print_transform_stats() {
   PR("%2i walls not culled", walls_sent_to_screen_clipper, 0, 11);
   PR("%2i portals not culled", portals_sent_to_screen_clipper, 0, 12);
 
-  #undef PR
 
 }
+#undef PR

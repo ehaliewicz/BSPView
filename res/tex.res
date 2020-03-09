@@ -1,0 +1,1 @@
+BITMAP wood_tex "wood_tex.png" NONE

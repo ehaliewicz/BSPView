@@ -1,4 +1,5 @@
 #include "genesis.h"
+#include "draw.h"
 #include "sector.h"
 #include "map.h"
 #include "player.h"
@@ -11,6 +12,7 @@ int walls_frustum_culled_after_transform, walls_frustum_culled_after_projection;
 int walls_clipped_after_transform;
 int projected_backfacing_walls;
 int walls_sent_to_screen_clipper, portals_sent_to_screen_clipper;
+int max_pixel_height_for_wall = 0;
 
 void clear_transform_stats() {
     walls_transformed = 0;
@@ -54,8 +56,13 @@ void transform_vertex(int vidx, fix16 psin, fix16 pcos) {
 
 #define WFOV_SCALE_Q6 (W*HFOV) 
 // 10.6
+#define VFOV_SCALE_Q6 (H*VFOV) 
+// 10.6
+
+
+
 s16 project_vertex_x(int vidx) {
-    if(vertices_cache[vidx].info &= (CACHED_X_PROJECTION)) { //} | CACHED_Y_PROJECTION)) { 
+    if(vertices_cache[vidx].info &= (CACHED_X_PROJECTION | CACHED_Y_PROJECTION)) { 
         return vertices_cache[vidx].x;
     }
 
@@ -70,8 +77,6 @@ s16 project_vertex_x(int vidx) {
     return x;
 }
 
-#define VFOV_SCALE_Q6 (H*VFOV) 
-// 10.6
 
 fix32 project_vertex_y(int vidx) {
     if(vertices_cache[vidx].info &= CACHED_Y_PROJECTION) {
@@ -173,7 +178,8 @@ int draw_sector(sector* sect) {
 
         s16 x1,x2;
         // do perspective projection
-        
+
+	
         if(left_clipped) {
             fix16 xscale1 = ((VFOV_SCALE_Q6)<<FIX16_FRAC_BITS) / rz1;
             x1 = W/2 - ((rx1 * xscale1)>>(FIX16_FRAC_BITS*2));
@@ -188,10 +194,11 @@ int draw_sector(sector* sect) {
             x2 = W/2 - ((rx2 * xscale2)>>(FIX16_FRAC_BITS*2));
             //x2 = W-1;
         } else {
-            x1 = project_vertex_x(w->v1);
-            if(x1 > W-1) { walls_frustum_culled_after_projection++; continue; }
-            x2 = project_vertex_x(w->v2);
+	        x1 = project_vertex_x(w->v1);
+	        if(x1 > W-1) { walls_frustum_culled_after_projection++; continue; }
+	        x2 = project_vertex_x(w->v2);
         }
+	
         
         
 
@@ -237,6 +244,11 @@ int draw_sector(sector* sect) {
         fix32 fy2a = height_offset - ((yceil * yscale2)>>FIX16_FRAC_BITS); 
         fix32 fy2b = height_offset - ((yfloor * yscale2)>>FIX16_FRAC_BITS);
 
+        int dy1 = fix32ToInt(fy1b-fy1a);
+        int dy2 = fix32ToInt(fy2b-fy2a);
+        max_pixel_height_for_wall = max(max_pixel_height_for_wall, max(dy1, dy2));
+
+
         //if(fy1a > fy1b || fy2a > fy2b) { continue; }
 
         u8 wall_col = calculate_color(w->middle_color, avg_dist, sect->light_level);
@@ -246,7 +258,16 @@ int draw_sector(sector* sect) {
 
         if(w->back_sector == NULL) { //w->middle_color != TRANSPARENT_IDX) { 
             walls_sent_to_screen_clipper++;
-            int full = insert_span(x1, x2, fy1a, fy1a, fy2a, fy2a, fy1b, fy1b, fy2b, fy2b, sect_ceil_col, high_col, wall_col, low_col, sect_floor_col, 1, dither_wall, dither_floor);
+            int full = insert_span(x1, x2, 1);
+            for(int i = 0; i < num_render_spans; i++) {
+                draw_one_sided_span(x1, x2, 
+                                    fy1a, fy1b, 
+                                    fy2a, fy2b, 
+                                    render_spans_for_wall[i].clip_x1,
+                                    render_spans_for_wall[i].clip_x2,
+                                    sect_ceil_col, wall_col, sect_floor_col, 
+                                    dither_wall, dither_floor);
+            }
             if(full) { return full; }
 
             // for opaque walls
@@ -261,14 +282,32 @@ int draw_sector(sector* sect) {
 
             if(nsceil < sect_floor) {
                 // draw just top wall as opaque wall
-                int full = insert_span(x1, x2, fy1a, fy1a, fy2a, fy2a, fy1b, fy1b, fy2b, fy2b, sect_ceil_col, high_col, high_col, low_col, sect_floor_col, 1, dither_wall, dither_floor);
+                int full = insert_span(x1, x2, 1);
+                for(int i = 0; i < num_render_spans; i++) {
+                    draw_one_sided_span(x1, x2, 
+                                        fy1a, fy1b, 
+                                        fy2a, fy2b, 
+                                        render_spans_for_wall[i].clip_x1,
+                                        render_spans_for_wall[i].clip_x2,
+                                        sect_ceil_col, high_col, sect_floor_col, 
+                                        dither_wall, dither_floor);
+                }
                 if(full) { 
                     return full; 
                 }
 
             } else if (nsfloor > sect_ceil) {
                 // draw just bottom wall as opaque wall
-                int full = insert_span(x1, x2, fy1a, fy1a, fy2a, fy2a, fy1b, fy1b, fy2b, fy2b, sect_ceil_col, high_col, low_col, low_col, sect_floor_col, 1, dither_wall, dither_floor);
+                int full = insert_span(x1, x2, 1);
+                for(int i = 0; i < num_render_spans; i++) {
+                    draw_one_sided_span(x1, x2, 
+                                        fy1a, fy1b, 
+                                        fy2a, fy2b, 
+                                        render_spans_for_wall[i].clip_x1,
+                                        render_spans_for_wall[i].clip_x2,
+                                        sect_ceil_col, low_col, sect_floor_col, 
+                                        dither_wall, dither_floor);
+                }
                 if(full) { 
                     return full; 
                 }
@@ -284,8 +323,18 @@ int draw_sector(sector* sect) {
                 
                 
                 portals_sent_to_screen_clipper++;
-                insert_span(x1, x2, fy1a, fny1a, fy2a, fny2a, fy1b, fny1b, fy2b, fny2b, sect_ceil_col, high_col, wall_col, low_col, sect_floor_col, 0, dither_wall, dither_floor);
-
+                insert_span(x1, x2, 0);
+                for(int i = 0; i < num_render_spans; i++) {
+                    draw_two_sided_span(x1, x2, 
+                                        fy1a, fny1a,
+                                        fy1b, fny1b, 
+                                        fy2a, fny2a, 
+                                        fy2b, fny2b,
+                                        render_spans_for_wall[i].clip_x1,
+                                        render_spans_for_wall[i].clip_x2,
+                                        sect_ceil_col, high_col, low_col, sect_floor_col, 
+                                        dither_wall, dither_floor);
+                }
             }
 
 

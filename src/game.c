@@ -43,6 +43,8 @@ void init_game() {
     traverse_all_sectors(&root_node, &register_active_sector);
     init_column_offset_table();
 
+    VDP_setScrollingMode(HSCROLL_PLANE, VSCROLL_PLANE);
+
     VDP_setPalette(PAL2, bg.palette->data);
     u16 base_tile = TILE_ATTR_FULL(PAL2, FALSE, FALSE, FALSE, 0x290); //TILE_USERINDEX);
     VDP_drawImageEx(PLAN_B, &bg, base_tile, 4, 0, 0, DMA);
@@ -181,10 +183,10 @@ void handle_player_input(u16 joy) {
 int bobs[] = {1,1,1,1,1,1,1,1,1,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,0,0,0,0};
 static int bob_idx = 0;
 int num_bobs = sizeof(bobs)/sizeof(int);
-
+fix16 curScroll = 0;
 void run_game() {
 
-
+    max_pixel_height_for_wall = 0;
     framecnt++; 
 
     u16 joy = JOY_readJoypad(0);
@@ -206,8 +208,10 @@ void run_game() {
     last_joy = joy;
 
     dead = ply.health <= 0;
-
     process_sector_effects(framecnt);
+
+    curScroll += FIX16(0.33);
+    //VDP_setHorizontalScroll(PLAN_B, fix16ToInt(curScroll));
     
     if(dead) {
         
@@ -257,8 +261,8 @@ void run_game() {
     if(!fill) { BMP_clear(); }
     
     draw_bsp_node(&root_node);
-
     
+    //DMA_doDma(DMA_VRAM, bmp_buffer_write, )
     BMP_flip(1);
 
     //VDP_waitVSync();

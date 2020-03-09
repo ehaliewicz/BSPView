@@ -39,7 +39,7 @@ void process_sector_type(sector* sect, u32 cur_frame) {
                 if(sect->sector_params.flicker.remain_flickers == 0) {
                     sect->sector_params.state = NOT_FLICKERING;
                         sect->light_level = sect->sector_params.flicker.normal_light_level;
-                    sect->sector_params.delay_to = cur_frame + random()%10;
+                    sect->sector_params.delay_to = cur_frame + random()%10 + 5;
                 } else {
                     if(sect->light_level != -1) {
                         sect->sector_params.flicker.normal_light_level = sect->light_level;
@@ -60,7 +60,7 @@ void process_sector_type(sector* sect, u32 cur_frame) {
                 sect->light_level = parms.flash.flash_light_level;
             } else {
                 sect->sector_params.state = NORMAL_BRIGHTNESS;
-                sect->sector_params.delay_to = cur_frame + parms.flash.frames_no_flash + (random() % 10);
+                sect->sector_params.delay_to = cur_frame + parms.flash.frames_no_flash + (random() % 10) + 5;
                 sect->light_level = parms.flash.normal_light_level;
             }
             break;

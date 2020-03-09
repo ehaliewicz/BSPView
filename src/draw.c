@@ -15,9 +15,42 @@ void clear_clipping_buffers() {
   }
 }
 #define PIXEL_RIGHT_STEP 1
-#define PIXEL_DOWN_STEP 4
+// #define PIXEL_DOWN_STEP 4
+#define PIXEL_DOWN_STEP 2
 #define TILE_RIGHT_STEP 640
 
+u16 get_index(u16 x, u16 y) {
+  u16 x_col_offset = x & 1;
+  u16 base_offset = 0;
+  if(x & 0b10) {
+    // use right half of framebuffer
+    base_offset = (W/2)*FB_H;
+  }
+  u16 y_offset = y * 2;
+  u16 x_num_pair_cols_offset = x >> 2;
+  u16 x_cols_offset = x_num_pair_cols_offset * FB_H * 2;
+  return base_offset + y_offset + x_col_offset + x_cols_offset + 16;
+}
+
+inline u8* getDMAWritePointer(u16 x, u16 y) {
+  /*
+    char buf[32];
+    int coords[7][3] = {
+      {0,0}, {1,0}, {1,1},
+      {2,0}, {3,0}, {3,1},
+      {125,159}
+    };
+  while(1) {
+    for(int i = 0; i < 7; i++) {
+      sprintf(buf, "%i,%i -> %i", coords[i][0], coords[i][1], get_index(coords[i][0], coords[i][1]));
+      VDP_drawTextBG(PLAN_A, buf, 0, 6+i);
+    }
+  }
+  */
+  return &bmp_buffer_write[get_index(x, y)];
+}
+
+/*
 inline u8* getDMAWritePointer(u16 x, u16 y) {
     // const u16 off = (y * BMP_PITCH) + (x >> 1);
     // return write address
@@ -35,6 +68,7 @@ inline u8* getDMAWritePointer(u16 x, u16 y) {
             (hor_pixel_idx * PIXEL_RIGHT_STEP) + (y * PIXEL_DOWN_STEP));
 
 }
+*/
 
 void pix(s16 x, s16 y, u8 col) {
   u8* pix = getDMAWritePointer(x, y); //BMP_getWritePointer(x<<1, y);
@@ -44,6 +78,7 @@ void pix(s16 x, s16 y, u8 col) {
 void vline_dither(s16 x, s16 y1, s16 y2, u8 col1, u8 col2, u8 fill);
 
 void vline_native_dither(u8* buf, s16 dy, u8 col, u8 col2);
+void vline_native_dither_movep(u8* buf, s16 dy, u32 col1_col2);
 
 s16 column_offset_table[W];
 
@@ -73,13 +108,85 @@ inline void vline_dither(s16 x, s16 y1, s16 y2, u8 col1, u8 col2, u8 fill) {
     } 
 }
 
+#define DARK_STEEL_PIX ((DARK_STEEL_IDX << 4) | DARK_STEEL_IDX)
+#define BROWN_PIX ((DARK_GREEN_IDX << 4) | DARK_GREEN_IDX)
+
+/*
+u8 texture[32] = {
+  DARK_STEEL_PIX,
+  BROWN_PIX,
+  BROWN_PIX,
+  BROWN_PIX,
+  BROWN_PIX,
+  DARK_STEEL_PIX,
+  BROWN_PIX,
+  BROWN_PIX,
+  BROWN_PIX,
+  BROWN_PIX,
+  DARK_STEEL_PIX,
+  BROWN_PIX,
+  BROWN_PIX,
+  BROWN_PIX,
+  BROWN_PIX,
+  GREEN_IDX << 4 | GREEN_IDX,
+  DARK_STEEL_PIX,
+  BROWN_PIX,
+  BROWN_PIX,
+  BROWN_PIX,
+  BROWN_PIX,
+  DARK_STEEL_PIX,
+  BROWN_PIX,
+  BROWN_PIX,
+  BROWN_PIX,
+  BROWN_PIX,
+  DARK_STEEL_PIX,
+  BROWN_PIX,
+  BROWN_PIX,
+  BROWN_PIX,
+  BROWN_PIX,
+  DARK_STEEL_PIX
+};
+*/
+#include "tex.h"
+
+u8 tex_col = 0;
+inline void vline_dither_tex(u8* buf_ptr, s16 orig_y1, s16 orig_y2, s16 clip_y1, s16 clip_y2) { //}, u8* tex_ptr) {
+  // 
+  int dy = (clip_y2-clip_y1);
+  if(dy <= 0) { return; }
+  //if(dy >= 10000) { dy = 1024; }
+
+  fix32 dv_over_dy = fix32Div(FIX32(32), FIX32(dy)); 
+  int skip_dy = clip_y1-orig_y1;
+  fix32 skip_dv = dv_over_dy * skip_dy;
+
+  fix32 dv = skip_dv;
+  u8* tex_col = wood_tex.image + (tex_col*32);
+
+  for(int y = 0; y < dy; y++) {
+
+    *buf_ptr = tex_col[fix32ToInt(dv)]; //dv>>24]; // dv>>16];//tex_ptr[dv>>16];
+    dv += dv_over_dy;
+    buf_ptr += 2;
+
+  }
+  tex_col += 1; if(tex_col >= 32) { tex_col = 0; }
+
+
+}
+
 inline void vline_dither_fast(u8* buf_ptr, s16 y1, s16 y2, u8 col1, u8 col2, u8 fill) {
   if(y2 > y1) {
-    if(fill) { 
-      vline_native_dither(buf_ptr, y2-y1, col1, col2); 
+    if(fill) {
+      u32 full_col = ((col1<<24)|(col2<<16)|(col1<<8)|col2);
+      //u8 rem_pix = full_pixels&0b11;
+      //vline_native_dither(buf_ptr, y2-y1, col1, col2);
+      //vline_native_dither_movep(buf_ptr, (y2-y1)>>1, ((col1<<8)|col2));
+      vline_native_dither_movep(buf_ptr, (y2-y1)+1, full_col);
     } else {
       buf_ptr[0] = col1;
-      buf_ptr[(y2-y1)*4] = col1;
+      //buf_ptr[(y2-y1)*4] = col1;
+      buf_ptr[(y2-y1)*PIXEL_DOWN_STEP] = col1;
     }
   }
 }
@@ -206,23 +313,24 @@ void draw_two_sided_span(s16 orig_x1, s16 orig_x2,
         s16 cya = *edge_list_ptr++;
 
         // draw ceiling
-        u8* ceil_ptr = col_ptr + (cytop * 4);
+        u8* ceil_ptr = col_ptr + (cytop * PIXEL_DOWN_STEP);
         vline_dither_fast(ceil_ptr, cytop, cya, ceil_col, ceil_col2, fill ? 1 : 0);
 
         s16 cnya = *edge_list_ptr++;
         // draw step from ceiling
-        u8* top_step_ptr = col_ptr + (cya * 4);
+        u8* top_step_ptr = col_ptr + (cya * PIXEL_DOWN_STEP);
         vline_dither_fast(top_step_ptr, cya, cnya, upper_col, upper_col2, fill ? 1 : border);
 
         s16 cnyb = *edge_list_ptr++;
         s16 cyb = *edge_list_ptr++;
+        s16 cybottom = *edge_list_ptr++;
         // draw lower step
-        u8* lower_step_ptr = col_ptr + (cnyb * 4);
+        u8* lower_step_ptr = col_ptr + (cnyb * PIXEL_DOWN_STEP);
         vline_dither_fast(lower_step_ptr, cnyb, cyb, lower_col, lower_col2, fill ? 1 : border);
         
-        s16 cybottom = *edge_list_ptr++;
+          
         // draw floor
-        u8* floor_ptr = col_ptr + (cyb * 4);
+        u8* floor_ptr = col_ptr + (cyb * PIXEL_DOWN_STEP);
         vline_dither_fast(floor_ptr, cyb, cybottom, floor_col, floor_col2, fill ? 1 : 0);
 
 

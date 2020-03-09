@@ -2,7 +2,6 @@
 #include "draw.h"
 #include "common.h"
 
-#define MAX_SPANS W
 
 typedef struct span span;
 
@@ -38,7 +37,13 @@ static void free_span(span* sp) {
     free_span_pointer = sp;
 }
 
+int num_render_spans;
+render_span render_spans_for_wall[MAX_SPANS];
 
+void enqueue_render_span(s16 clip_x1, s16 clip_x2) {
+  render_spans_for_wall[num_render_spans].clip_x1 = clip_x1;
+  render_spans_for_wall[num_render_spans++].clip_x2 = clip_x2;
+}
 
 // each span represents an undrawn portion of screen
 // when you insert a span, if it intersects with a span in the buffer
@@ -112,19 +117,21 @@ resolution: draw overlapped portion, update old span, exit
 
 resolution: exit
 */
-
-
-int insert_span(s16 x1, s16 x2, 
-                fix32 y1a, fix32 ny1a, fix32 y2a, fix32 ny2a, fix32 y1b, fix32 ny1b, fix32 y2b, fix32 ny2b, 
-                u8 ceil_col, u8 upper_col, u8 wall_col, u8 lower_col, u8 floor_col, 
-                u8 insert, u8 dither_wall, u8 dither_floor) {
+int insert_span(s16 x1, s16 x2, u8 insert) {
   s16 orig_x1 = x1;
   s16 orig_x2 = x2;
   span *old,*current, *n;
   u8 update_vert_clipping = !insert;
 
-  
+  num_render_spans = 0;
+
   if(span_buf_head == NULL) { return 1; }
+
+  // fast bail-out for offscreen polygons
+  if(x2 <= 0 || x1 >= W) {
+    return 0;
+  }
+  
 
   for (old = NULL, current = span_buf_head;
        current != NULL;
@@ -132,7 +139,7 @@ int insert_span(s16 x1, s16 x2,
       
     if(current->x2 == x2 && current->x1 == x1) {
       n=current->next;
-      draw_span(orig_x1, orig_x2, y1a, ny1a, y1b, ny1b, y2a, ny2a, y2b, ny2b, x1, x2, ceil_col, upper_col, wall_col, lower_col, floor_col, update_vert_clipping, dither_wall, dither_floor);
+      enqueue_render_span(x1, x2);
       if(insert) {
           free_span(current);
           if (old) {
@@ -150,14 +157,14 @@ int insert_span(s16 x1, s16 x2,
     
     if (current->x1 < x1) {
       if (current->x2 <= x2) { // case 2
-        draw_span(orig_x1, orig_x2, y1a, ny1a, y1b, ny1b, y2a, ny2a, y2b, ny2b, x1, current->x2, ceil_col, upper_col, wall_col, lower_col, floor_col, update_vert_clipping, dither_wall, dither_floor);
+        enqueue_render_span(x1, current->x2);
         if(insert) {
             current->x2 = x1;
         } 
         if(current->x2 == x2) { return 0; }
       }
       else { // case 3
-        draw_span(orig_x1, orig_x2, y1a, ny1a, y1b, ny1b, y2a, ny2a, y2b, ny2b, x1, x2, ceil_col, upper_col, wall_col, lower_col, floor_col, update_vert_clipping, dither_wall, dither_floor);
+        enqueue_render_span(x1, x2);
         if(insert) {
             n = alloc_span();
             n->next = current->next;
@@ -175,9 +182,8 @@ int insert_span(s16 x1, s16 x2,
       }
       
       if (current->x2<=x2) { // case 4
-	
-        draw_span(orig_x1, orig_x2, y1a, ny1a, y1b, ny1b, y2a, ny2a, y2b, ny2b, current->x1, current->x2, ceil_col, upper_col, wall_col, lower_col, floor_col, update_vert_clipping, dither_wall, dither_floor);
-        
+        enqueue_render_span(current->x1, current->x2);
+
         s16 cx2 = current->x2;
         n=current->next;
         if(insert) {
@@ -196,7 +202,7 @@ int insert_span(s16 x1, s16 x2,
             return 0;
         }
       } else { // case 5
-	      draw_span(orig_x1, orig_x2, y1a, ny1a, y1b, ny1b, y2a, ny2a, y2b, ny2b, current->x1, x2, ceil_col, upper_col, wall_col, lower_col, floor_col, update_vert_clipping, dither_wall, dither_floor);
+        enqueue_render_span(current->x1, x2);
         if(insert) {
             current->x1 = x2;
         }
