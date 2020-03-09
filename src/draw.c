@@ -388,8 +388,10 @@ void draw_one_sided_span(s16 orig_x1, s16 orig_x2,
 
     s16* edge_list_ptr = edge_list;
     u16* yclip_ptr = &(yclip[draw_x1<<1]);
+    u8* col_ptr = getDMAWritePointer(draw_x1, 0);
+    for(s16 x = draw_x1; x <= draw_x2; x++, col_ptr += column_offset_table[x]) {
 
-    for(s16 x = draw_x1; x <= draw_x2; x++) {
+        u8 border = (x == draw_x1 || x == draw_x2 || x == 0 || x == W-1);
         //loop needs 
         // draw_x1, draw_x2
         // yclip_ptr, fix_y1a, fix_y1b
@@ -405,38 +407,22 @@ void draw_one_sided_span(s16 orig_x1, s16 orig_x2,
         s16 yb = fix_y1b>>16;
         s16 cyb = clamp(yb, cytop, cybottom);
 
-        *edge_list_ptr++ = cytop;
-        *edge_list_ptr++ = cya;
-        *edge_list_ptr++ = cyb;
-        *edge_list_ptr++ = cybottom;
+        // draw ceiling
+        u8* ceil_ptr = col_ptr + (cytop * PIXEL_DOWN_STEP);
+        vline_dither_fast(ceil_ptr, cytop, cya-1, ceil_col, ceil_col2, fill ? 1 : 0);
+        
+        // draw wall
+        u8* wall_ptr = col_ptr + (cya * PIXEL_DOWN_STEP);
+        //vline_dither_fast(wall_ptr, cya, cyb, wall_col, wall_col2, fill ? 1 : border);
+        vline_dither_tex(wall_ptr, ya, yb, cya, cyb);
+        // draw floor
+        u8* floor_ptr = col_ptr + ((cyb+1) * PIXEL_DOWN_STEP);
+        vline_dither_fast(floor_ptr, cyb+1, cybottom, floor_col, floor_col2, fill ? 1 : 0);
         
         fix_y1a += top_slope;
         fix_y1b += bot_slope;
     }
     
-
-    yclip_ptr = &(yclip[draw_x1<<1]);
-    edge_list_ptr = edge_list;
-    u8* col_ptr = getDMAWritePointer(draw_x1, 0);
-    for(s16 x = draw_x1; x <= draw_x2; x++, col_ptr += column_offset_table[x]) {
-        u8 border = (x == draw_x1 || x == draw_x2 || x == 0 || x == W-1);
-        s16 cytop = *edge_list_ptr++;
-        s16 cya = *edge_list_ptr++;
-        s16 cyb = *edge_list_ptr++;
-        s16 cybottom = *edge_list_ptr++;
-
-        // draw ceiling
-        u8* ceil_ptr = col_ptr + (cytop * 4);
-        vline_dither_fast(ceil_ptr, cytop, cya-1, ceil_col, ceil_col2, fill ? 1 : 0);
-        
-        // draw wall
-        u8* wall_ptr = col_ptr + (cya * 4);
-        vline_dither_fast(wall_ptr, cya, cyb, wall_col, wall_col2, fill ? 1 : border);
-
-        // draw floor
-        u8* floor_ptr = col_ptr + ((cyb+1) * 4);
-        vline_dither_fast(floor_ptr, cyb+1, cybottom, floor_col, floor_col2, fill ? 1 : 0);
-    }
 }
 
 #define CLEAR_SUBPIXELS(x) ((x) &= ~0xFFFF)
