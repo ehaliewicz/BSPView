@@ -7,6 +7,8 @@
 #include "palette.h"
 #include "span_buf.h"
 
+
+
 int walls_transformed, walls_projected;
 int walls_frustum_culled_after_transform, walls_frustum_culled_after_projection;
 int walls_clipped_after_transform;
@@ -139,7 +141,7 @@ int draw_sector(sector* sect) {
         //    continue;
         //}
 
-        const fix16 minZ = FIX16(0.2);
+        const fix16 minZ = FIX16(0.8); //2);
         int left_clipped = rz1 <= minZ;  // <= 0
         int right_clipped = rz2 <= minZ; // <= 0
         // if it's partially behind the player, clip it against near z plane
@@ -160,12 +162,12 @@ int draw_sector(sector* sect) {
             fix16 dxOverDz = fix16Div(dx, dz);
             if(left_clipped) {
                 fix16 clippedZ = (minZ-rz1);
-                fix16 clippedX = fix16Mul(clippedZ, dxOverDz);
+                fix16 clippedX = fix16Div(fix16Mul(clippedZ, dx), dz); //fix16Mul(clippedZ, dxOverDz);
                 rx1 -= clippedX; // += clippedX;
                 rz1 = minZ;
             } else if (right_clipped) {
                 fix16 clippedZ = (minZ-rz2);
-                fix16 clippedX = fix16Mul(clippedZ, dxOverDz);
+                fix16 clippedX = fix16Div(fix16Mul(clippedZ, dx), dz); //fix16Mul(clippedZ, dxOverDz);
                 fix16 new_rx2 = rx2 + clippedX;
                 fix16 new_rz2 = minZ;
                 
@@ -265,6 +267,7 @@ int draw_sector(sector* sect) {
                                     fy2a, fy2b, 
                                     render_spans_for_wall[i].clip_x1,
                                     render_spans_for_wall[i].clip_x2,
+                                    rz1, rz2,
                                     sect_ceil_col, wall_col, sect_floor_col, 
                                     dither_wall, dither_floor);
             }
@@ -289,6 +292,7 @@ int draw_sector(sector* sect) {
                                         fy2a, fy2b, 
                                         render_spans_for_wall[i].clip_x1,
                                         render_spans_for_wall[i].clip_x2,
+                                        rz1, rz2,
                                         sect_ceil_col, high_col, sect_floor_col, 
                                         dither_wall, dither_floor);
                 }
@@ -305,6 +309,7 @@ int draw_sector(sector* sect) {
                                         fy2a, fy2b, 
                                         render_spans_for_wall[i].clip_x1,
                                         render_spans_for_wall[i].clip_x2,
+                                        rz1, rz2,
                                         sect_ceil_col, low_col, sect_floor_col, 
                                         dither_wall, dither_floor);
                 }

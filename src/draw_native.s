@@ -1,4 +1,97 @@
-.globl vline_native_dither, vline_native_dither_movep
+.globl vline_native_dither, vline_native_dither_movep, vline_native_tex, vline_native_tex_low_quality, vline_native_tex_table_wrapper
+
+|                                         4(%sp)    8(%sp)         12(%sp)          16(%sp)    
+| void* line_native_tex_table_wrapper(u8* buf_ptr, u8* tex_ptr, u32 wall_height, u32 clipped_pixels);
+
+a2_save:
+    dc.l 0
+
+vline_native_tex_table_wrapper:
+
+    move.l 4(%sp), %a1  | load buf ptr
+    move.l 8(%sp), %a0  | load tex ptr
+
+    move.l %a2, (a2_save)               | stash a2
+    | move.l #texture_draw_tables, %a2    | texture_draw_tables is a table of pointers to unrolled texture mapping loops
+    move.l 12(%sp), %d0                 | load wall_height
+    lsl.w #2, %d0                       | wall_height *= 4
+    move.l 0(%a2, %d0.W), %a2           | load pointer to unrolled loop for this wall height
+    move.l 16(%sp), %d0                 | load clipped_pixels
+    lsl.w #3, %d0                       | clipped_pixels *= 6
+    add.l %d0, %a2                      | skip instructions for clipped_pixels, each instruction is 6 bytes
+
+    | jsr draw_32_tex_to_59_skip_56
+    | jsr (%a2)                           | jump to code
+
+    move.l (a2_save), %a2               | restore a2
+    rts
+
+
+
+| void vline_native_tex(u8* buf_ptr, u8* tex_ptr, s32 draw_dy, fix32 dv_over_dy)
+|  for(int y = 0; y < draw_dy; y++) {
+|    u8 texel = tex_ptr[dv>>16];
+|    *buf_ptr = texel;//dv>>24]; // dv>>16];//tex_ptr[dv>>16];
+|    dv += dv_over_dy;
+|    buf_ptr += 2;
+|  }
+
+d2_save:
+    dc.l 0
+d3_save:
+    dc.l 0
+
+
+vline_native_tex:
+    move.l %d2, (d2_save)
+    move.l 4(%sp), %a1      | load buf_ptr
+    move.l 8(%sp), %a0      | load tex_ptr
+    move.l 12(%sp), %d0     | load draw_dy
+    move.l 16(%sp), %d1     | load dv_over_dy
+    move.l 20(%sp), %d2     | load dv
+    
+
+    lsr.l #1, %d0
+tex_lp:
+    swap %d2
+    move.b (%a0, %d2.W), (%a1)
+    swap %d2
+    add.l %d1, %d2
+    swap %d2
+    move.b (%a0, %d2.W), 2(%a1)
+    addq.l #4, %a1
+    swap %d2
+    add.l %d1, %d2
+    dbeq %d0, tex_lp
+
+    move.l (d2_save), %d2
+    rts
+
+vline_native_tex_low_quality:
+    move.l %d2, (d2_save)
+    move.l %d3, (d3_save)
+    move.l 4(%sp), %a1      | load buf_ptr
+    move.l 8(%sp), %a0      | load tex_ptr
+    move.l 12(%sp), %d0     | load draw_dy
+    move.l 16(%sp), %d1     | load dv_over_dy
+    move.l 20(%sp), %d2     | load dv
+    
+    | add.l %d1, %d1      | double dv_over_dy (low quality)
+    lsr.l #1, %d0
+lq_tex_lp:
+    swap %d2
+    move.b (%a0, %d2.W), %d3
+    move.b %d3, (%a1)
+    move.b %d3, 2(%a1)
+    addq.l #4, %a1
+    swap %d2
+    add.l %d1, %d2
+    add.l %d1, %d2
+    dbeq %d0, lq_tex_lp
+
+    move.l (d2_save), %d2
+    move.l (d3_save), %d3
+    rts
 
 vline_native_dither_movep:
 	| vline_native_dither_movep(u8* buf, s16 dy, u32 col1_col2) 

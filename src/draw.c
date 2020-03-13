@@ -3,10 +3,15 @@
 #include "draw.h"
 #include "game.h"
 #include "palette.h"
+#include "texture.h"
+#include "tex_tables.h"
 
 u16 yclip[W*2];
 
 u8 fill = 1;
+u8 low_quality_texture = 0;
+
+
 
 void clear_clipping_buffers() {
   for(int i = 0; i < W*2; i += 2) {
@@ -147,31 +152,64 @@ u8 texture[32] = {
   DARK_STEEL_PIX
 };
 */
-#include "tex.h"
 
-u8 tex_col = 0;
-inline void vline_dither_tex(u8* buf_ptr, s16 orig_y1, s16 orig_y2, s16 clip_y1, s16 clip_y2) { //}, u8* tex_ptr) {
+extern void** texture_draw_tables;
+//extern const u16** dv_skip_tables;
+extern const void* draw_32_tex_to_59;
+
+void vline_native_tex(u8* buf_ptr, u8* tex_ptr, s32 draw_dy, fix32 dv_over_dy, fix32 dv);
+void vline_native_tex_low_quality(u8* buf_ptr, u8* tex_ptr, s32 draw_dy, fix32 dv_over_dy, fix32 dv);
+void* vline_native_tex_table_wrapper(u8* adj_buf_ptr, u8* tex_ptr, u32 orig_dy, u32 total_skip);
+
+
+//u8 tex_col = 0;
+inline void vline_dither_tex(u8* buf_ptr, s16 orig_y1, s16 orig_y2, s16 clip_y1, s16 clip_y2, u8* tex_ptr) {
   // 
-  int dy = (clip_y2-clip_y1);
-  if(dy <= 0) { return; }
-  //if(dy >= 10000) { dy = 1024; }
+  s16 orig_dy = (orig_y2-orig_y1);
+  s16 draw_dy = clip_y2-clip_y1;
+  if(draw_dy <= 0 || orig_dy <= 0) { return; }
 
-  fix32 dv_over_dy = fix32Div(FIX32(32), FIX32(dy)); 
-  int skip_dy = clip_y1-orig_y1;
-  fix32 skip_dv = dv_over_dy * skip_dy;
+  /*
+ 
+  */
+  // 28 32
+  //
 
-  fix32 dv = skip_dv;
-  u8* tex_col = wood_tex.image + (tex_col*32);
+  s16 top_skip = abs(clip_y1-orig_y1);
 
-  for(int y = 0; y < dy; y++) {
+  s16 bot_skip = abs(orig_y2-clip_y2);
 
-    *buf_ptr = tex_col[fix32ToInt(dv)]; //dv>>24]; // dv>>16];//tex_ptr[dv>>16];
-    dv += dv_over_dy;
-    buf_ptr += 2;
+  s16 total_skip = top_skip+bot_skip;
 
+
+  if(orig_dy <= 100) {
+    vline_texture_c(buf_ptr, tex_ptr, orig_dy, top_skip, bot_skip);
+
+  } else {
+    fix32 dv_over_dy = (32<<16) / orig_dy; // 8.24
+    s32 skip_dy = clip_y1-orig_y1;
+    fix32 skip_dv = dv_over_dy * skip_dy; // 8.24
+
+    fix32 dv = skip_dv;
+    if (low_quality_texture) {
+      vline_native_tex_low_quality(buf_ptr, tex_ptr, draw_dy, dv_over_dy, dv);
+    } else {
+      vline_native_tex(buf_ptr, tex_ptr, draw_dy, dv_over_dy, dv);
+    }
+    
+
+    /*
+    for(int y = 0; y < draw_dy; y++) {
+      u8 texel = tex_ptr[v>>16];
+      *buf_ptr = texel;
+      dv += dv_over_dy;
+      buf_ptr += 2;
+    }
+    */
+    
+
+    //tex_col += 1; if(tex_col >= 32) { tex_col = 0; }
   }
-  tex_col += 1; if(tex_col >= 32) { tex_col = 0; }
-
 
 }
 
@@ -197,12 +235,14 @@ u8 swap_nibbles(u8 x) {
 }
 
 
+
 s16 edge_list[W*6];
 
 void draw_two_sided_span(s16 orig_x1, s16 orig_x2, 
                          fix32 y1a, fix32 ny1a, fix32 y1b, fix32 ny1b, fix32 y2a, fix32 ny2a, fix32 y2b, fix32 ny2b, 
                          s16 draw_x1, s16 draw_x2, u8 ceil_col, u8 upper_col, u8 lower_col, u8 floor_col,
                          u8 dither_wall, u8 dither_floor) {
+    
 
     
     draw_x2 -= 1;
@@ -337,13 +377,13 @@ void draw_two_sided_span(s16 orig_x1, s16 orig_x2,
     }
 }
 
-
-
 void draw_one_sided_span(s16 orig_x1, s16 orig_x2, 
                          fix32 y1a, fix32 y1b, fix32 y2a, fix32 y2b, 
                          s16 draw_x1, s16 draw_x2, 
+                         fix16 z1, fix16 z2,
                          u8 ceil_col, u8 wall_col, u8 floor_col, 
                          u8 dither_wall, u8 dither_floor) {
+
     u8 wall_col2;
     u8 floor_col2;
     u8 ceil_col2;
@@ -374,7 +414,7 @@ void draw_one_sided_span(s16 orig_x1, s16 orig_x2,
     fix32 top_dy = fix_y2a - fix_y1a; // 10.12
     fix32 bot_dy = fix_y2b - fix_y1b;
 
-    s16 dx = orig_x2 - orig_x1;
+    s16 dx = (orig_x2 - orig_x1)+1;
     fix32 top_slope = (top_dy/dx);
     fix32 bot_slope = (bot_dy/dx);
 
@@ -389,8 +429,30 @@ void draw_one_sided_span(s16 orig_x1, s16 orig_x2,
     s16* edge_list_ptr = edge_list;
     u16* yclip_ptr = &(yclip[draw_x1<<1]);
     u8* col_ptr = getDMAWritePointer(draw_x1, 0);
-    for(s16 x = draw_x1; x <= draw_x2; x++, col_ptr += column_offset_table[x]) {
+    
+    
 
+    //fix32 du_dz = 0;
+    //fix32 start_one_over_z = fix32Div(FIX32(1), (z1));
+    //fix32 end_one_over_z = fix32Div(FIX32(1), (z2));
+
+    //fix32 start_du_over_z = 0;
+    //fix32 end_du_over_z = fix32Div(FIX32(32), (z2));
+    
+    //fix32 du_over_z_over_dx = (end_du_over_z-start_du_over_z)/dx;
+    //fix32 one_over_z_over_dx = (end_one_over_z-start_one_over_z)/dx;
+    
+    u8* tex_ptr = wood_tex;
+    
+    //fix16 du_over_dx = fix16Div(FIX16(32), FIX16(dx));
+    fix16 du_per_dx = (32<<5)/dx; //FIX16(32)/dx;
+    fix16 fix_du = du_per_dx * (draw_x1 - orig_x1);
+
+
+    //fix32 cur_one_over_z = start_one_over_z + one_over_z_over_dx * (draw_x1 - orig_x1);
+    //fix32 cur_du_over_z = start_du_over_z + du_over_z_over_dx * (draw_x1 - orig_x1);
+    //fix_du += ()
+    for(s16 x = draw_x1; x <= draw_x2; x++, col_ptr += column_offset_table[x]) {
         u8 border = (x == draw_x1 || x == draw_x2 || x == 0 || x == W-1);
         //loop needs 
         // draw_x1, draw_x2
@@ -411,16 +473,30 @@ void draw_one_sided_span(s16 orig_x1, s16 orig_x2,
         u8* ceil_ptr = col_ptr + (cytop * PIXEL_DOWN_STEP);
         vline_dither_fast(ceil_ptr, cytop, cya-1, ceil_col, ceil_col2, fill ? 1 : 0);
         
-        // draw wall
-        u8* wall_ptr = col_ptr + (cya * PIXEL_DOWN_STEP);
-        //vline_dither_fast(wall_ptr, cya, cyb, wall_col, wall_col2, fill ? 1 : border);
-        vline_dither_tex(wall_ptr, ya, yb, cya, cyb);
         // draw floor
         u8* floor_ptr = col_ptr + ((cyb+1) * PIXEL_DOWN_STEP);
         vline_dither_fast(floor_ptr, cyb+1, cybottom, floor_col, floor_col2, fill ? 1 : 0);
+
+        // draw wall
+        u8* wall_ptr = col_ptr + (cya * PIXEL_DOWN_STEP);
+        //fix32 cur_z = fix32Div(FIX32(1), cur_one_over_z);
+        //fix32 cur_u = fi32Mul(cur_du_over_z, cur_z);
+
+        //u8* tex_col_ptr = tex_ptr + fix16ToInt(fix_du)*32;// & 0b1111111111100000);
+        u16 masked_du = fix_du & (~0b11111);
+        u8* tex_col_ptr = tex_ptr + masked_du;
+        vline_dither_tex(wall_ptr, ya, yb, cya, cyb, tex_col_ptr); //col_ptr);
+
+        //cur_one_over_z += one_over_z_over_dx;
+        //cur_du_over_z += du_over_z_over_dx;
+        
+        fix_du += du_per_dx;
+        
+
         
         fix_y1a += top_slope;
         fix_y1b += bot_slope;
+
     }
     
 }
@@ -428,6 +504,7 @@ void draw_one_sided_span(s16 orig_x1, s16 orig_x2,
 #define CLEAR_SUBPIXELS(x) ((x) &= ~0xFFFF)
 
 
+/*
 void draw_span(s16 orig_x1, s16 orig_x2, 
                fix32 y1a, fix32 ny1a, fix32 y1b, fix32 ny1b, fix32 y2a, fix32 ny2a, fix32 y2b, fix32 ny2b, 
                s16 draw_x1, s16 draw_x2, 
@@ -440,3 +517,4 @@ void draw_span(s16 orig_x1, s16 orig_x2,
         draw_one_sided_span(orig_x1, orig_x2, y1a, y1b, y2a, y2b, draw_x1, draw_x2, ceil_col, wall_col, floor_col, dither_wall, dither_floor);
     }
 }
+*/

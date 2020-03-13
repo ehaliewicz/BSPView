@@ -40,18 +40,18 @@ int process_columns(u32 cur_frame) {
 	        u8* bmp_write = BMP_getWritePointer(i<<1, wiped[i]);
             if(wiped[i] == 0) {
                 for(int y = 0; y < move; y++){
-                    bmp_write[y*128] = TRANSPARENT_IDX;
-                    bmp_read[y*128] = TRANSPARENT_IDX;
+                    bmp_write[y*2] = TRANSPARENT_IDX;
+                    bmp_read[y*2] = TRANSPARENT_IDX;
                 }
             }
 
-            int cnt = 160-4-wiped[i];
-            bmp_write += (128*move);
+            int cnt = H-4-wiped[i];
+            bmp_write += (4*move);
             
             for(int y = 0; y < cnt; y++) {
                 bmp_write[0] = bmp_read[0];
-                bmp_write += 128;
-                bmp_read += 128;
+                bmp_write += 2;
+                bmp_read += 2;
             }
             
             

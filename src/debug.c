@@ -3,7 +3,7 @@
 #include "player.h"
 #include "sector.h"
 
-static char buf[32];
+static char buf[36];
 
   #define PR(str, var, x, y) do {         \
       sprintf(buf, str, var);             \
@@ -11,7 +11,7 @@ static char buf[32];
   } while(0);
 
 void print_pos() {
-  PR("max pixel height for wall %i   ", max_pixel_height_for_wall, 0, 6);
+  PR("max pixel height for wall %i  ", max_pixel_height_for_wall, 0, 5);
   return; 
   sprintf(buf, "x: ");
   fix16ToStr(ply.where.x, buf+3, 3);
@@ -55,10 +55,7 @@ void clear_fps() {
 
 void print_transform_stats() {
 
-
-
   return;
-
 
   PR("%2i walls transformed", walls_transformed, 0, 5);
   PR("%2i walls clipped after transform", walls_clipped_after_transform, 0, 6);

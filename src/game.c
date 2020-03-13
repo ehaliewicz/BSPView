@@ -195,7 +195,8 @@ void run_game() {
         //if(!show_fps) { clear_fps(); }
     }
     if(joy & BUTTON_C && !(last_joy & BUTTON_C)) {
-        show_pos = show_pos ? 0 : 1;
+        // show_pos = show_pos ? 0 : 1;
+        low_quality_texture = low_quality_texture ? 0 : 1;
         //if(!show_pos) { clear_pos(); }
     }
     if(joy & BUTTON_START && !(last_joy & BUTTON_START)) {
@@ -259,11 +260,12 @@ void run_game() {
     clear_vertex_cache();
     BMP_waitWhileFlipRequestPending();
     if(!fill) { BMP_clear(); }
-    
+
     draw_bsp_node(&root_node);
     
     //DMA_doDma(DMA_VRAM, bmp_buffer_write, )
     BMP_flip(1);
+
 
     //VDP_waitVSync();
     if(show_fps) {
