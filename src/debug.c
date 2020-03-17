@@ -36,11 +36,8 @@ void clear_pos() {
 }
 
 void print_fps() {
-  char buf[32];
-
   fix32ToStr(getFrameTime(), buf, 1);
-  buf[4] = 'm';
-  buf[5] = 's';
+  sprintf(buf+5, "ms  ");
   VDP_drawTextBG(PLAN_A, buf, 0, 4);
   //fix32ToStr(getFPS_f(), buf, 1);
   //VDP_drawTextBG(PLAN_A, buf, 0, 5);

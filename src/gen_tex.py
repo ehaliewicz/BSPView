@@ -31,8 +31,7 @@ def read_texture_and_apply_palette(texfile, palette):
 def gen_c_texture(name, tex):
     height = len(tex)
     width = len(tex[0])
-    output = "#include \"genesis.h\"\n"
-    output += "const u8 {}[{}]".format(name, height*width) + " = {"
+    output = "const u8 {}[{}]".format(name, height*width) + " = {"
 
     for y in xrange(height):
         for x in xrange(width):
@@ -50,6 +49,16 @@ if __name__ == '__main__':
 
     
     texfile = sys.argv[2]
-    texture = read_texture_and_apply_palette(texfile, palette)
+    texfile_start = texfile.split(".png")[0]
+    light_texfile = "{}_light.png".format(texfile_start)
+    dark_texfile = "{}_dark.png".format(texfile_start)
+    
+    normal_tex = read_texture_and_apply_palette(texfile, palette)
+    light_tex = read_texture_and_apply_palette(light_texfile, palette)
+    dark_tex = read_texture_and_apply_palette(dark_texfile, palette)
 
-    print gen_c_texture("wood_tex", texture)
+    print "#include \"genesis.h\""
+    print gen_c_texture("wood_tex", normal_tex)
+    print gen_c_texture("wood_tex_light", light_tex)
+    print gen_c_texture("wood_tex_dark", dark_tex)
+    

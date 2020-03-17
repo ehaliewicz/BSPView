@@ -254,6 +254,7 @@ int draw_sector(sector* sect) {
         //if(fy1a > fy1b || fy2a > fy2b) { continue; }
 
         u8 wall_col = calculate_color(w->middle_color, avg_dist, sect->light_level);
+        u8* wall_tex = calculate_texture(avg_dist, sect->light_level);
         u8 low_col = calculate_color(w->lower_color, avg_dist, sect->light_level);
         u8 high_col = calculate_color(w->upper_color, avg_dist, sect->light_level);
         u8 dither_wall = needs_dither(avg_dist);
@@ -268,7 +269,7 @@ int draw_sector(sector* sect) {
                                     render_spans_for_wall[i].clip_x1,
                                     render_spans_for_wall[i].clip_x2,
                                     rz1, rz2,
-                                    sect_ceil_col, wall_col, sect_floor_col, 
+                                    sect_ceil_col, wall_tex, sect_floor_col, 
                                     dither_wall, dither_floor);
             }
             if(full) { return full; }
@@ -283,10 +284,11 @@ int draw_sector(sector* sect) {
             u8 handle_upper_step = nsceil < sect_ceil;
             u8 handle_lower_step = nsfloor > sect_floor;
 
-            if(nsceil < sect_floor) {
+            if(0) { //nsceil < sect_floor) {
                 // draw just top wall as opaque wall
                 int full = insert_span(x1, x2, 1);
                 for(int i = 0; i < num_render_spans; i++) {
+                    /*
                     draw_one_sided_span(x1, x2, 
                                         fy1a, fy1b, 
                                         fy2a, fy2b, 
@@ -295,15 +297,17 @@ int draw_sector(sector* sect) {
                                         rz1, rz2,
                                         sect_ceil_col, high_col, sect_floor_col, 
                                         dither_wall, dither_floor);
+                    */
                 }
                 if(full) { 
                     return full; 
                 }
 
-            } else if (nsfloor > sect_ceil) {
+            } else if (0) { //nsfloor > sect_ceil) {
                 // draw just bottom wall as opaque wall
                 int full = insert_span(x1, x2, 1);
                 for(int i = 0; i < num_render_spans; i++) {
+                    /*
                     draw_one_sided_span(x1, x2, 
                                         fy1a, fy1b, 
                                         fy2a, fy2b, 
@@ -312,6 +316,7 @@ int draw_sector(sector* sect) {
                                         rz1, rz2,
                                         sect_ceil_col, low_col, sect_floor_col, 
                                         dither_wall, dither_floor);
+                    */
                 }
                 if(full) { 
                     return full; 

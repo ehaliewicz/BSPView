@@ -1,5 +1,6 @@
 #include <genesis.h>
 #include "palette.h"
+#include "texture.h"
 
 /*
 const u16 colors[16] = {
@@ -85,6 +86,31 @@ void load_palette(int palnum, palette_type typ) {
 #define MID_DARK_DIST 10
 #define DARK_DIST 15
 
+u8* calculate_texture(u32 dist, s8 light_level) {
+  int dist_idx = 0;
+  if(dist > DARK_DIST) {
+    dist_idx = 0;
+  } else if (dist > MID_DARK_DIST) {
+    dist_idx = 1;
+  } else if (dist > MID_DIST) {
+    dist_idx = 2;
+  } else {
+    dist_idx = 3;
+  }
+
+  static const u8* tex_arr[4][5] = {
+    // far
+    {&wood_tex_dark, &wood_tex_dark, &wood_tex_dark, &wood_tex_dark, &wood_tex},
+    // mid far
+    {&wood_tex_dark, &wood_tex_dark, &wood_tex_dark, &wood_tex,      &wood_tex_light},
+    // mid
+    {&wood_tex_dark, &wood_tex_dark, &wood_tex,      &wood_tex,      &wood_tex_light},
+    // near
+    {&wood_tex_dark, &wood_tex,      &wood_tex,      &wood_tex,      &wood_tex_light},
+  };
+
+  return tex_arr[dist_idx][light_level+2];
+}
 
 u8 calculate_color(u8 col_idx, u32 dist, s8 light_level) {
   switch(light_level) {

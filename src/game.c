@@ -274,5 +274,10 @@ void run_game() {
     if(show_pos) {
         print_pos();
     }
+    if(low_quality_texture) {
+        VDP_drawTextBG(PLAN_A, "low quality texture mapping ", 0, 5);
+    } else {
+        VDP_drawTextBG(PLAN_A, "high quality texture mapping", 0, 5);
+    }
     //print_transform_stats();
 }

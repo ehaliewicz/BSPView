@@ -182,9 +182,8 @@ inline void vline_dither_tex(u8* buf_ptr, s16 orig_y1, s16 orig_y2, s16 clip_y1,
   s16 total_skip = top_skip+bot_skip;
 
 
-  if(orig_dy <= 100) {
-    vline_texture_c(buf_ptr, tex_ptr, orig_dy, top_skip, bot_skip);
-
+  if(orig_dy <= 125) {
+    vline_texture_32_c(buf_ptr, tex_ptr, orig_dy, top_skip, bot_skip);
   } else {
     fix32 dv_over_dy = (32<<16) / orig_dy; // 8.24
     s32 skip_dy = clip_y1-orig_y1;
@@ -381,17 +380,19 @@ void draw_one_sided_span(s16 orig_x1, s16 orig_x2,
                          fix32 y1a, fix32 y1b, fix32 y2a, fix32 y2b, 
                          s16 draw_x1, s16 draw_x2, 
                          fix16 z1, fix16 z2,
-                         u8 ceil_col, u8 wall_col, u8 floor_col, 
+                         u8 ceil_col, u8* wall_tex, u8 floor_col, 
                          u8 dither_wall, u8 dither_floor) {
 
     u8 wall_col2;
     u8 floor_col2;
     u8 ceil_col2;
+    /*
     if(dither_wall) {
         wall_col2 = swap_nibbles(wall_col);
     } else {
         wall_col2 = wall_col;
     }
+    */
 
     if(dither_floor) {
       floor_col2 = swap_nibbles(floor_col);
@@ -442,7 +443,7 @@ void draw_one_sided_span(s16 orig_x1, s16 orig_x2,
     //fix32 du_over_z_over_dx = (end_du_over_z-start_du_over_z)/dx;
     //fix32 one_over_z_over_dx = (end_one_over_z-start_one_over_z)/dx;
     
-    u8* tex_ptr = wood_tex;
+    u8* tex_ptr = wall_tex;
     
     //fix16 du_over_dx = fix16Div(FIX16(32), FIX16(dx));
     fix16 du_per_dx = (32<<5)/dx; //FIX16(32)/dx;

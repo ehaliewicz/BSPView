@@ -35,6 +35,7 @@ typedef enum {
 
 void load_palette(int palnum, palette_type typ);
 
+u8* calculate_texture(u32 dist, s8 light_level);
 u8 calculate_color(u8 col_idx, u32 dist, s8 light_level);
 u8 needs_dither(u32 dist);
 

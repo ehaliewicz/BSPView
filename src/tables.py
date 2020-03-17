@@ -220,9 +220,9 @@ def gen_texture_table_old(texture_size, wall_height):
 
 if __name__ == '__main__':
     print "#include \"genesis.h\""
-    max_wall_size = 100
+    max_wall_size = 125
 
-    texture_size = 32
+    #texture_size = 32
 
     """
     for y in xrange(1, max_wall_size+1):
@@ -243,49 +243,68 @@ if __name__ == '__main__':
         print "};"
     """
 
+    for texture_size in [16, 32]: 
     
-    for y in xrange(1, max_wall_size+1):
-        skip_texel_for_skip_pixel = []
+        for y in xrange(1, max_wall_size+1):
+            skip_texel_for_skip_pixel = []
         
-        u_per_dy = float(texture_size) / float(y)
-        print "void draw_{}_tex_to_{}_pixels(u8* buf_ptr, u8* tex_ptr, s16 skip_top_pixels, s16 skip_bot_pixels) ".format(texture_size, y) + "{"
-        
-        print "  if(skip_bot_pixels) {"
-        #print "    tex_ptr = tex_ptr - skip_texels_for_{}[total_skip];".format(y)
-        #print "    tex_ptr = tex_ptr + skip_texels_for_{}[skip_top_pixels];".format(y)
-        #print "    tex_ptr = tex_ptr - skip_texels_for_{}[skip_bot_pixels];".format(y)
-        print "    tex_ptr = tex_ptr - ((skip_bot_pixels*{})>>5);".format(int(u_per_dy*32))
-        print "  }"
+            u_per_dy = float(texture_size) / float(y)
+            print "void draw_{}_tex_to_{}_pixels(u8* buf_ptr, u8* tex_ptr, s16 skip_top_pixels, s16 skip_bot_pixels) ".format(texture_size, y) + "{"
 
-        u = 0
+            reuse_texels = y >= texture_size
+            
+            
+            print "s16 total_skip = skip_top_pixels + skip_bot_pixels;"
+            print "  if(total_skip) {"
+            #print "    tex_ptr = tex_ptr - skip_texels_for_{}[total_skip];".format(y)
+            #print "    tex_ptr = tex_ptr + skip_texels_for_{}[skip_top_pixels];".format(y)
+            #print "    tex_ptr = tex_ptr - skip_texels_for_{}[skip_bot_pixels];".format(y)
+            if reuse_texels:
+                pass
+            else:
+                print "    tex_ptr -= ((skip_bot_pixels*{})>>5);".format(int(u_per_dy*32))
+            #if reuse_texels:
+            #    print "    tex_ptr += ((skip_top_pixels * {})>>5);".format(int(u_per_dy*32))
+            print "  }"
+
         
-        print "  switch(skip_top_pixels+skip_bot_pixels) {"
-        for py in xrange(y):
-            print "    case {}: ".format(py)
-            print "      buf_ptr[{}] = tex_ptr[{}];".format(py*2, int(u))
-            u += u_per_dy
-        print "  };"
-        print "  return;"
-        print "}"
+                
+            u = 0
+        
+            print "  switch(skip_top_pixels+skip_bot_pixels) {"
+            for py in xrange(y):
+                next_u = u+u_per_dy
+                print "    case {}: ".format(py)
+                if reuse_texels:
+                    if int(next_u) > int(u):
+                        print "      buf_ptr[{}] = *tex_ptr++;".format(py*2)
+                    else:
+                        print "      buf_ptr[{}] = *tex_ptr;".format(py*2)
+                else:
+                    print "      buf_ptr[{}] = tex_ptr[{}];".format(py*2, int(u))
+                u = next_u
+            print "  };"
+            print "  return;"
+            print "}"
 
     
-    print "void (*jmp[{}])(u8* buf_ptr, u8* tex_ptr, s16 skip_top_pixels, s16 skip_bot_pixels) = ".format(max_wall_size+1) + "{"
-    print "  NULL,"
-    for y in xrange(1, max_wall_size+1):
-        print "  draw_{}_tex_to_{}_pixels,".format(texture_size, y)
-    print "};"
+        print "void (*jmp_{}[{}])(u8* buf_ptr, u8* tex_ptr, s16 skip_top_pixels, s16 skip_bot_pixels) = ".format(texture_size, max_wall_size+1) + "{"
+        print "  NULL,"
+        for y in xrange(1, max_wall_size+1):
+            print "  draw_{}_tex_to_{}_pixels,".format(texture_size, y)
+        print "};"
         
     
-    print "void vline_texture_c(u8* buf_ptr, u8* tex_ptr, s16 wall_height, s16 skip_top_pixels, s16 skip_bot_pixels) {"
+        print "void vline_texture_{}_c(u8* buf_ptr, u8* tex_ptr, s16 wall_height, s16 skip_top_pixels, s16 skip_bot_pixels) ".format(texture_size) +"{"
 
-    print "  int total_skip = skip_top_pixels + skip_bot_pixels;"
+        print "  int total_skip = skip_top_pixels + skip_bot_pixels;"
   
 
-    print "  buf_ptr = buf_ptr - (total_skip*2);"
+        print "  buf_ptr = buf_ptr - (total_skip*2);"
 
-    print "  jmp[wall_height](buf_ptr, tex_ptr, skip_top_pixels, skip_bot_pixels);"
+        print "  jmp_{}[wall_height](buf_ptr, tex_ptr, skip_top_pixels, skip_bot_pixels);".format(texture_size)
 
-    print "}"
+        print "}"
         
     
 

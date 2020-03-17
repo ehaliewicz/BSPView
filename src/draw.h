@@ -48,7 +48,7 @@ void draw_one_sided_span(s16 orig_x1, s16 orig_x2,
                          fix32 y1a, fix32 y1b, fix32 y2a, fix32 y2b, 
                          s16 draw_x1, s16 draw_x2, 
                          fix16 z1, fix16 z2,
-                         u8 ceil_col, u8 wall_col, u8 floor_col, 
+                         u8 ceil_col, u8* wall_tex, u8 floor_col, 
                          u8 dither_wall, u8 dither_floor);
 
 #endif
