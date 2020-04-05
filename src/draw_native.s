@@ -76,7 +76,7 @@ vline_native_tex_low_quality:
     move.l 16(%sp), %d1     | load dv_over_dy
     move.l 20(%sp), %d2     | load dv
     
-    | add.l %d1, %d1      | double dv_over_dy (low quality)
+    add.l %d1, %d1      | double dv_over_dy (low quality)
     lsr.l #1, %d0
 lq_tex_lp:
     swap %d2
@@ -85,7 +85,6 @@ lq_tex_lp:
     move.b %d3, 2(%a1)
     addq.l #4, %a1
     swap %d2
-    add.l %d1, %d2
     add.l %d1, %d2
     dbeq %d0, lq_tex_lp
 

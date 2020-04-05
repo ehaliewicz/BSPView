@@ -270,7 +270,7 @@ if __name__ == '__main__':
         
                 
             u = 0
-        
+
             print "  switch(skip_top_pixels+skip_bot_pixels) {"
             for py in xrange(y):
                 next_u = u+u_per_dy

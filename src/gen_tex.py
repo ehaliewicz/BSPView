@@ -58,7 +58,7 @@ if __name__ == '__main__':
     dark_tex = read_texture_and_apply_palette(dark_texfile, palette)
 
     print "#include \"genesis.h\""
-    print gen_c_texture("wood_tex", normal_tex)
-    print gen_c_texture("wood_tex_light", light_tex)
-    print gen_c_texture("wood_tex_dark", dark_tex)
+    print gen_c_texture("{}".format(texfile_start), normal_tex)
+    print gen_c_texture("{}_light".format(texfile_start), light_tex)
+    print gen_c_texture("{}_dark".format(texfile_start), dark_tex)
     

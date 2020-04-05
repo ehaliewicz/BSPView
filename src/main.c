@@ -10,7 +10,8 @@
 
 int main() {
 
-  init_vdp(); 
+  init_vdp();
+  init_menu(); 
 
   while(1) {
     switch(cur_state) {

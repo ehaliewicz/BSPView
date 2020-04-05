@@ -13,6 +13,16 @@ void print_menu() {
     VDP_drawTextBG(PLAN_A, "--- press any button ---", 10, 19);
 }
 
+void initialize_fire() {
+  
+}
+
+void init_menu() {
+  print_menu();
+  BMP_init(0, PLAN_B, 3, 0);
+  initialize_fire();
+}
+
 void clear_menu() {
   for(int i = 8; i <= 26; i++) {
     VDP_clearPlan(PLAN_A, TRUE);
@@ -21,6 +31,7 @@ void clear_menu() {
 
 void exit_menu() {
     clear_menu();
+    BMP_end();
 }
 
 void run_menu() {
