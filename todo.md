@@ -22,7 +22,8 @@
 - generate assembly from tables.py
 - use supervisor stack pointer trick (requires getting rid of SGDK...)
 - slow accurate texturing can be optimized with the same trick as above
-    ```addx.l %d1, %d0    ; fractional carry goes into integer texture coordinate
+    ```
+    addx.l %d1, %d0    ; fractional carry goes into integer texture coordinate
     move.b (a0, d0.w), 0(a1) ; use just integer texture coordinate
     ; alternatively, with supervisor stack pointer
     move.b (a0, d0.w), (a7)+
