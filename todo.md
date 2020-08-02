@@ -8,7 +8,8 @@
    - use addx for fixed point with no shifting 
    e.g.
    
-    ```; d0 is fixed point y coordinate of wall (but with fractional bits in the top word, and integer bits in the lower word)
+    ```
+    ; d0 is fixed point y coordinate of wall (but with fractional bits in the top word, and integer bits in the lower word)
     ; d1 is dy (wall slope), in the same fixed point format as d0
     move.w %d0, (a0)+  ; copy only integer bits over
     addx.l %d1, %d0    ; add dy to y position, any overflowing fractional portion gets moved into the carry
