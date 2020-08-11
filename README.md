@@ -6,3 +6,5 @@ There are a couple binaries to play around with in /bin (run them in a Genesis/M
 
 ![Skybox Screenshot](./skybox.png)
 
+![Textures Screenshot](./textured_hallway.png)
+
