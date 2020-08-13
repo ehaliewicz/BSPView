@@ -1,10 +1,18 @@
 # Optimize performance
 - backface culling in worldspace?
 - check sector AABBs or spheres against frustum and span-buffer
-- drawing horizontal rectangular regions horizontally?
+- add masked object rendering
+  - not quite sure how this works yet
+  - need to clip sprites against a recorded list of drawn silhouettes
+
+- draw transparent masked objects!
+  - skip every other row in a column being drawn
+  - offset by a row for each column
+
+- mipmapping (per column, use the column's pixel size as the index into a 160 element table, containing the size of the texture map to use) 
 - optimize vertex transformation with assembly?
 - optimize span-buffer with assembly?
-- optimize wall rasterization with assembly?
+- optimize wall rasterization with assembly
    - use addx for fixed point with no shifting 
    e.g.
    
@@ -17,17 +25,30 @@
     addx.l %d1, %d0    ; carry from last addition goes into the integer portion of this addition
     ; and so on
     ```
-  
+    - make sure to optimize walls with no dy
+
 # texturing 
 - generate assembly from tables.py
-- use supervisor stack pointer trick (requires getting rid of SGDK...)
-- slow accurate texturing can be optimized with the same trick as above
+- use supervisor stack pointer trick (might require getting rid of SGDK)
+- accurate texturing can be optimized with the same trick as above
     ```
-    addx.l %d1, %d0    ; fractional carry goes into integer texture coordinate
+    addx.l d1, d0    ; fractional carry goes into integer texture coordinate
     move.b (a0, d0.w), 0(a1) ; use just integer texture coordinate
     ; alternatively, with supervisor stack pointer
     move.b (a0, d0.w), (a7)+
     ```
+
+    We can use slightly lower quality texture mapping and double each pixel
+    which will give us 19 cycles per pixel, assuming it's fully unrolled up to 160 pixels
+    That's only 3 cycles per pixel slower than the fully unrolled, less accurate `move.b precalculatedOffset(a0), (a7)+1` style.
+
+    ```
+    addx.l %d1, %d0
+    move.b (a0, d0.w), d2
+    move.b d2, (a7)+
+    move.b d2, (a7)+
+
+
 
 # improvements 
 - add yaw/looking up and down? (one extra multiply per vertex)
