@@ -1,7 +1,8 @@
 # Optimize performance
 - backface culling in worldspace?
   - in each sector, store lists of possibly viewable walls for each of the four angle quadrants!
-  
+- bsp node frustum culling
+  - instead of checking bounding boxes at runtime (probably expensive), add information to each bsp node that says whether a child is potentially visible or not from any of the four quadrants! 
 - check sector AABBs or spheres against frustum and span-buffer
 - add masked object rendering
   - not quite sure how this works yet
