@@ -1,5 +1,7 @@
 # Optimize performance
 - backface culling in worldspace?
+  - in each sector, store lists of possibly viewable walls for each of the four angle quadrants!
+  
 - check sector AABBs or spheres against frustum and span-buffer
 - add masked object rendering
   - not quite sure how this works yet
