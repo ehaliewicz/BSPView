@@ -51,6 +51,7 @@
     move.b d2, (a7)+
     move.b d2, (a7)+
 
+- another idea for texturing: use forward texture mapping, calculate how many pixels to draw for each texel, load texel once, and loop for that many times over the pixels
 
 
 # improvements 
