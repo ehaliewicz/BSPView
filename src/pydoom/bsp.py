@@ -85,11 +85,11 @@ def traverse_bsp_front_to_back(level_data,
         else:
             node = nodes[get_real_idx(node_idx)]
             if is_on_left(node, x, y):
-                if (bsp_child_onscreen(node, left_child=False)):
+                if draw.draw_mode == draw.TOPDOWN_DRAW_ALL_SEGS or (bsp_child_onscreen(node, left_child=False)):
                     stk.append(node.right_child)
                 stk.append(node.left_child)
             else:
-                if (bsp_child_onscreen(node, left_child=True)):
+                if draw.draw_mode == draw.TOPDOWN_DRAW_ALL_SEGS or (bsp_child_onscreen(node, left_child=True)):
                     stk.append(node.left_child)
                 stk.append(node.right_child)
                 

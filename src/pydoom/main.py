@@ -63,7 +63,7 @@ def main():
         if is_doom_two:
             level = 'MAP24'
         else:
-            level = 'E1M6'
+            level = 'E1M1'
     
     
     level_data = directory[level+'_DATA']
@@ -138,19 +138,6 @@ def main():
         #draw.draw_level_segs(level_data, draw_surf, color=RED)
         #draw.draw_level_vertexes(level_data, draw_surf, color=GREEN)
         
-
-        nodes_traversed = 0
-        def node_callback(node, level, on_left):
-            nonlocal nodes_traversed
-            nodes_traversed += 1
-            draw.draw_bsp_node(node, level, draw_surf, BLUE, draw_left=on_left, draw_right=(not on_left))
-        ssect_callback = lambda ssect: None
-        
-
-        #bsp.find_subsector_for_position(level_data,
-        #                                draw.cam_x, draw.cam_y,
-        #                                node_callback)
-
         col = (255,255,255)
 
         #segs = []
@@ -201,10 +188,30 @@ def main():
 
         draw.draw_player(draw_surf, color=RED)
         draw_ssect_func = draw.ssect_draw_func_table[draw.draw_mode]
-        bound_func = lambda ssect: draw_ssect_func(level_data, draw_surf, ssect)
+        def bound_func(ssect):
+            nonlocal ssectors_processed
+            ssectors_processed += 1
+            draw_ssect_func(level_data, draw_surf, ssect)
+            
+        #bound_func = lambda ssect: draw_ssect_func(level_data, draw_surf, ssect)
         bsp.traverse_bsp_front_to_back(level_data,
                                        draw.cam_x, draw.cam_y,
                                        ssect_callback = bound_func)
+
+        
+
+        nodes_traversed = 0
+        def node_callback(node, level, on_left):
+            nonlocal nodes_traversed
+            nodes_traversed += 1
+            draw.draw_bsp_node(node, level, draw_surf, BLUE, draw_left=on_left, draw_right=(not on_left))
+        ssect_callback = lambda ssect: None
+        
+
+        bsp.find_subsector_for_position(level_data,
+                                        draw.cam_x, draw.cam_y,
+                                        node_callback)
+
         #draw_ssect)
 
         #if draw.draw_all_segs:
@@ -237,6 +244,9 @@ def main():
 
             fps = clock.get_fps()
             draw_font_line("drawing map {}".format(level))
+            draw_font_line("draw mode {}".format(draw.draw_mode))
+            draw_font_line("{} nodes traversed".format(nodes_traversed))
+            print("ssectors procesed: {}".format(ssectors_processed))
             draw_font_line("{} subsectors processed".format(ssectors_processed))
             draw_font_line("{} segs processed".format(segs_processed))
             draw_font_line("{} segs fully clipped".format(segs_fully_clipped))

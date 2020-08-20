@@ -4,9 +4,9 @@ import span_buffer, util
 cam_x = 0
 cam_y = 0
 cam_angle = .0
-TOPDOWN_DRAW_ALL_SEGS = 'tdas'
-TOPDOWN_DRAW_VISIBLE_SEGS = 'tdvs'
-DRAW_VISIBLE_SEGS = '3dvs'
+TOPDOWN_DRAW_ALL_SEGS = 'topdown draw all segs'
+TOPDOWN_DRAW_VISIBLE_SEGS = 'topdown draw visible segs'
+DRAW_VISIBLE_SEGS = '3d draw visible segs'
 
 draw_mode = TOPDOWN_DRAW_ALL_SEGS
 next_draw_mode_table = {
@@ -48,7 +48,6 @@ def ssect_draw_all_segs(level_data, draw_surf, ssect):
             #draw_stats.segs_backface_culled += 1
                     
 def ssect_draw_visible_segs(level_data, draw_surf, ssect):
-    
     start_seg = ssect.first_seg
     num_segs = ssect.num_segs
     segs = level_data['SEGS']
@@ -192,6 +191,7 @@ def transform_seg(level_data, surf, seg): #, color):
     trans_v2 = translate_point((v2.x, v2.y))
     rot_v1 = rotate_point(trans_v1)
     rot_v2 = rotate_point(trans_v2)
+    
     res = DRAWN
     #rot_v1_x,rot_v1_y = rot_v1
     #rot_v2_x,rot_v2_y = rot_v2
