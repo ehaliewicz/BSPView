@@ -2,7 +2,7 @@ import math, pygame, sys
 
 import bsp, draw, wad, span_buffer
 
-DEFAULT_WADFILE = "/Users/erik/Desktop/Games/PC/doom_1_and_2/DOOM/doom.wad"
+DEFAULT_WADFILE = "./doom.wad"
 
 screen = None
 draw_surf = None
