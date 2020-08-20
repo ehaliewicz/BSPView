@@ -160,7 +160,7 @@ PARSE_TABLE = {
     'sidedefs': 'x_off:s16 y_off:s16 upper_texture:str[8] lower_texture:str[8] middle_texture:str[8] sector_ref:u16',
     'vertexes': 'x_pos:s16 y_pos:s16',
     'segs': 'v1:u16 v2:u16 angle:s16 linedef:u16 direction:s16 offet:s16',
-    'nodes': "partition_x_pos:s16 partition_y_pos:s16 dx:s16 dy:s16 rbbox_top:s16 rbbox_bottom:s16 rbbox_left:s16 rbbox_right:s16 lbbox_top:s16 lbbox_bottom:s16 lbbox_left:s16 lbbox_right:s16 left_child:u16 right_child:u16",
+    'nodes': "partition_x_pos:s16 partition_y_pos:s16 dx:s16 dy:s16 rbbox_top:s16 rbbox_bottom:s16 rbbox_left:s16 rbbox_right:s16 lbbox_top:s16 lbbox_bottom:s16 lbbox_left:s16 lbbox_right:s16 right_child:u16 left_child:u16",
     'ssectors': 'num_segs:u16 start_seg_idx:u16'
 }
 
@@ -214,14 +214,36 @@ SCREEN_HEIGHT = 1800
 
 
 draw_surf = None
+screen_surf = None
+screen_size = None
+
+min_x = 65536
+min_y = 65536
+max_x = -65536
+max_y = -65536
+x_scale = 1
+y_scale = 1
+
+
+
+def flip():
+    scale_surf = pygame.transform.scale(draw_surf, screen_size)#, scale_surf)
+    blit_surf = pygame.transform.flip(scale_surf, False, True)
+    
+    screen_surf.blit(blit_surf, (0, 0))
+    
+    pygame.display.flip()
+
     
 def translate_vertex(vert):
+    return vert
     (x,y) = vert
     (plx,ply) = player_pos
     return ((x-plx), (y-ply))
     
     
 def rotate_vertex(vert):
+    return vert
     (x,y) = vert
     sn = math.sin(player_angle)
     cs = math.cos(player_angle)
@@ -231,62 +253,85 @@ def rotate_vertex(vert):
     #ry = x * cs - y * sn
     return (rx,ry)
 
-    
+
+def lerp(a,b,c):
+    return a + (b - a) * c
+
 def transform_vertex(vert):
     (x,y) = vert
-    vert2 = (x,y) #10,y/10)#/20)
-    translated = translate_vertex(vert2)
-    rotated = rotate_vertex(translated)
-    (rx,ry) = rotated
-    
-    
-    #print("untransformed: {}".format(vert))
-    #print("translated: {}".format(translated))
-    #print("rotated: {}".format(rotated))
 
-    return (rx+SCREEN_WIDTH/2, ry+SCREEN_HEIGHT/2)
+    max_width = max_x-min_x
+    max_height = max_y-min_y
+    
 
+    return (x-min_x)*x_scale,(y-min_y)*y_scale
+
+    
 def is_point_on_left(pos, partition, partition_dpos):
     (x,y) = pos
     (part_x, part_y) = partition
     (dx, dy) = partition_dpos
 
+
+    if dx == 0:
+        if x <= part_x:
+            return dy > 0
+
+        return dy < 0
+
+    if dy == 0:
+       if y <= part_y:
+           return dx < 0
+       return dx > 0
+   
     rel_x = x - part_x
     rel_y = y - part_y
-    
-    return (((rel_x * dy) - (rel_y * dx)) <= 0) 
+    left = dy * rel_x
+    right = rel_y * dx
+
+    if right < left:
+        return 0 # right
+    else:
+        return 1
+    #return (((rel_x * dy) - (rel_y * dx)) <= 0) 
     
     
 
 def draw_player():
     length = 20
+    x,y = player_pos
+        
+
+    end_x = x+(20 * math.sin(player_angle))
+    end_y = y+(20 * math.cos(player_angle))
+
+    tv1 = transform_vertex((x,y)),
+    tv2 = transform_vertex((end_x,end_y)),
+
+    print("player v1 {}".format(tv1))
+
+    print("player v2 {}".format(tv2))
     pygame.draw.line(draw_surf,
-                     (255,0,0),
-                     (SCREEN_WIDTH/2, SCREEN_HEIGHT/2),
-                     (SCREEN_WIDTH/2, (SCREEN_HEIGHT/2)-length), 2)
+                     (255,255,0),
+                     tv1,
+                     tv2,                     
+                     2)
+    
+    #pygame.draw.line(draw_surf,
+    #                 (255,0,0),
+    #                 (SCREEN_WIDTH/2, SCREEN_HEIGHT/2),
+    #                 (SCREEN_WIDTH/2, (SCREEN_HEIGHT/2)-length), 2)
 
 seg_depth = 0
 
-def draw_seg(seg, level):
-    global seg_depth 
+def draw_seg(seg, level, color):
+    
     v1 = level.vertexes()[seg.v1]
     v2 = level.vertexes()[seg.v2]
-    #r = random.randrange(255)
-    #g = random.randrange(255)
-    #b = random.randrange(255)
-
-    a = 255
-    b = 10
-    c = seg_depth / len(level.segs())
-    
-    b = (c * a) + ((1-c) * b)
-    #b = max(1, 255-seg_depth)
-    seg_depth += 1
-
-    
     trans_v1 = transform_vertex((v1.x_pos, v1.y_pos))
     trans_v2 = transform_vertex((v2.x_pos, v2.y_pos))
-    pygame.draw.line(draw_surf, (b,b,b), trans_v1, trans_v2, 2)
+    
+    pygame.draw.line(draw_surf, color, trans_v1, trans_v2, 2)
     """
     if seg.direction == 0:
         #same direction
@@ -324,38 +369,87 @@ bsp stuff
 
 SUBSECTOR_IDENTIFIER = 0x8000
 
-rendered_subsectors = 0
-def render_subsector(subsector, level):
+def render_subsector(subsector, level, color=(255,255,255)):
     global rendered_subsectors
-    rendered_subsectors += 1
-    if rendered_subsectors >= 10:
-        return
+    
     for seg_idx in range(subsector.num_segs):
         seg = level.segs()[subsector.start_seg_idx + seg_idx]
-        draw_seg(seg, level)
+        draw_seg(seg, level, color)
         
 
-def render_node(node_id, pos, level):
+def traverse_node(node_id, pos, level, subsector_func):
     if node_id & SUBSECTOR_IDENTIFIER:
-        render_subsector(level.ssectors()[node_id & (~SUBSECTOR_IDENTIFIER)], level)
+        subsector_func(level.ssectors()[node_id & (~SUBSECTOR_IDENTIFIER)], level)
     else:
         node = level.nodes()[node_id]
         is_on_left = is_point_on_left(pos,
                                       (node.partition_x_pos, node.partition_y_pos),
-                                      (node.dx, node.dy))
+                                      (node.dx, node.dy)) == 1
+        
         if is_point_on_left:
-            render_node(node.left_child, pos, level)
-            render_node(node.right_child, pos, level)
+            return (traverse_node(node.left_child, pos, level, subsector_func) or
+                    traverse_node(node.right_child, pos, level, subsector_func))
         else:
-            render_node(node.right_child, pos, level)
-            render_node(node.left_child, pos, level)
+            return (traverse_node(node.right_child, pos, level, subsector_func) or
+                    traverse_node(node.left_child, pos, level, subsector_func))
 
 def render_bsp_tree(nodes, pos, level):
-    global seg_depth, rendered_subsectors
     print("rendering bsp tree from pos {}".format(pos))
     seg_depth = 0
-    rendered_subsectors = 0
-    render_node(len(nodes)-1, pos, level)
+    traverse_node(len(nodes)-1, pos, level, render_subsector)
+
+def draw_bbox(x1,x2,y1,y2, col):
+    v1 = transform_vertex((x1,y1))
+    v2 = transform_vertex((x2,y1))
+    v3 = transform_vertex((x1,y2))
+    v4 = transform_vertex((x2,y2))
+    #print("drawing bbox: {},{},{},{}".format(x1,x2,y1,2))
+    pygame.draw.line(draw_surf, col, v1, v2, 2)
+    pygame.draw.line(draw_surf, col, v2, v4, 2)
+    pygame.draw.line(draw_surf, col, v1, v3, 2)
+    pygame.draw.line(draw_surf, col, v3, v4, 2)
+    
+
+    
+def traverse_nodes_for_pos(node_id, pos, level):
+    
+    def draw_red_subsector_and_exit(subsector, level):
+        render_subsector(subsector, level, (0,0,255))
+        #return False
+        flip()
+        input("process done, hit enter to continue")
+        return True
+
+    def draw_bounding_boxes(node, level, dir):
+        l_color = (0,255,0) if dir == 'left' else (255,0,0)
+        r_color = (0,255,0) if dir == 'right' else (255,0,0)
+        
+        draw_bbox(x1=node.rbbox_left, x2=node.rbbox_right,
+                  y1=node.rbbox_top,  y2=node.rbbox_bottom, col=r_color)
+        draw_bbox(x1=node.lbbox_left, x2=node.lbbox_right,
+                  y1=node.lbbox_top,  y2=node.lbbox_bottom, col=l_color)
+
+        flip()
+        input("hit enter to continue")
+        
+    
+    if node_id & SUBSECTOR_IDENTIFIER:
+        draw_red_subsector_and_exit(level.ssectors()[node_id & (~SUBSECTOR_IDENTIFIER)], level)
+    else:
+        node = level.nodes()[node_id]
+        draw_bounding_boxes(node, level, "left" if is_point_on_left else "right")
+        is_on_left = is_point_on_left(pos,
+                                      (node.partition_x_pos, node.partition_y_pos),
+                                      (node.dx, node.dy))
+        if is_point_on_left:
+            traverse_nodes_for_pos(node.left_child, pos, level)
+            
+        else:
+            traverse_nodes_for_pos(node.right_child, pos, level)
+            
+        
+def find_subsector_for_pos(nodes, pos, level):
+    traverse_nodes_for_pos(len(nodes)-1, pos, level)
     
 
 """
@@ -427,7 +521,7 @@ def handle_keys():
     for (key, func) in keys:
         if key_map[key]:
             func()
-    
+
 
 def main(args):
         
@@ -443,22 +537,33 @@ def main(args):
     linedefs = e1m1.linedefs()
     vertexes = e1m1.vertexes()
     nodes = e1m1.nodes()
-    
+    print(nodes[-1])
+    #sys.exit()
+
+    global min_x,min_y,max_x,max_y, x_scale, y_scale
+    for vertex in vertexes:
+        min_x = min(vertex.x_pos, min_x)
+        min_y = min(vertex.y_pos, min_y)
+        max_x = max(vertex.x_pos, max_x)
+        max_y = max(vertex.y_pos, max_y)
+
+    x_scale = SCREEN_WIDTH/(max_x-min_x)
+    y_scale = SCREEN_HEIGHT/(max_y-min_y)
     
     player = things[0]
     assert player.type == PLAYER_THING_TYPE
     
     init_player(player.x_pos, player.y_pos, 180)
     
-    
+    global screen_size
     draw_size = SCREEN_WIDTH, SCREEN_HEIGHT
-    size = int(SCREEN_WIDTH/2), int(SCREEN_HEIGHT/2)
+    screen_size = int(SCREEN_WIDTH/2), int(SCREEN_HEIGHT/2)
     speed = [2,2]
     black = 0, 0, 0
 
     pygame.init()
-    global draw_surf
-    screen_surface = pygame.display.set_mode(size)
+    global draw_surf, screen_surf
+    screen_surf = pygame.display.set_mode(screen_size)
     draw_surf = pygame.Surface(draw_size)
         
     
@@ -476,15 +581,12 @@ def main(args):
         #    draw_linedef(linedef, vertexes)
 
         render_bsp_tree(nodes, player_pos, e1m1)
+        find_subsector_for_pos(nodes, player_pos, e1m1)
         
-        #draw_surf.blit(screen_surface, (0,0))
-        scale_surf = pygame.transform.scale(draw_surf, size)#, scale_surf)
-        blit_surf = pygame.transform.flip(scale_surf, True, False)
-        
-        screen_surface.blit(blit_surf, (0, 0)) #draw_surf, (0,0))
+        flip()
+        #input("hit enter to continue")
         
         
-        pygame.display.flip()
     
     
         
