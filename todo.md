@@ -30,6 +30,8 @@
     ; and so on
     ```
     - make sure to optimize walls with no dy
+    
+- use the forward texture mapping trick for rasterization (i.e. dx_over_dy instead of dy_over_dx)
 
 # texturing 
 - generate assembly from tables.py
@@ -52,7 +54,7 @@
     move.b d2, (a7)+
     move.b d2, (a7)+
 
-- another idea for texturing: use forward texture mapping, calculate how many pixels to draw for each texel, load texel once, and loop for that many times over the pixels
+- another idea for texturing: use forward texture mapping, calculate how many pixels to draw for each texel, load texel once, and loop for that many times over the pixels (i.e instead of dtexel_over_dy, dy_over_dtexel) should work well with mipmapping
 
 
 # improvements 
