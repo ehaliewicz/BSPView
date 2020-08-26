@@ -63,3 +63,29 @@
 - add sprite objects
 - add an automap
 - make gameplay speed framerate independent?
+
+- use log and expt tables for division (16/16), sample code below
+  ```
+EXPT   incbin "EXPS10000H.bin"
+LOGT   incbin "LOGS8000H.bin"
+
+START:
+    lea logt,a0
+    lea expt,a1
+    
+    move.w #1322, d0  ; dividend
+    move.w #220,d1    ; divisor
+    
+    move.b (a0,d0.w), d0  ; get log of dividend
+    sub.b (a0,d1),d1      ; subtract log of divisor from dividend
+    blt.b zero    ; if less than, quotient is zero (double check this)
+    
+    and.w #$ff, d0  ; clear top byte of dividend
+    add.w d0, d0    ; double log subtraction result (for indexing into word-size expt table)
+    move.w (a1, d0), d2 ; quotient here
+    rts
+zero:
+    moveq #0, d2  ; quotient is zero here
+    rts
+    ```
+
