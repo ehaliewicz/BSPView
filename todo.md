@@ -2,7 +2,8 @@
 - backface culling in worldspace
   - in each sector, store the range(s) of angles (up to 2) for which a wall seg is visible
 - bsp node frustum culling
-  - instead of checking bounding boxes at runtime (probably expensive), add information to each bsp node that says whether a child is potentially visible or not from any of the four quadrants! 
+  - project bsp nodes to screen-space via table trick (faster than atan2), and compare against minimum_drawable_x and maximum_drawable_x.  if within that range, check against whole coverage buffer
+  
 - check sector AABBs or spheres against frustum and span-buffer
 - use visplanes and perspective correct depth shading (do correction every N pixels and interpolate between)
 - add masked object rendering
@@ -64,7 +65,10 @@
 - add an automap
 - make gameplay speed framerate independent?
 
-- use log and expt tables for division (16/16), sample code below
+- use log and expt tables for division (16/16), sample code below (50 cycles)
+- never divide 0/anything (always 0 anyway) or anything/0 (undefined)
+- if you can reuse the dividend, it should be 36 cycles
+- if you can reuse the divisor, it should be 40 cycles (for x and y projection of a vertex)
   ```
   EXPT   incbin "EXPS10000H.bin"
   LOGT   incbin "LOGS8000H.bin"
