@@ -1,7 +1,7 @@
-import copy, os, pickle, re, sys, struct
+import copy, math, os, pickle, re, sys, struct
 from frozendict import frozendict
 from dataclasses import make_dataclass, dataclass
-
+import BitVector
 
 wad_data = None
 num_directory_entries = None
@@ -179,7 +179,7 @@ SSECTOR_FORMAT = """
 class SSector:
     num_segs: int
     first_seg: int
-        
+
 
 NODE_SIZE = 28
 # this is pretty big..
@@ -344,12 +344,47 @@ compiled_parse_things = []
 for (name,klass,format_string, size) in parse_things:
     parse_func = compile_format_string(format_string)
     compiled_parse_things.append((name, parse_func, klass, size))
+
+
+def maybe_line_of_sight(src_sector_idx, dest_sector_idx, level):
+    num_sectors = len(level['SECTORS'])
+    bit_idx = (src_sector_idx * num_sectors) + dest_sector_idx
+
+    byte_idx = int(bit_idx / 8)
+
     
+    bit_pos = bit_idx % 8
+    
+    return (level['REJECT'][byte_idx] & (1 << bit_pos) == 0)
+
+
+def get_subsector_sector_idx(subsector, level):
+    first_seg = level['SEGS'][subsector.first_seg]
+    return seg_sector_idx(first_seg, level)
+
+
+def seg_sector_idx(seg, level):
+    linedef = level['LINEDEFS'][seg.linedef]
+    if seg.direction == 0:
+        sidedef = level['SIDEDEFS'][linedef.right_sidedef]
+    else:
+        sidedef = level['SIDEDEFS'][linedef.left_sidedef]
+
+    return sidedef.sector_ref
+
+def portal_seg_other_sector_idx(seg, level):
+    linedef = level['LINEDEFS'][seg.linedef]
+    if seg.direction == 0:
+        sidedef = level['SIDEDEFS'][linedef.left_sidedef]
+    else:
+        sidedef = level['SIDEDEFS'][linedef.right_sidedef]
+
+    return sidedef.sector_ref
+
     
 
 def read_level_data(level_dir):
 
-    #reject     = level_dat['REJECT']
     #blockmap   = level_dat['BLOCKMAP']
 
     results = {}
@@ -370,6 +405,24 @@ def read_level_data(level_dir):
 
         results[key] = list_of_things
 
+    # read reject table
+    num_sectors = len(results['SECTORS'])
+    reject_table_num_bits = num_sectors*num_sectors
+    reject_table_num_bytes = math.ceil(reject_table_num_bits/8.0)
+
+    
+    idx = level_dir['REJECT'].ptr
+    reject_data = wad_data[idx:idx+reject_table_num_bytes]
+
+    
+    print("expected reject bits: {}".format(reject_table_num_bits))
+    print("expected reject bytes: {}".format(reject_table_num_bytes))
+    
+    results['REJECT'] = reject_data #reject_bitvector
+    
+        
+        
+    
     return results
 
 @dataclass(frozen=True, eq=True, repr=True)

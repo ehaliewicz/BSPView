@@ -1,5 +1,6 @@
 import util
 import draw
+import wad
 
 #def draw_bsp_nodes(nodes, surf):
 #    root_node = get_root_node(nodes)
@@ -68,31 +69,65 @@ def bsp_child_onscreen(node, left_child=True):
     
     
 def traverse_bsp_front_to_back(level_data,
-                               x, y,
+                               x, y, start_subsector,
+                               node_callback=lambda node,left_child_first: None,
                                ssect_callback=lambda ssect: None):
     nodes = level_data['NODES']
     ssectors = level_data['SSECTORS']
     root_node_idx = len(nodes)-1
-    depth = 0
+    #depth = 0
 
-    stk = [root_node_idx]
+    #stk = [root_node_idx]
+
+
+    src_sector_idx = wad.get_subsector_sector_idx(start_subsector, level_data)
     
-    while len(stk) > 0:
-        node_idx = stk.pop()
-
+    def recurse(node_idx):
         if is_ssect_idx(node_idx):
-            ssect_callback(ssectors[get_real_idx(node_idx)])
+            subsector = ssectors[get_real_idx(node_idx)]
+            dest_sector_idx = wad.get_subsector_sector_idx(subsector, level_data)
+            if ((not draw.pvs_check) or
+                (draw.pvs_check and wad.maybe_line_of_sight(src_sector_idx, dest_sector_idx, level_data))):
+                ssect_callback(ssectors[get_real_idx(node_idx)])
+            return
+
+        node = nodes[get_real_idx(node_idx)]
+
+        on_left = is_on_left(node, x, y)
+        visiting_left = False
+        visiting_right = False
+
+        second_child = None
+        frustum_culling = draw.bsp_node_frustum_culling
+        
+        if on_left:
+            first_child = node.left_child
+            visiting_left = True
+            if (not frustum_culling) or bsp_child_onscreen(node, left_child=False):
+                visiting_right = True
+                second_child = node.right_child
+                                
+
         else:
-            node = nodes[get_real_idx(node_idx)]
-            if is_on_left(node, x, y):
-                if draw.draw_mode == draw.TOPDOWN_DRAW_ALL_SEGS or (bsp_child_onscreen(node, left_child=False)):
-                    stk.append(node.right_child)
-                stk.append(node.left_child)
-            else:
-                if draw.draw_mode == draw.TOPDOWN_DRAW_ALL_SEGS or (bsp_child_onscreen(node, left_child=True)):
-                    stk.append(node.left_child)
-                stk.append(node.right_child)
+            first_child = node.right_child
+            visiting_right = True
+            if (not frustum_culling) or bsp_child_onscreen(node, left_child=True):
+                visiting_left = True
+                second_child = node.left_child
+
                 
+
+        
+        if node_callback:
+            node_callback(node, visiting_left, visiting_right)
+
+        recurse(first_child)
+        if second_child:
+            recurse(second_child)
+
+    recurse(root_node_idx)
+
+
 
     
     
@@ -115,3 +150,4 @@ def find_subsector_for_position(level_data,
                 node_callback(node, depth, on_left=False)
                 node_idx = node.right_child
             depth += 1
+
