@@ -1,9 +1,10 @@
 # Optimize performance
-- backface culling in worldspace?
-  - in each sector, store lists of possibly viewable walls for each of the four angle quadrants!
+- backface culling in worldspace
+  - in each sector, store the range(s) of angles (up to 2) for which a wall seg is visible
 - bsp node frustum culling
   - instead of checking bounding boxes at runtime (probably expensive), add information to each bsp node that says whether a child is potentially visible or not from any of the four quadrants! 
 - check sector AABBs or spheres against frustum and span-buffer
+- use visplanes and perspective correct depth shading (do correction every N pixels and interpolate between)
 - add masked object rendering
   - not quite sure how this works yet
   - need to clip sprites against a recorded list of drawn silhouettes
